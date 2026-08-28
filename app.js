@@ -842,120 +842,219 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
-  // 9. SCADA CHART & 50HZ WAVEFORM (Analytics Tab)
+  // =========================================================
+  // 9. SCADA REAL-TIME TREND CHART (Analytics Tab)
   // =========================================================
   const canvas = document.getElementById('scadaTrendChart');
+  const chartWrapper = document.querySelector('.chart-canvas-wrapper');
+  const chartTooltip = document.getElementById('chart-tooltip');
+  let hoverX = -1;
 
   function renderScadaChart() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
 
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    let w = canvas.parentElement ? canvas.parentElement.clientWidth - 24 : 800;
+    let h = canvas.parentElement ? canvas.parentElement.clientHeight - 24 : 300;
+
+    if (w < 100) w = 800;
+    if (h < 100) h = 300;
+
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
     ctx.scale(dpr, dpr);
 
-    const w = rect.width;
-    const h = rect.height;
-    const padL = 45;
-    const padR = 20;
-    const padT = 20;
-    const padB = 30;
-    const chartW = w - padL - padR;
-    const chartH = h - padT - padB;
+    const padL = 55;
+    const padR = 25;
+    const padT = 25;
+    const padB = 35;
+    const chartW = Math.max(10, w - padL - padR);
+    const chartH = Math.max(10, h - padT - padB);
 
     ctx.clearRect(0, 0, w, h);
 
-    // Grid lines
-    ctx.strokeStyle = state.theme === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
-    ctx.lineWidth = 1;
+    const isLight = document.body.classList.contains('theme-light');
+    const maxVal = 1200;
 
+    // Grid lines & Y-Axis Ticks
+    ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = padT + (chartH / 4) * i;
+      ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.07)';
       ctx.beginPath();
       ctx.moveTo(padL, y);
       ctx.lineTo(w - padR, y);
       ctx.stroke();
 
-      const val = Math.round(1200 - (1200 / 4) * i);
-      ctx.fillStyle = state.theme === 'dark' ? '#64748b' : '#94a3b8';
-      ctx.font = '10px JetBrains Mono';
+      const val = Math.round(maxVal - (maxVal / 4) * i);
+      ctx.fillStyle = isLight ? '#64748b' : '#94a3b8';
+      ctx.font = '11px "JetBrains Mono", monospace';
       ctx.textAlign = 'right';
-      ctx.fillText(`${val}W`, padL - 8, y + 3);
+      ctx.fillText(`${val} W`, padL - 8, y + 4);
     }
 
     const n = chartBuffer.length;
     if (n < 2) return;
     const stepX = chartW / (n - 1);
-    const getY = (val) => padT + chartH - (Math.max(0, Math.min(1200, val)) / 1200) * chartH;
+    const getY = (val) => padT + chartH - (Math.max(0, Math.min(maxVal, val)) / maxVal) * chartH;
 
-    // Solar Line
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(padL, getY(chartBuffer[0].solar));
-    for (let i = 1; i < n; i++) ctx.lineTo(padL + i * stepX, getY(chartBuffer[i].solar));
-    ctx.stroke();
+    // Helper: Draw Smooth Area & Line Curve
+    function drawTrace(dataKey, strokeColor, fillColor, lineWidth = 2.5) {
+      if (fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT + chartH);
+        for (let i = 0; i < n; i++) {
+          const x = padL + i * stepX;
+          const y = getY(Math.abs(chartBuffer[i][dataKey] || 0));
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(padL + (n - 1) * stepX, padT + chartH);
+        ctx.closePath();
+        ctx.fill();
+      }
 
-    // Load Line
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(padL, getY(chartBuffer[0].load));
-    for (let i = 1; i < n; i++) ctx.lineTo(padL + i * stepX, getY(chartBuffer[i].load));
-    ctx.stroke();
-  }
-
-  // 50Hz Sine Waveform Animation
-  const waveCanvas = document.getElementById('inverterWaveformCanvas');
-  let waveOffset = 0;
-
-  function animateWaveform() {
-    if (!waveCanvas) return;
-    const ctx = waveCanvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const rect = waveCanvas.getBoundingClientRect();
-
-    waveCanvas.width = rect.width * dpr;
-    waveCanvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-
-    const w = rect.width;
-    const h = rect.height;
-    const midY = h / 2;
-    const amp = h * 0.38;
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Baseline
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(0, midY);
-    ctx.lineTo(w, midY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Pure Sine Wave
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'rgba(16, 185, 129, 0.8)';
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-
-    for (let x = 0; x < w; x++) {
-      const y = midY + Math.sin((x + waveOffset) * 0.04) * amp;
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const x = padL + i * stepX;
+        const y = getY(Math.abs(chartBuffer[i][dataKey] || 0));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
-    ctx.shadowBlur = 0;
 
-    waveOffset += 2;
-    requestAnimationFrame(animateWaveform);
+    // Solar Gradient & Trace
+    const solarGrad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    solarGrad.addColorStop(0, isLight ? 'rgba(245, 158, 11, 0.22)' : 'rgba(245, 158, 11, 0.18)');
+    solarGrad.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+    drawTrace('solar', '#f59e0b', solarGrad, 2.5);
+
+    // Battery Gradient & Trace
+    const batGrad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    batGrad.addColorStop(0, isLight ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)');
+    batGrad.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+    drawTrace('battery', '#a855f7', batGrad, 2.0);
+
+    // Grid Gradient & Trace
+    const gridGrad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    gridGrad.addColorStop(0, isLight ? 'rgba(2, 132, 199, 0.2)' : 'rgba(56, 189, 248, 0.15)');
+    gridGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+    drawTrace('grid', '#38bdf8', gridGrad, 2.0);
+
+    // House Load Gradient & Trace
+    const loadGrad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    loadGrad.addColorStop(0, isLight ? 'rgba(16, 185, 129, 0.28)' : 'rgba(16, 185, 129, 0.22)');
+    loadGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+    drawTrace('load', '#10b981', loadGrad, 2.8);
+
+    // X-Axis Time Ticks
+    ctx.fillStyle = isLight ? '#64748b' : '#64748b';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    const tickInterval = Math.max(1, Math.floor(n / 5));
+    for (let i = 0; i < n; i += tickInterval) {
+      const x = padL + i * stepX;
+      ctx.fillText(chartBuffer[i].time || '', x, padT + chartH + 18);
+    }
+
+    // Hover Crosshair & Data Indicator
+    if (hoverX >= padL && hoverX <= padL + chartW) {
+      const closestIdx = Math.max(0, Math.min(n - 1, Math.round((hoverX - padL) / stepX)));
+      const snapX = padL + closestIdx * stepX;
+      const pt = chartBuffer[closestIdx];
+
+      // Vertical guide line
+      ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(snapX, padT);
+      ctx.lineTo(snapX, padT + chartH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw point rings
+      const drawPoint = (val, color) => {
+        const y = getY(Math.abs(val || 0));
+        ctx.fillStyle = color;
+        ctx.strokeStyle = isLight ? '#ffffff' : '#090d14';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(snapX, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      };
+
+      drawPoint(pt.solar, '#f59e0b');
+      drawPoint(pt.battery, '#a855f7');
+      drawPoint(pt.load, '#10b981');
+      if (pt.grid > 0) drawPoint(pt.grid, '#38bdf8');
+
+      // Update Tooltip Box
+      if (chartTooltip) {
+        chartTooltip.style.display = 'flex';
+        const tooltipX = Math.min(w - 180, Math.max(10, snapX - 70));
+        chartTooltip.style.left = `${tooltipX}px`;
+        chartTooltip.style.top = `30px`;
+
+        const ttTime = document.getElementById('tt-time');
+        const ttSolar = document.getElementById('tt-solar');
+        const ttBat = document.getElementById('tt-battery');
+        const ttLoad = document.getElementById('tt-load');
+        const ttGrid = document.getElementById('tt-grid');
+
+        if (ttTime) ttTime.textContent = `${pt.time} SLST`;
+        if (ttSolar) ttSolar.textContent = `${Math.round(pt.solar)} W`;
+        if (ttBat) ttBat.textContent = `${Math.round(pt.battery)} W`;
+        if (ttLoad) ttLoad.textContent = `${Math.round(pt.load)} W`;
+        if (ttGrid) ttGrid.textContent = `${Math.round(pt.grid)} W`;
+      }
+    } else if (chartTooltip) {
+      chartTooltip.style.display = 'none';
+    }
   }
+
+  // Mouse interactivity for hover crosshair
+  if (canvas) {
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      hoverX = e.clientX - rect.left;
+      renderScadaChart();
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      hoverX = -1;
+      renderScadaChart();
+      if (chartTooltip) chartTooltip.style.display = 'none';
+    });
+  }
+
+  // Automatic ResizeObserver for seamless tab activation
+  if (chartWrapper && window.ResizeObserver) {
+    const ro = new ResizeObserver(() => {
+      if (state.activeTab === 'analytics') {
+        renderScadaChart();
+      }
+    });
+    ro.observe(chartWrapper);
+  }
+
+  // Time Range Filter Buttons
+  document.querySelectorAll('.time-range-selector .time-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.time-range-selector .time-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const range = btn.getAttribute('data-range');
+      state.chartRange = range;
+      showToast(`SCADA Chart Range: ${range.toUpperCase()} Buffer Active`);
+      renderScadaChart();
+    });
+  });
 
   // =========================================================
   // 10. NAVIGATION & TAB SWITCHING
