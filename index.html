@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=3.7" />
+  <link rel="stylesheet" href="styles.css?v=3.8" />
 </head>
 <body class="theme-dark">
   
@@ -140,8 +140,8 @@
         <nav class="nav-pills-bar">
           <button class="nav-pill active" data-tab="overview">Overview</button>
           <button class="nav-pill" data-tab="analytics">Analytics</button>
-          <button class="nav-pill" data-tab="appliances">Appliance Control</button>
-          <button class="nav-pill" data-tab="billing">Billing & Savings</button>
+          <button class="nav-pill" data-tab="appliances">Current Load &amp; Appliances</button>
+          <button class="nav-pill" data-tab="billing">Billing &amp; Savings</button>
           <button class="nav-pill" data-tab="history">Switching History</button>
           <button class="nav-pill" data-tab="settings">Settings</button>
         </nav>
@@ -1167,15 +1167,163 @@
     </div>
 
     <!-- =========================================================
-         VIEW 4: APPLIANCES ACS712 ANALOG ADC VIEW
+         VIEW 4: CURRENT LOAD & HOUSEHOLD APPLIANCES CONTROL
          ========================================================= -->
     <div class="app-view-container" id="view-appliances">
       
+      <!-- Top 4 KPI Metrics Row for Current Load -->
+      <section class="metrics-grid" style="margin-bottom: 20px;">
+        
+        <!-- Load KPI 1: Active Inverter Demand -->
+        <div class="metric-card highlight-card">
+          <div class="metric-card-header">
+            <div class="metric-title-group">
+              <span class="metric-category-icon text-mint"><i data-lucide="zap"></i></span>
+              <span class="metric-title">ACTIVE INVERTER LOAD</span>
+            </div>
+            <span class="metric-delta-tag positive">72% of 1kW</span>
+          </div>
+          <div class="card-middle-visual" style="padding: 10px 0;">
+            <div class="load-big-display">
+              <span class="load-num-display" id="appliances-view-watts">720</span>
+              <span class="load-unit-display">W</span>
+            </div>
+            <span class="load-wave-tag">Pure Sine Wave &bull; 230.1V 50.0Hz</span>
+          </div>
+          <div class="gauge-subpanel-capsule">
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">Peak Today</span>
+              <span class="g-sub-num">1.28 <small>kW</small></span>
+            </div>
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">Headroom</span>
+              <span class="g-sub-num text-mint">280 <small>W</small></span>
+            </div>
+            <div class="g-sub-col headroom-highlight">
+              <span class="g-sub-lbl">Status</span>
+              <span class="g-sub-num text-mint">NOMINAL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load KPI 2: Energy Consumed Today -->
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <div class="metric-title-group">
+              <span class="metric-category-icon text-cyan"><i data-lucide="activity"></i></span>
+              <span class="metric-title">ENERGY CONSUMED TODAY</span>
+            </div>
+            <span class="metric-delta-tag positive">Real-Time</span>
+          </div>
+          <div class="card-middle-visual" style="padding: 10px 0;">
+            <div class="load-big-display">
+              <span class="load-num-display text-cyan">5.40</span>
+              <span class="load-unit-display">kWh</span>
+            </div>
+            <span class="load-wave-tag">Cumulative Household Metering</span>
+          </div>
+          <div class="gauge-subpanel-capsule">
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">1h Demand</span>
+              <span class="g-sub-num">0.69 <small>kWh</small></span>
+            </div>
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">6h Demand</span>
+              <span class="g-sub-num">2.70 <small>kWh</small></span>
+            </div>
+            <div class="g-sub-col headroom-highlight">
+              <span class="g-sub-lbl">Est. Bill</span>
+              <span class="g-sub-num text-amber">Rs. 124.50</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load KPI 3: AC Power Quality & Harmonics -->
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <div class="metric-title-group">
+              <span class="metric-category-icon text-purple"><i data-lucide="sliders"></i></span>
+              <span class="metric-title">POWER QUALITY &amp; PF</span>
+            </div>
+            <span class="metric-delta-tag positive">0.98 PF</span>
+          </div>
+          <div class="card-middle-visual" style="padding: 10px 0;">
+            <div class="load-big-display">
+              <span class="load-num-display text-purple">230.1</span>
+              <span class="load-unit-display">V</span>
+            </div>
+            <span class="load-wave-tag">50.02 Hz &bull; THD &lt; 2.1%</span>
+          </div>
+          <div class="gauge-subpanel-capsule">
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">Frequency</span>
+              <span class="g-sub-num">50.02 <small>Hz</small></span>
+            </div>
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">Current</span>
+              <span class="g-sub-num">3.13 <small>A</small></span>
+            </div>
+            <div class="g-sub-col headroom-highlight">
+              <span class="g-sub-lbl">Reactive</span>
+              <span class="g-sub-num text-mint">142 <small>VAR</small></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load KPI 4: Active Circuits & Relays -->
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <div class="metric-title-group">
+              <span class="metric-category-icon text-amber"><i data-lucide="toggle-right"></i></span>
+              <span class="metric-title">SMART RELAYS ARMED</span>
+            </div>
+            <span class="metric-delta-tag positive" id="app-view-active-badge">3 of 4 ON</span>
+          </div>
+          <div class="card-middle-visual" style="padding: 10px 0;">
+            <div class="load-big-display">
+              <span class="load-num-display text-amber">4</span>
+              <span class="load-unit-display">Channels</span>
+            </div>
+            <span class="load-wave-tag">Automated Overload Shedding Active</span>
+          </div>
+          <div class="gauge-subpanel-capsule">
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">Priority 1</span>
+              <span class="g-sub-num text-mint">Living</span>
+            </div>
+            <div class="g-sub-col">
+              <span class="g-sub-lbl">Priority 2</span>
+              <span class="g-sub-num text-mint">Kitchen</span>
+            </div>
+            <div class="g-sub-col headroom-highlight">
+              <span class="g-sub-lbl">Shed Relay</span>
+              <span class="g-sub-num text-amber">Socket</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Disaggregation Bar -->
+      <div class="disaggregation-summary-card" style="margin-bottom: 20px;">
+        <div class="disagg-header">
+          <span class="disagg-title">REAL-TIME CIRCUIT LOAD DISAGGREGATION</span>
+          <span class="disagg-val" id="app-view-sum-watts">720 W Total Active Demand</span>
+        </div>
+        <div class="disagg-multi-bar">
+          <div class="disagg-seg seg-bulb1" id="app-view-seg-bulb1" style="width: 13.2%" title="Living Room: 95W (13.2%)"></div>
+          <div class="disagg-seg seg-bulb2" id="app-view-seg-bulb2" style="width: 0%" title="Kitchen: 0W (0%)"></div>
+          <div class="disagg-seg seg-bulb3" id="app-view-seg-bulb3" style="width: 8.3%" title="Bedroom: 60W (8.3%)"></div>
+          <div class="disagg-seg seg-socket" id="app-view-seg-socket" style="width: 78.5%" title="Heavy Socket: 565W (78.5%)"></div>
+        </div>
+      </div>
+
+      <!-- Main Sensor Telemetry Table Panel -->
       <div class="dashboard-panel">
         <div class="panel-header">
           <div class="panel-header-title">
-            <h3 class="panel-title">ACS712 Current Sensor Telemetry Channels</h3>
-            <span class="panel-subtitle">Analog voltage readout, branch circuit Amperes, Wattage calculation and relay switching</span>
+            <h3 class="panel-title">ACS712 Current Sensor Telemetry Channels &amp; Relay Controls</h3>
+            <span class="panel-subtitle">Real-time analog voltage ADC readout, RMS Amperes, Wattage calculation, and interactive SSR relays</span>
           </div>
         </div>
 
@@ -1195,18 +1343,18 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>CH 1: Bulb 1 (Living)</strong></td>
+              <td><strong>CH 1: Bulb 1 (Living Room Lighting &amp; TV)</strong></td>
               <td>ACS712-05B (185 mV/A)</td>
               <td><code>ADC: 542</code></td>
               <td id="tbl-amp-bulb1">0.41 A</td>
-              <td id="tbl-w-bulb1">95 W</td>
+              <td id="tbl-w-bulb1" class="text-mint">95 W</td>
               <td>0.32 kWh</td>
               <td>Rs. 8.00</td>
               <td><span class="status-pill on" id="tbl-status-bulb1">ACTIVE</span></td>
               <td><button class="table-switch-btn active" data-app="bulb1">ON</button></td>
             </tr>
             <tr>
-              <td><strong>CH 2: Bulb 2 (Kitchen)</strong></td>
+              <td><strong>CH 2: Bulb 2 (Kitchen &amp; Dining Refrigerator)</strong></td>
               <td>ACS712-05B (185 mV/A)</td>
               <td><code>ADC: 512</code></td>
               <td id="tbl-amp-bulb2">0.00 A</td>
@@ -1217,22 +1365,22 @@
               <td><button class="table-switch-btn" data-app="bulb2">OFF</button></td>
             </tr>
             <tr>
-              <td><strong>CH 3: Bulb 3 (Study)</strong></td>
+              <td><strong>CH 3: Bulb 3 (Study &amp; Master Bedroom AC)</strong></td>
               <td>ACS712-05B (185 mV/A)</td>
               <td><code>ADC: 531</code></td>
               <td id="tbl-amp-bulb3">0.26 A</td>
-              <td id="tbl-w-bulb3">60 W</td>
+              <td id="tbl-w-bulb3" class="text-mint">60 W</td>
               <td>0.18 kWh</td>
               <td>Rs. 4.50</td>
               <td><span class="status-pill on" id="tbl-status-bulb3">ACTIVE</span></td>
               <td><button class="table-switch-btn active" data-app="bulb3">ON</button></td>
             </tr>
             <tr>
-              <td><strong>CH 4: Power Socket (Heavy)</strong></td>
+              <td><strong>CH 4: Power Socket (Heater / High-Load Cooker)</strong></td>
               <td>ACS712-20A (100 mV/A)</td>
               <td><code>ADC: 648</code></td>
               <td id="tbl-amp-socket">2.46 A</td>
-              <td id="tbl-w-socket">565 W</td>
+              <td id="tbl-w-socket" class="text-amber">565 W</td>
               <td>1.45 kWh</td>
               <td>Rs. 36.25</td>
               <td><span class="status-pill on heavy" id="tbl-status-socket">HEAVY LOAD</span></td>
@@ -1449,6 +1597,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=3.7"></script>
+  <script src="app.js?v=3.8"></script>
 </body>
 </html>
