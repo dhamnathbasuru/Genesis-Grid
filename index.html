@@ -285,7 +285,7 @@
          ========================================================= -->
     <section class="metrics-grid">
       
-      <!-- Card 1: CURRENT HOUSE LOAD -->
+      <!-- Card 1: CURRENT HOUSE LOAD (Live Wave Analyzer) -->
       <div class="metric-card highlight-card">
         <div class="metric-card-header">
           <div class="metric-title-group">
@@ -297,12 +297,46 @@
             <span id="card-load-state-tag">Active Demand</span>
           </div>
         </div>
-        <div class="metric-value-row">
-          <div class="metric-number-wrap">
-            <span class="main-metric-val" id="val-power-load">720</span>
-            <span class="metric-unit">W</span>
+
+        <!-- Middle Visual: Live Real-Time Power Equalizer Waves -->
+        <div class="card-middle-visual load-visual-wrap">
+          <div class="load-big-display">
+            <span class="load-num-display" id="val-power-load">720</span>
+            <span class="load-unit-display">W</span>
           </div>
-          <div class="sparkline-bar-meter" id="meter-power-load"></div>
+          
+          <!-- Animated Multi-Bar Equalizer -->
+          <div class="live-power-spectrum" id="live-power-spectrum">
+            <span class="spectrum-bar" style="height: 45%;"></span>
+            <span class="spectrum-bar" style="height: 65%;"></span>
+            <span class="spectrum-bar" style="height: 85%;"></span>
+            <span class="spectrum-bar" style="height: 55%;"></span>
+            <span class="spectrum-bar" style="height: 90%;"></span>
+            <span class="spectrum-bar" style="height: 70%;"></span>
+            <span class="spectrum-bar" style="height: 40%;"></span>
+            <span class="spectrum-bar" style="height: 80%;"></span>
+            <span class="spectrum-bar" style="height: 60%;"></span>
+            <span class="spectrum-bar" style="height: 95%;"></span>
+            <span class="spectrum-bar" style="height: 50%;"></span>
+            <span class="spectrum-bar" style="height: 75%;"></span>
+          </div>
+          <span class="load-wave-tag">Pure Sine Wave &bull; 230.1V 50Hz</span>
+        </div>
+
+        <!-- Bottom Sub-Panel Box -->
+        <div class="gauge-subpanel-capsule">
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Peak Today</span>
+            <span class="g-sub-num">1.28 <small>kW</small></span>
+          </div>
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Power Factor</span>
+            <span class="g-sub-num">0.98 <small>PF</small></span>
+          </div>
+          <div class="g-sub-col headroom-highlight">
+            <span class="g-sub-lbl">Branches</span>
+            <span class="g-sub-num text-mint" id="mini-branches-active">3/4 ON</span>
+          </div>
         </div>
       </div>
 
@@ -366,36 +400,102 @@
         </div>
       </div>
 
-      <!-- Card 3: BATTERY STORAGE SOC -->
-      <div class="metric-card">
+      <!-- Card 3: BATTERY STORAGE BMS (Animated Flow & Energy Cells) -->
+      <div class="metric-card battery-card-flow">
         <div class="metric-card-header">
           <div class="metric-title-group">
-            <span class="metric-category-icon"><i data-lucide="battery-charging"></i></span>
+            <span class="metric-category-icon text-purple"><i data-lucide="battery-charging"></i></span>
             <span class="metric-title">BATTERY STORAGE (BMS)</span>
           </div>
-          <span class="metric-sub-label text-purple" id="val-bat-state-desc">51.2V • Discharging</span>
+          <span class="metric-sub-label text-purple" id="val-bat-state-desc">51.2V &bull; Discharging</span>
         </div>
-        <div class="metric-value-row">
-          <div class="metric-number-wrap">
-            <span class="main-metric-val text-mint" id="val-bat-soc">78%</span>
-            <span class="metric-unit" id="val-bat-energy-left">3.74 kWh</span>
+
+        <!-- Middle Visual: Live Battery Cells & Power Flow Animation -->
+        <div class="card-middle-visual battery-visual-wrap">
+          <div class="bms-headline-row">
+            <div class="bms-big-soc">
+              <span class="main-metric-val text-mint" id="val-bat-soc">78%</span>
+              <span class="bms-cap-label" id="val-bat-energy-left">3.74 kWh</span>
+            </div>
+            <div class="bms-flow-indicator discharging" id="bms-flow-badge">
+              <span class="flow-arrow-icon" id="bms-flow-icon">▼</span>
+              <span id="bms-flow-text">520W Discharging</span>
+            </div>
+          </div>
+
+          <!-- 4-Cell Dynamic Battery Pack with Liquid Level Fill -->
+          <div class="bms-battery-pack">
+            <div class="bms-cell active filled" id="bcell-1"><span class="cell-particle"></span></div>
+            <div class="bms-cell active filled" id="bcell-2"><span class="cell-particle"></span></div>
+            <div class="bms-cell active filled" id="bcell-3"><span class="cell-particle"></span></div>
+            <div class="bms-cell active partial" id="bcell-4"><span class="cell-particle"></span></div>
+            <div class="bms-terminal-knob"></div>
+          </div>
+          <span class="bms-sub-note" id="bms-time-estimate">Est. Runtime: ~7h 12m at current load</span>
+        </div>
+
+        <!-- Bottom Sub-Panel Box -->
+        <div class="gauge-subpanel-capsule">
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Voltage</span>
+            <span class="g-sub-num" id="val-bat-voltage">51.2 <small>V</small></span>
+          </div>
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Current</span>
+            <span class="g-sub-num" id="val-bat-current">10.15 <small>A</small></span>
+          </div>
+          <div class="g-sub-col headroom-highlight">
+            <span class="g-sub-lbl">BMS SOH</span>
+            <span class="g-sub-num text-mint">98.5%</span>
           </div>
         </div>
       </div>
 
-      <!-- Card 4: ESTIMATED MONEY SAVED -->
-      <div class="metric-card">
+      <!-- Card 4: ESTIMATED MONEY SAVED (Tariff Avoidance Graph) -->
+      <div class="metric-card savings-card-flow">
         <div class="metric-card-header">
           <div class="metric-title-group">
-            <span class="metric-category-icon"><i data-lucide="trending-up"></i></span>
+            <span class="metric-category-icon text-amber"><i data-lucide="trending-up"></i></span>
             <span class="metric-title">MONEY SAVED THIS MONTH</span>
           </div>
           <span class="metric-sub-label text-amber">+57.2% Saved</span>
         </div>
-        <div class="metric-value-row">
-          <div class="metric-number-wrap">
+
+        <!-- Middle Visual: Savings Trajectory & Avoided Grid Meter -->
+        <div class="card-middle-visual savings-visual-wrap">
+          <div class="savings-big-display">
             <span class="metric-currency-symbol">Rs.</span>
-            <span class="main-metric-val" id="val-money-saved">4,820</span>
+            <span class="main-metric-val text-amber" id="val-money-saved">4,820</span>
+          </div>
+
+          <!-- Mini Sparkline Projection Bars -->
+          <div class="savings-sparkline-wrap">
+            <div class="savings-bar-track">
+              <span class="sav-bar" style="height: 35%;"></span>
+              <span class="sav-bar" style="height: 48%;"></span>
+              <span class="sav-bar" style="height: 60%;"></span>
+              <span class="sav-bar" style="height: 75%;"></span>
+              <span class="sav-bar" style="height: 82%;"></span>
+              <span class="sav-bar" style="height: 90%;"></span>
+              <span class="sav-bar active" style="height: 100%;"></span>
+            </div>
+            <span class="savings-tier-badge">Avoided Peak Tariff @ Rs. 54/kWh</span>
+          </div>
+        </div>
+
+        <!-- Bottom Sub-Panel Box -->
+        <div class="gauge-subpanel-capsule">
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Today's Save</span>
+            <span class="g-sub-num text-amber">Rs. 248.50</span>
+          </div>
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Solar Yield</span>
+            <span class="g-sub-num">42.6 <small>kWh</small></span>
+          </div>
+          <div class="g-sub-col headroom-highlight">
+            <span class="g-sub-lbl">CO₂ Offset</span>
+            <span class="g-sub-num text-mint">32.4 <small>kg</small></span>
           </div>
         </div>
       </div>
