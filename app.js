@@ -979,6 +979,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateChartFooterMetrics(range) {
     const lbl1 = document.getElementById('chart-stat-lbl-1');
     const val1 = document.getElementById('chart-stat-val-1');
+    const lblLoad = document.getElementById('chart-stat-lbl-load');
+    const valLoad = document.getElementById('chart-stat-val-load');
     const lbl2 = document.getElementById('chart-stat-lbl-2');
     const val2 = document.getElementById('chart-stat-val-2');
     const lbl3 = document.getElementById('chart-stat-lbl-3');
@@ -993,46 +995,54 @@ document.addEventListener('DOMContentLoaded', () => {
     if (range === 'live') {
       lbl1.textContent = 'CURRENT SOLAR';
       val1.textContent = `${state.solarPower} W`;
-      lbl2.textContent = 'ACTIVE HOUSE LOAD';
-      val2.textContent = `${state.inverterPower} W`;
+      if (lblLoad) lblLoad.textContent = 'CURRENT HOUSE LOAD';
+      if (valLoad) valLoad.textContent = `${state.inverterPower} W`;
+      lbl4.textContent = 'BATTERY FLOW';
+      val4.textContent = `${state.batteryState === 'charging' ? '+' + state.solarPower + ' W' : '-' + state.inverterPower + ' W'}`;
+      lbl2.textContent = 'ACTIVE TARIFF RATE';
+      val2.textContent = 'Rs. 54.00 / kWh';
       lbl3.textContent = 'INVERTER EFFICIENCY';
       val3.textContent = '95.2%';
-      lbl4.textContent = 'BATTERY NET FLOW';
-      val4.textContent = `${state.batteryState === 'charging' ? '+' + state.solarPower + ' W' : '-' + state.inverterPower + ' W'}`;
-      lbl5.textContent = 'ACTIVE TARIFF RATE';
-      val5.textContent = 'Rs. 54.00 / kWh';
+      lbl5.textContent = 'SAVINGS TODAY';
+      val5.textContent = 'Rs. 248.50';
     } else if (range === '1h') {
       lbl1.textContent = '1H SOLAR HARVEST';
       val1.textContent = '0.82 kWh';
-      lbl2.textContent = '1H HOUSE DEMAND';
+      if (lblLoad) lblLoad.textContent = '1H HOUSE DEMAND';
+      if (valLoad) valLoad.textContent = '0.69 kWh';
+      lbl4.textContent = 'BATTERY DISCHARGE';
+      val4.textContent = '0.51 kWh';
+      lbl2.textContent = 'PEAK AVOIDED';
       val2.textContent = '0.69 kWh';
       lbl3.textContent = 'AVG EFFICIENCY';
       val3.textContent = '95.1%';
-      lbl4.textContent = 'BATTERY DISCHARGE';
-      val4.textContent = '0.51 kWh';
       lbl5.textContent = '1H COST SAVINGS';
       val5.textContent = 'Rs. 38.88';
     } else if (range === '6h') {
       lbl1.textContent = '6H SOLAR TOTAL';
       val1.textContent = '3.42 kWh';
+      if (lblLoad) lblLoad.textContent = '6H HOUSE DEMAND';
+      if (valLoad) valLoad.textContent = '2.70 kWh';
+      lbl4.textContent = 'BATTERY SOH';
+      val4.textContent = '98.5%';
       lbl2.textContent = 'PEAK LOAD AVOIDED';
       val2.textContent = '2.10 kWh';
       lbl3.textContent = 'AVG EFFICIENCY';
       val3.textContent = '94.6%';
-      lbl4.textContent = 'BATTERY SOH';
-      val4.textContent = '98.5%';
       lbl5.textContent = '6H TARIFF SAVINGS';
       val5.textContent = 'Rs. 162.00';
     } else {
       // 24h
       lbl1.textContent = 'SOLAR GENERATION TODAY';
       val1.textContent = '6.84 kWh';
-      lbl2.textContent = 'AVOIDED PEAK GRID IMPORT';
+      if (lblLoad) lblLoad.textContent = 'HOUSE DEMAND TODAY';
+      if (valLoad) valLoad.textContent = '5.40 kWh';
+      lbl4.textContent = 'BATTERY BMS SOH';
+      val4.textContent = `${Math.round(state.batterySOC)}% • 98.5% SOH`;
+      lbl2.textContent = 'AVOIDED PEAK GRID';
       val2.textContent = '4.20 kWh';
       lbl3.textContent = 'INVERTER EFFICIENCY';
       val3.textContent = '94.8%';
-      lbl4.textContent = 'BATTERY SOH';
-      val4.textContent = '98.5%';
       lbl5.textContent = 'TOTAL SAVINGS TODAY';
       val5.textContent = 'Rs. 248.50';
     }
