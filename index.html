@@ -306,22 +306,62 @@
         </div>
       </div>
 
-      <!-- Card 2: INVERTER LOAD & CAPACITY -->
-      <div class="metric-card">
+      <!-- Card 2: CAPACITY LOAD GAUGE (1:1 with Reference Design) -->
+      <div class="metric-card capacity-gauge-card highlight-card">
         <div class="metric-card-header">
           <div class="metric-title-group">
-            <span class="metric-category-icon"><i data-lucide="zap"></i></span>
-            <span class="metric-title">INVERTER CAPACITY LOAD</span>
+            <span class="metric-category-icon"><i data-lucide="gauge-circle"></i></span>
+            <div>
+              <span class="metric-title">Capacity Load Gauge</span>
+              <div class="gauge-header-sub">vs <span id="gauge-max-cap-label">1000 W</span> max capacity</div>
+            </div>
           </div>
-          <span class="metric-sub-label">vs <span id="val-inv-cap-label">1000 W</span></span>
+          <button class="gauge-dots-btn" title="Capacity Options"><i data-lucide="more-horizontal"></i></button>
         </div>
-        <div class="metric-value-row">
-          <div class="metric-number-wrap">
-            <span class="main-metric-val" id="val-capacity-pct">72%</span>
-            <span class="metric-unit">Load</span>
+
+        <!-- SVG Semi-Circular Arc Gauge -->
+        <div class="gauge-arc-wrap">
+          <svg class="gauge-svg-element" viewBox="0 0 280 145">
+            <defs>
+              <linearGradient id="gauge-arc-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="60%" stop-color="#05df72" />
+                <stop offset="85%" stop-color="#f59e0b" />
+                <stop offset="100%" stop-color="#ef4444" />
+              </linearGradient>
+              <filter id="gauge-knob-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#05df72" flood-opacity="0.9"/>
+              </filter>
+            </defs>
+            <!-- Background Track -->
+            <path d="M 35 125 A 105 105 0 0 1 245 125" fill="none" stroke="#172333" stroke-width="15" stroke-linecap="round" />
+            <!-- Active Progress Arc -->
+            <path id="gauge-arc-progress" d="M 35 125 A 105 105 0 0 1 245 125" fill="none" stroke="url(#gauge-arc-gradient)" stroke-width="15" stroke-linecap="round" stroke-dasharray="329.87" stroke-dashoffset="92.36" />
+            <!-- Glowing Indicator Knob -->
+            <circle id="gauge-arc-knob" cx="206.9" cy="44.1" r="8" fill="#090d14" stroke="#05df72" stroke-width="4.5" filter="url(#gauge-knob-shadow)" />
+          </svg>
+
+          <!-- Center Text Overlay inside the Arc -->
+          <div class="gauge-center-content">
+            <span class="gauge-big-pct" id="val-gauge-pct">72%</span>
+            <span class="gauge-of-cap">of capacity</span>
+            <span class="gauge-status-badge badge-normal" id="val-gauge-status">Normal Load</span>
           </div>
-          <div class="load-progress-track">
-            <div class="load-progress-bar-fill" id="overview-progress-bar-fill" style="width: 72%;"></div>
+        </div>
+
+        <!-- Bottom 3-Column Sub-Panel Box -->
+        <div class="gauge-subpanel-capsule">
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Current</span>
+            <span class="g-sub-num" id="val-gauge-current">720 <small>W</small></span>
+          </div>
+          <div class="g-sub-col">
+            <span class="g-sub-lbl">Maximum</span>
+            <span class="g-sub-num" id="val-gauge-max">1000 <small>W</small></span>
+          </div>
+          <div class="g-sub-col headroom-highlight">
+            <span class="g-sub-lbl">Headroom</span>
+            <span class="g-sub-num text-mint" id="val-gauge-headroom">280 <small>W</small></span>
           </div>
         </div>
       </div>
