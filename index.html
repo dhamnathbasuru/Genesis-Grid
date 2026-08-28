@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Genesis Grid — IoT Solar Power Management System</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="theme-dark">
+  
+  <!-- APP ROOT CONTAINER -->
+  <div class="app-container">
+    
+    <!-- =========================================================
+         TOP NAVIGATION BAR (Genesis Grid Themed)
+         ========================================================= -->
+    <header class="top-nav">
+      <!-- Left: Logo & Brand -->
+      <div class="nav-brand-group">
+        <div class="brand-logo" id="logo-home-trigger">
+          <div class="brand-sparkle-pill">
+            <svg class="brand-star" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/>
+            </svg>
+          </div>
+          <span class="brand-title">Genesis Grid <small class="brand-sub-badge">EMS</small></span>
+        </div>
+
+        <!-- Center-Left Nav Pills -->
+        <nav class="nav-pills-bar">
+          <button class="nav-pill active" data-tab="overview">Overview</button>
+          <button class="nav-pill" data-tab="flow">Energy Diagram</button>
+          <button class="nav-pill" data-tab="analytics">24H SCADA</button>
+          <button class="nav-pill" data-tab="appliances">Appliances (ACS712)</button>
+          <button class="nav-pill" data-tab="billing">Billing & Savings</button>
+          <button class="nav-pill" data-tab="history">Switching History</button>
+          <button class="nav-pill" data-tab="settings">Settings</button>
+        </nav>
+      </div>
+
+      <!-- Right Nav Tools -->
+      <div class="nav-actions-group">
+        
+        <!-- Operating Mode Capsule Selector -->
+        <div class="operating-mode-capsule">
+          <span class="capsule-label">MODE:</span>
+          <div class="mode-buttons-group">
+            <button class="mode-btn active" data-mode="auto" title="Automatic Cost & Battery Optimization">AUTO</button>
+            <button class="mode-btn" data-mode="solar" title="Force Solar / Battery Inverter">SOLAR</button>
+            <button class="mode-btn" data-mode="grid" title="Force Main Grid Power">GRID</button>
+          </div>
+        </div>
+
+        <!-- Demo Scenarios Dropdown Menu -->
+        <div class="demo-scenarios-wrapper">
+          <button class="demo-trigger-btn" id="demo-dropdown-btn" title="One-Click Presentation Demos">
+            <i data-lucide="play-circle"></i>
+            <span>Demo Scenarios</span>
+            <i data-lucide="chevron-down" class="btn-chevron"></i>
+          </button>
+          <div class="demo-dropdown-menu" id="demo-dropdown-menu">
+            <div class="dropdown-header">Interactive EMS Test Scenarios</div>
+            <button class="demo-preset-opt" data-scenario="1">
+              <span class="preset-num">1</span>
+              <div class="preset-meta">
+                <span class="preset-title">Solar Gen + Low Load</span>
+                <span class="preset-desc">Solar (850W) powers house & charges battery</span>
+              </div>
+            </button>
+            <button class="demo-preset-opt" data-scenario="2">
+              <span class="preset-num">2</span>
+              <div class="preset-meta">
+                <span class="preset-title">Peak Tariff Optimization</span>
+                <span class="preset-desc">Battery Inverter saves Rs. 54/kWh Peak Grid tariff</span>
+              </div>
+            </button>
+            <button class="demo-preset-opt warning-preset" data-scenario="3">
+              <span class="preset-num">3</span>
+              <div class="preset-meta">
+                <span class="preset-title">⚠️ Overload Spike (1.28 kW)</span>
+                <span class="preset-desc">Triggers 30s High Load Warning countdown</span>
+              </div>
+            </button>
+            <button class="demo-preset-opt success-preset" data-scenario="4">
+              <span class="preset-num">4</span>
+              <div class="preset-meta">
+                <span class="preset-title">⚡ Load Shedding / Reduction</span>
+                <span class="preset-desc">User sheds socket -> Load automatically normalizes</span>
+              </div>
+            </button>
+            <button class="demo-preset-opt" data-scenario="5">
+              <span class="preset-num">5</span>
+              <div class="preset-meta">
+                <span class="preset-title">⏳ Auto Grid Timeout</span>
+                <span class="preset-desc">Countdown ends -> Automated safety switch to Grid</span>
+              </div>
+            </button>
+            <button class="demo-preset-opt" data-scenario="6">
+              <span class="preset-num">6</span>
+              <div class="preset-meta">
+                <span class="preset-title">🔌 Grid Blackout Outage</span>
+                <span class="preset-desc">Grid fails -> Inverter seamless backup power</span>
+              </div>
+            </button>
+            <button class="demo-preset-opt" data-scenario="7">
+              <span class="preset-num">7</span>
+              <div class="preset-meta">
+                <span class="preset-title">🪫 Critical Low Battery (&lt;20%)</span>
+                <span class="preset-desc">SOC cutoff protection -> Switches to Grid</span>
+              </div>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="demo-preset-opt reset-preset" data-scenario="reset">
+              <i data-lucide="rotate-ccw"></i>
+              <div class="preset-meta">
+                <span class="preset-title">Reset Normal Baseline</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notification Bell -->
+        <button class="icon-circle-btn" id="notif-btn" title="Alerts & System Notifications">
+          <i data-lucide="bell"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <!-- Theme Switcher -->
+        <button class="icon-circle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+          <i data-lucide="sun" id="theme-icon"></i>
+        </button>
+
+        <!-- User Profile Capsule -->
+        <div class="user-profile-capsule">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Jordan Lee" class="user-avatar-img" />
+          <div class="user-meta">
+            <span class="user-display-name">Jordan Lee</span>
+            <span class="user-role-tag">Energy Controller</span>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- =========================================================
+         HIGH LOAD WARNING INTERVENTION BANNER
+         ========================================================= -->
+    <section class="high-load-banner-wrapper" id="high-load-banner" style="display: none;">
+      <div class="high-load-banner-content">
+        <div class="alert-icon-col">
+          <div class="pulsing-warning-icon">
+            <i data-lucide="alert-triangle"></i>
+          </div>
+        </div>
+
+        <div class="alert-info-col">
+          <div class="alert-headline-row">
+            <h3 class="alert-title">HIGH LOAD DETECTED — INVERTER CAPACITY EXCEEDED</h3>
+            <span class="alert-countdown-badge" id="countdown-badge">
+              <i data-lucide="timer"></i> Switching to GRID in <strong id="countdown-seconds">30</strong>s
+            </span>
+          </div>
+          <p class="alert-description">
+            Current House Load: <strong id="hl-current-load">1.28 kW</strong> • Inverter Limit: <strong id="hl-inverter-cap">1.00 kW</strong> • Excess Overload: <strong class="text-danger" id="hl-excess-load">280 W</strong>. 
+            Reduce high-power loads to stay on Solar/Battery, or the system will safely transfer to Main Grid.
+          </p>
+          <div class="countdown-progress-bar">
+            <div class="countdown-fill" id="countdown-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="alert-actions-col">
+          <button class="alert-btn btn-reduce-load" id="btn-action-reduce-load" title="Shed heavy socket load">
+            <i data-lucide="zap-off"></i>
+            <span>REDUCE LOAD</span>
+          </button>
+          <button class="alert-btn btn-switch-grid" id="btn-action-switch-grid" title="Immediate Grid Transfer">
+            <i data-lucide="plug"></i>
+            <span>SWITCH TO GRID</span>
+          </button>
+          <button class="alert-btn btn-override" id="btn-action-continue-inv" title="Temporary Surge Tolerance">
+            <span>CONTINUE ON INVERTER</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         HERO SECTION: OVERVIEW HEADER & 3D FROSTED CARD
+         ========================================================= -->
+    <section class="hero-overview-row">
+      
+      <!-- Left Hero Title Column -->
+      <div class="hero-title-column">
+        <span class="hero-kicker-tag">IoT-Based Solar Power Management System (EMS)</span>
+        
+        <div class="hero-title-with-slider">
+          <h2 class="hero-main-title">Overview Panel <span class="title-dash">—</span></h2>
+          <div class="slider-pagination-dots">
+            <span class="slider-dash"></span>
+            <span class="slider-dot"></span>
+            <span class="slider-dot"></span>
+          </div>
+        </div>
+
+        <!-- Meta Sub-Row -->
+        <div class="hero-submeta-row">
+          <div class="status-live-pill">
+            <span class="live-pulse-dot" id="online-pulse-dot"></span>
+            <span class="status-name" id="hero-status-name">ONLINE (NORMAL)</span>
+            <span class="status-divider">•</span>
+            <span class="site-desc" id="hero-source-name">SOLAR + BATTERY ACTIVE</span>
+          </div>
+
+          <div class="clock-capsule">
+            <i data-lucide="clock" class="mini-icon"></i>
+            <span id="live-clock">23:40:45</span>
+            <span class="tz-tag">SLST</span>
+          </div>
+
+          <div class="tariff-live-capsule">
+            <i data-lucide="activity" class="mini-icon"></i>
+            <span id="hero-tariff-rate">PEAK: Rs. 54.00/kWh</span>
+          </div>
+
+          <button class="stream-pill-toggle active" id="live-stream-toggle">
+            <i data-lucide="refresh-cw" class="stream-spin-icon"></i>
+            <span>Live Telemetry</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Hero 3D Stacked Frosted Card Deck -->
+      <div class="hero-visual-column">
+        <div class="frosted-cards-deck">
+          <div class="deck-card-layer layer-3"></div>
+          <div class="deck-card-layer layer-2"></div>
+          <div class="deck-card-layer layer-1">
+            <div class="card-ambient-glow"></div>
+            <div class="deck-top-row">
+              <div class="deck-badge">
+                <i data-lucide="zap" class="deck-bolt-icon"></i>
+                <span>Solar Savings Insights</span>
+              </div>
+              <button class="deck-arrow-btn" title="View Full Billing Breakdown" id="btn-quick-billing">
+                <i data-lucide="arrow-up-right"></i>
+              </button>
+            </div>
+            <div class="deck-body">
+              <p class="deck-headline">
+                Last 24h, Solar + Battery shifted peak loads, avoiding <span class="deck-bold-metric" id="hero-kwh-saved">42.6 kWh</span> and saving <span class="deck-bold-metric" id="hero-money-saved">Rs. 4,820</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Row Below Deck -->
+        <div class="hero-filter-row">
+          <div class="date-filter-capsule">
+            <i data-lucide="calendar" class="calendar-mini-icon"></i>
+            <span>01.08.2026</span>
+            <span class="date-sep">—</span>
+            <span>27.08.2026</span>
+          </div>
+
+          <div class="site-dropdown-wrapper">
+            <button class="site-dropdown-btn">
+              <i data-lucide="map-pin" class="pin-mini-icon"></i>
+              <span>Solar Node #1 (Residential 4.8kWh)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         TOP 4 METRICS ROW (Solar System Telemetry in Genesis Cards)
+         ========================================================= -->
+    <section class="metrics-grid">
+      
+      <!-- Card 1: CURRENT HOUSE LOAD -->
+      <div class="metric-card highlight-card">
+        <div class="metric-card-header">
+          <div class="metric-title-group">
+            <span class="metric-category-icon"><i data-lucide="gauge"></i></span>
+            <span class="metric-title">CURRENT HOUSE LOAD</span>
+          </div>
+          <div class="metric-delta-tag positive">
+            <span class="pulse-green-dot"></span>
+            <span id="card-load-state-tag">Active Demand</span>
+          </div>
+        </div>
+        <div class="metric-value-row">
+          <div class="metric-number-wrap">
+            <span class="main-metric-val" id="val-power-load">720</span>
+            <span class="metric-unit">W</span>
+          </div>
+          <div class="sparkline-bar-meter" id="meter-power-load"></div>
+        </div>
+      </div>
+
+      <!-- Card 2: INVERTER LOAD & CAPACITY -->
+      <div class="metric-card">
+        <div class="metric-card-header">
+          <div class="metric-title-group">
+            <span class="metric-category-icon"><i data-lucide="zap"></i></span>
+            <span class="metric-title">INVERTER CAPACITY LOAD</span>
+          </div>
+          <span class="metric-sub-label">vs <span id="val-inv-cap-label">1000 W</span></span>
+        </div>
+        <div class="metric-value-row">
+          <div class="metric-number-wrap">
+            <span class="main-metric-val" id="val-capacity-pct">72%</span>
+            <span class="metric-unit">Load</span>
+          </div>
+          <div class="load-progress-track">
+            <div class="load-progress-bar-fill" id="overview-progress-bar-fill" style="width: 72%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: BATTERY STORAGE SOC -->
+      <div class="metric-card">
+        <div class="metric-card-header">
+          <div class="metric-title-group">
+            <span class="metric-category-icon"><i data-lucide="battery-charging"></i></span>
+            <span class="metric-title">BATTERY STORAGE (BMS)</span>
+          </div>
+          <span class="metric-sub-label text-purple" id="val-bat-state-desc">51.2V • Discharging</span>
+        </div>
+        <div class="metric-value-row">
+          <div class="metric-number-wrap">
+            <span class="main-metric-val text-mint" id="val-bat-soc">78%</span>
+            <span class="metric-unit" id="val-bat-energy-left">3.74 kWh</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: ESTIMATED MONEY SAVED -->
+      <div class="metric-card">
+        <div class="metric-card-header">
+          <div class="metric-title-group">
+            <span class="metric-category-icon"><i data-lucide="trending-up"></i></span>
+            <span class="metric-title">MONEY SAVED THIS MONTH</span>
+          </div>
+          <span class="metric-sub-label text-amber">+57.2% Saved</span>
+        </div>
+        <div class="metric-value-row">
+          <div class="metric-number-wrap">
+            <span class="metric-currency-symbol">Rs.</span>
+            <span class="main-metric-val" id="val-money-saved">4,820</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         VIEW 1: OVERVIEW TAB (Infused Dashboard)
+         ========================================================= -->
+    <div class="app-view-container active" id="view-overview">
+      
+      <!-- =========================================================
+           HOME ENERGY SYSTEM DISTRIBUTION DIAGRAM (Unified Vector SVG)
+           1:1 Pixel-Perfect & Mathematically Tethered
+           ========================================================= -->
+      <div class="dashboard-panel energy-distribution-panel">
+        <div class="panel-header">
+          <div class="panel-header-title">
+            <h3 class="panel-title diagram-header-title">HOME ENERGY SYSTEM DIAGRAM</h3>
+            <span class="panel-subtitle">Integrated Power Routing: CEB Grid &bull; SMP Charge Controller &bull; Solar PV &bull; Battery BMS &bull; Inverter &bull; Home Appliances</span>
+          </div>
+          <div class="flow-header-badges">
+            <span class="flow-badge-item solar"><i data-lucide="sun"></i> Solar: <strong id="flow-head-solar">850W</strong></span>
+            <span class="flow-badge-item battery"><i data-lucide="battery-charging"></i> Battery: <strong id="flow-head-bat">-520W</strong></span>
+            <span class="flow-badge-item grid"><i data-lucide="utility-pole"></i> Grid: <strong id="flow-head-grid">0W</strong></span>
+            <span class="flow-badge-item load"><i data-lucide="home"></i> Load: <strong id="flow-head-load">720W</strong></span>
+          </div>
+        </div>
+
+        <!-- Self-Contained Pixel-Perfect Vector Canvas -->
+        <div class="distribution-vector-container">
+          <svg class="energy-system-svg" viewBox="0 0 1200 660" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <!-- Arrowhead Markers -->
+              <marker id="arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8" />
+              </marker>
+              <marker id="arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
+              </marker>
+              <marker id="arr-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c084fc" />
+              </marker>
+              <marker id="arr-amber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f59e0b" />
+              </marker>
+              <marker id="arr-mint" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34d399" />
+              </marker>
+
+              <!-- Glow Filters -->
+              <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#8b5cf6" flood-opacity="0.6"/>
+              </filter>
+              <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.5"/>
+              </filter>
+              <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#38bdf8" flood-opacity="0.5"/>
+              </filter>
+              <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.5"/>
+              </filter>
+              <filter id="glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#eab308" flood-opacity="0.5"/>
+              </filter>
+            </defs>
+
+            <!-- =========================================================
+                 CONNECTING WIRES & ARROWS (Mathematically Tethered)
+                 ========================================================= -->
+
+            <!-- 1. CEB (Grid) -> Home Appliances (AC Supply Grid Bypass) -->
+            <!-- From CEB Left (900, 110) straight to Home Appliances Right (310, 110) -->
+            <path id="path-grid-appliances" class="svg-wire-path wire-grid" d="M 900 110 L 310 110" marker-end="url(#arr-blue)"></path>
+            <text x="605" y="96" class="svg-wire-label label-cyan" text-anchor="middle">AC Supply (Grid)</text>
+
+            <!-- 2. CEB (Grid) -> SMP (AC Supply Grid) -->
+            <!-- From CEB Bottom (1020, 160) straight to SMP Top (1020, 230) -->
+            <path id="path-grid-smp" class="svg-wire-path wire-grid" d="M 1020 160 L 1020 230" marker-end="url(#arr-blue)"></path>
+            <text x="1035" y="198" class="svg-wire-label label-cyan" text-anchor="start">AC Supply (Grid)</text>
+
+            <!-- 3. SMP -> Inverter (DC from SMP / DC Bus) -->
+            <!-- From SMP Left (900, 280) straight to Inverter Right (730, 280) -->
+            <path id="path-smp-inverter" class="svg-wire-path wire-smp" d="M 900 280 L 730 280" marker-end="url(#arr-green)"></path>
+            <text x="815" y="266" class="svg-wire-label label-green" text-anchor="middle">DC from SMP (DC Bus)</text>
+
+            <!-- 4. Solar (PV Panels) -> Inverter (Solar DC Bus) -->
+            <!-- From Solar Top (865, 450) up to Y=385, left to X=660, up to Inverter Bottom (660, 340) -->
+            <path id="path-solar-inverter" class="svg-wire-path wire-solar active-flow" d="M 865 450 L 865 385 L 660 385 L 660 340" marker-end="url(#arr-amber)"></path>
+            <text x="762" y="405" class="svg-wire-label label-amber" text-anchor="middle">Solar DC Bus</text>
+
+            <!-- 5. Battery / BMS -> Inverter (Battery 48V DC) -->
+            <!-- From Battery Top (335, 450) up to Y=385, right to X=540, up to Inverter Bottom (540, 340) -->
+            <path id="path-battery-inverter" class="svg-wire-path wire-battery active-flow" d="M 335 450 L 335 385 L 540 385 L 540 340" marker-end="url(#arr-purple)"></path>
+            <text x="437" y="405" class="svg-wire-label label-purple" text-anchor="middle">Battery 48V DC</text>
+
+            <!-- 6. Inverter (DC to AC) -> Home Appliances (Inverter AC Output) -->
+            <!-- From Inverter Left (470, 280) left to X=185, up to Home Appliances Bottom (185, 160) -->
+            <path id="path-inverter-appliances" class="svg-wire-path wire-inverter active-flow" d="M 470 280 L 185 280 L 185 160" marker-end="url(#arr-mint)"></path>
+            <text x="327" y="266" class="svg-wire-label label-mint" text-anchor="middle">Inverter 230V AC</text>
+
+
+            <!-- =========================================================
+                 6 DIAGRAM NODES (Vector Cards matching user image)
+                 ========================================================= -->
+
+            <!-- 1. TOP-LEFT: Home Appliances (Yellow Box) -->
+            <g class="svg-node-group" id="svg-node-appliances" transform="translate(60, 60)">
+              <!-- Card Background Rect -->
+              <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-yellow" filter="url(#glow-yellow)"/>
+              <!-- Icon Circle -->
+              <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(234, 179, 8, 0.25)"/>
+              <path d="M 23 37 L 33 25 L 43 37 M 27 37 L 27 45 L 39 45 L 39 37" stroke="#facc15" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Title Text -->
+              <text x="62" y="32" class="svg-node-title">Home Appliances</text>
+              <text x="62" y="46" class="svg-node-sub">Load (Appliances)</text>
+              <!-- Live Metrics -->
+              <text x="14" y="82" class="svg-metric-num" id="svg-house-watts">720 W</text>
+              <rect x="105" y="65" width="130" height="24" rx="12" fill="rgba(234, 179, 8, 0.2)" stroke="#eab308" stroke-width="1"/>
+              <text x="170" y="81" class="svg-badge-text text-yellow" text-anchor="middle" id="svg-house-badge">Powered by Inverter</text>
+            </g>
+
+            <!-- 2. TOP-RIGHT: CEB (Grid) (Sky Blue Box) -->
+            <g class="svg-node-group" id="svg-node-ceb" transform="translate(900, 60)">
+              <rect x="0" y="0" width="240" height="100" rx="18" class="svg-card-bg bg-blue" filter="url(#glow-blue)"/>
+              <!-- Icon Circle -->
+              <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(2, 132, 199, 0.25)"/>
+              <path d="M 23 26 L 43 26 M 33 26 L 33 46 M 27 33 L 39 33 M 29 40 L 37 40" stroke="#38bdf8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <!-- Title Text -->
+              <text x="62" y="30" class="svg-node-title">CEB (Grid)</text>
+              <text x="62" y="46" class="svg-node-sub">Grid / Utility</text>
+              <!-- Live Metrics -->
+              <text x="14" y="82" class="svg-metric-num" id="svg-grid-watts">0 W (Standby)</text>
+              <rect x="135" y="65" width="90" height="24" rx="12" fill="rgba(2, 132, 199, 0.2)" stroke="#38bdf8" stroke-width="1"/>
+              <text x="180" y="81" class="svg-badge-text text-blue" text-anchor="middle" id="svg-grid-badge">230V • Standby</text>
+            </g>
+
+            <!-- 3. MIDDLE-RIGHT: SMP (Charge Controller) (Green Box) -->
+            <g class="svg-node-group" id="svg-node-smp" transform="translate(900, 230)">
+              <rect x="0" y="0" width="240" height="100" rx="18" class="svg-card-bg bg-green" filter="url(#glow-green)"/>
+              <!-- Icon Circle -->
+              <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(16, 185, 129, 0.25)"/>
+              <rect x="25" y="25" width="16" height="16" rx="3" stroke="#34d399" stroke-width="2" fill="none"/>
+              <circle cx="33" cy="33" r="3" fill="#34d399"/>
+              <!-- Title Text -->
+              <text x="62" y="30" class="svg-node-title">SMP (Charge Controller)</text>
+              <text x="62" y="46" class="svg-node-sub">Charge Controller</text>
+              <!-- Live Metrics -->
+              <text x="14" y="82" class="svg-metric-num" id="svg-smp-watts">48V DC Bus</text>
+              <rect x="120" y="65" width="105" height="24" rx="12" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
+              <text x="172" y="81" class="svg-badge-text text-green" text-anchor="middle" id="svg-smp-badge">Bus Synchronized</text>
+            </g>
+
+            <!-- 4. CENTER: Inverter (DC to AC) (Purple Box) -->
+            <g class="svg-node-group" id="svg-node-inverter" transform="translate(470, 230)">
+              <rect x="0" y="0" width="260" height="110" rx="18" class="svg-card-bg bg-purple active-inv-card" filter="url(#glow-purple)"/>
+              <!-- Icon Circle -->
+              <rect x="16" y="16" width="42" height="42" rx="12" fill="rgba(139, 92, 246, 0.3)"/>
+              <path d="M 40 24 L 30 38 L 38 38 L 34 50 L 46 36 L 38 36 Z" fill="#c084fc"/>
+              <!-- Title Text -->
+              <text x="70" y="34" class="svg-node-title title-inv">Inverter (DC to AC)</text>
+              <text x="70" y="50" class="svg-node-sub">Pure Sine Wave 1000W</text>
+              <!-- Live Metrics -->
+              <text x="16" y="90" class="svg-metric-num text-purple-glow" id="svg-inv-watts">720 W (72%)</text>
+              <rect x="130" y="73" width="116" height="24" rx="12" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" stroke-width="1"/>
+              <text x="188" y="89" class="svg-badge-text text-purple" text-anchor="middle" id="svg-inv-badge">DC → 230V AC Active</text>
+            </g>
+
+            <!-- 5. BOTTOM-LEFT: Battery / BMS (Royal Blue Box) -->
+            <g class="svg-node-group" id="svg-node-battery" transform="translate(210, 450)">
+              <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-darkblue" filter="url(#glow-blue)"/>
+              <!-- Icon Circle -->
+              <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(59, 130, 246, 0.25)"/>
+              <rect x="23" y="27" width="18" height="12" rx="2" stroke="#60a5fa" stroke-width="2" fill="none"/>
+              <line x1="43" y1="30" x2="43" y2="36" stroke="#60a5fa" stroke-width="2"/>
+              <!-- Title Text -->
+              <text x="62" y="30" class="svg-node-title">Battery / BMS</text>
+              <text x="62" y="46" class="svg-node-sub">(Battery Management System)</text>
+              <!-- Live Metrics -->
+              <text x="14" y="82" class="svg-metric-num text-mint" id="svg-bat-soc">78% SOC</text>
+              <rect x="115" y="65" width="120" height="24" rx="12" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" stroke-width="1"/>
+              <text x="175" y="81" class="svg-badge-text text-blue" text-anchor="middle" id="svg-bat-badge">Discharging 520W</text>
+            </g>
+
+            <!-- 6. BOTTOM-RIGHT: Solar (PV Panels) (Amber Box) -->
+            <g class="svg-node-group" id="svg-node-solar" transform="translate(740, 450)">
+              <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-amber" filter="url(#glow-amber)"/>
+              <!-- Icon Circle -->
+              <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(245, 158, 11, 0.25)"/>
+              <circle cx="33" cy="33" r="6" stroke="#fbbf24" stroke-width="2" fill="none"/>
+              <line x1="33" y1="21" x2="33" y2="24" stroke="#fbbf24" stroke-width="2"/>
+              <line x1="33" y1="42" x2="33" y2="45" stroke="#fbbf24" stroke-width="2"/>
+              <line x1="21" y1="33" x2="24" y2="33" stroke="#fbbf24" stroke-width="2"/>
+              <line x1="42" y1="33" x2="45" y2="33" stroke="#fbbf24" stroke-width="2"/>
+              <!-- Title Text -->
+              <text x="62" y="30" class="svg-node-title">Solar (PV Panels)</text>
+              <text x="62" y="46" class="svg-node-sub">Solar Source</text>
+              <!-- Live Metrics -->
+              <text x="14" y="82" class="svg-metric-num text-amber" id="svg-solar-watts">850 W</text>
+              <rect x="120" y="65" width="115" height="24" rx="12" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1"/>
+              <text x="177" y="81" class="svg-badge-text text-amber" text-anchor="middle" id="svg-solar-badge">Generating Peak</text>
+            </g>
+
+          </svg>
+        </div>
+
+        <!-- =========================================================
+             BOTTOM LEGEND & DISTRIBUTION RULES (1:1 with Diagram Image)
+             ========================================================= -->
+        <div class="diagram-footer-two-col">
+          
+          <!-- Left: LEGEND Card -->
+          <div class="diagram-legend-box">
+            <h5 class="legend-box-title">LEGEND</h5>
+            <div class="legend-items-list">
+              <div class="legend-item-row"><span class="legend-color-chip chip-grid"></span><span>Grid / Utility</span></div>
+              <div class="legend-item-row"><span class="legend-color-chip chip-smp"></span><span>Charge Controller</span></div>
+              <div class="legend-item-row"><span class="legend-color-chip chip-inverter"></span><span>Inverter</span></div>
+              <div class="legend-item-row"><span class="legend-color-chip chip-solar"></span><span>Solar Source</span></div>
+              <div class="legend-item-row"><span class="legend-color-chip chip-battery"></span><span>Battery / BMS</span></div>
+              <div class="legend-item-row"><span class="legend-color-chip chip-load"></span><span>Load (Appliances)</span></div>
+            </div>
+          </div>
+
+          <!-- Right: System Operational Rules / Principles -->
+          <div class="diagram-rules-box">
+            <ul class="diagram-bullets-list">
+              <li><strong>CEB (Grid)</strong> supplies AC power to the SMP (Charge Controller) or direct bypass to appliances during grid fallback.</li>
+              <li><strong>SMP</strong> regulates and provides DC power to the inverter.</li>
+              <li><strong>Solar panels</strong> provide DC power to the inverter.</li>
+              <li><strong>Battery / BMS system</strong> is directly connected to the inverter.</li>
+              <li><strong>Inverter</strong> converts DC to AC to power home appliances.</li>
+              <li><strong>Home appliances</strong> are powered by the inverter output.</li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ROW 2: SPLIT GRID (INDIVIDUAL APPLIANCES & AI COPILOT) -->
+      <div class="dashboard-split-grid">
+        
+        <!-- LEFT COLUMN: INDIVIDUAL APPLIANCE MONITORING (ACS712 SENSORS) -->
+        <div class="split-left-column">
+          
+          <div class="dashboard-panel devices-panel">
+            <div class="panel-header">
+              <div class="panel-header-title">
+                <h3 class="panel-title">Individual Appliance Monitoring (ACS712 Sensors)</h3>
+                <span class="panel-subtitle">Real-time branch current telemetry, wattage calculation, and interactive relays</span>
+              </div>
+              <div class="device-count-pill">
+                <span class="pulse-dot-green"></span>
+                <span id="active-appliances-count-badge">3 of 4 Appliances Active</span>
+              </div>
+            </div>
+
+            <!-- Disaggregation Multi-Bar for House Load -->
+            <div class="disaggregation-summary-card">
+              <div class="disagg-header">
+                <span class="disagg-title">ACTIVE BRANCH LOAD DISAGGREGATION</span>
+                <span class="disagg-val" id="appliances-sum-watts">720 W Total Active Demand</span>
+              </div>
+              <div class="disagg-multi-bar">
+                <div class="disagg-seg seg-bulb1" id="seg-bulb1" style="width: 13.2%" title="Bulb 1: 95W (13.2%)"></div>
+                <div class="disagg-seg seg-bulb2" id="seg-bulb2" style="width: 0%" title="Bulb 2: 0W (0%)"></div>
+                <div class="disagg-seg seg-bulb3" id="seg-bulb3" style="width: 8.3%" title="Bulb 3: 60W (8.3%)"></div>
+                <div class="disagg-seg seg-socket" id="seg-socket" style="width: 78.5%" title="Heavy Socket: 565W (78.5%)"></div>
+              </div>
+            </div>
+
+            <!-- Connected Appliance Cards List -->
+            <div class="devices-list" id="appliances-cards-list">
+              
+              <!-- Appliance 1: Bulb 1 -->
+              <div class="device-row-item active" id="app-card-bulb1">
+                <div class="dev-icon-box light-box">
+                  <i data-lucide="lightbulb"></i>
+                </div>
+                <div class="dev-details-col">
+                  <div class="dev-title-row">
+                    <span class="dev-name">Bulb 1 (Living Room)</span>
+                    <span class="dev-status-tag tag-running" id="app-status-bulb1">ON</span>
+                  </div>
+                  <span class="dev-meta-text" id="app-specs-bulb1">0.41 A • 0.32 kWh • 3h 24m • Sensor: ACS712-05A</span>
+                </div>
+                <div class="dev-metric-col">
+                  <span class="dev-load-num" id="app-watts-bulb1">95 <small>W</small></span>
+                  <span class="dev-pct-label text-amber" id="app-cost-bulb1">Rs. 8.00</span>
+                </div>
+                <div class="dev-action-col">
+                  <button class="dev-toggle-switch active" data-app="bulb1" id="toggle-bulb1" title="Toggle Relay Switch"></button>
+                </div>
+              </div>
+
+              <!-- Appliance 2: Bulb 2 -->
+              <div class="device-row-item" id="app-card-bulb2">
+                <div class="dev-icon-box light-box-off">
+                  <i data-lucide="lightbulb-off"></i>
+                </div>
+                <div class="dev-details-col">
+                  <div class="dev-title-row">
+                    <span class="dev-name">Bulb 2 (Kitchen / Dining)</span>
+                    <span class="dev-status-tag tag-off" id="app-status-bulb2">OFF</span>
+                  </div>
+                  <span class="dev-meta-text" id="app-specs-bulb2">0.00 A • 0.00 kWh • 0m • Sensor: ACS712-05A</span>
+                </div>
+                <div class="dev-metric-col">
+                  <span class="dev-load-num" id="app-watts-bulb2">0 <small>W</small></span>
+                  <span class="dev-pct-label text-muted" id="app-cost-bulb2">Rs. 0.00</span>
+                </div>
+                <div class="dev-action-col">
+                  <button class="dev-toggle-switch" data-app="bulb2" id="toggle-bulb2" title="Toggle Relay Switch"></button>
+                </div>
+              </div>
+
+              <!-- Appliance 3: Bulb 3 -->
+              <div class="device-row-item active" id="app-card-bulb3">
+                <div class="dev-icon-box light-box">
+                  <i data-lucide="lightbulb"></i>
+                </div>
+                <div class="dev-details-col">
+                  <div class="dev-title-row">
+                    <span class="dev-name">Bulb 3 (Study / Bedroom)</span>
+                    <span class="dev-status-tag tag-running" id="app-status-bulb3">ON</span>
+                  </div>
+                  <span class="dev-meta-text" id="app-specs-bulb3">0.26 A • 0.18 kWh • 3h 05m • Sensor: ACS712-05A</span>
+                </div>
+                <div class="dev-metric-col">
+                  <span class="dev-load-num" id="app-watts-bulb3">60 <small>W</small></span>
+                  <span class="dev-pct-label text-amber" id="app-cost-bulb3">Rs. 4.50</span>
+                </div>
+                <div class="dev-action-col">
+                  <button class="dev-toggle-switch active" data-app="bulb3" id="toggle-bulb3" title="Toggle Relay Switch"></button>
+                </div>
+              </div>
+
+              <!-- Appliance 4: Power Socket (Heavy Load) -->
+              <div class="device-row-item active heavy-card" id="app-card-socket">
+                <div class="dev-icon-box socket-box">
+                  <i data-lucide="tv"></i>
+                </div>
+                <div class="dev-details-col">
+                  <div class="dev-title-row">
+                    <span class="dev-name">Power Socket (TV / Refrigerator)</span>
+                    <span class="dev-status-tag tag-heavy" id="app-status-socket">HEAVY LOAD</span>
+                  </div>
+                  <span class="dev-meta-text" id="app-specs-socket">2.46 A • 1.45 kWh • 2h 10m • Sensor: ACS712-20A</span>
+                </div>
+                <div class="dev-metric-col">
+                  <span class="dev-load-num" id="app-watts-socket">565 <small>W</small></span>
+                  <span class="dev-pct-label text-amber" id="app-cost-socket">Rs. 36.25</span>
+                </div>
+                <div class="dev-action-col">
+                  <button class="dev-toggle-switch active" data-app="socket" id="toggle-socket" title="Toggle Relay Switch"></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: AI ENERGY COPILOT & TARIFF RADAR -->
+        <div class="split-right-column">
+          
+          <!-- AI Solar Copilot (Genesis Themed) -->
+          <div class="dashboard-panel ai-copilot-panel">
+            <div class="panel-header">
+              <div class="panel-header-title ai-title-row">
+                <div class="ai-avatar-icon">
+                  <i data-lucide="bot"></i>
+                </div>
+                <div>
+                  <h3 class="panel-title">AI Energy Copilot</h3>
+                  <span class="panel-subtitle">Autonomous Solar Telemetry & Cost Advisor</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat History Thread -->
+            <div class="ai-chat-thread" id="ai-chat-thread">
+              <div class="chat-message user-msg">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Jordan Lee" class="msg-avatar" />
+                <div class="msg-body">
+                  <div class="msg-author-row">
+                    <span class="msg-author">Jordan Lee</span>
+                    <span class="msg-time">18:30</span>
+                  </div>
+                  <p class="msg-text">How much grid cost are we currently saving during this Peak Tariff interval?</p>
+                </div>
+              </div>
+
+              <div class="chat-message ai-msg">
+                <div class="ai-msg-avatar">
+                  <i data-lucide="sparkles"></i>
+                </div>
+                <div class="msg-body">
+                  <div class="msg-author-row">
+                    <span class="msg-author">Solaris AI</span>
+                    <span class="msg-time">18:31</span>
+                  </div>
+                  <p class="msg-text">Peak Tariff is currently active (<strong>Rs. 54.00/kWh</strong>). Battery storage is supplying <strong>720 W</strong>:</p>
+                  
+                  <div class="ai-deviation-table">
+                    <div class="dev-row active">
+                      <span>• Avoided Grid Cost:</span>
+                      <span class="dev-val text-mint">Rs. 38.88 / hr</span>
+                    </div>
+                    <div class="dev-row">
+                      <span>• Battery Remaining:</span>
+                      <span class="dev-val">5.2 Hours (78% SOC)</span>
+                    </div>
+                    <div class="dev-row">
+                      <span>• Inverter Headroom:</span>
+                      <span class="dev-val">280 W available</span>
+                    </div>
+                  </div>
+
+                  <p class="msg-text">Recommendation: Keep heavy cooking appliances off until 22:30 Off-Peak (Rs. 13/kWh) to maximize monthly savings.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Action Chips -->
+            <div class="ai-quick-chips">
+              <button class="quick-chip" data-prompt="Analyze Peak Tariff vs Battery Savings">⚡ Peak Savings</button>
+              <button class="quick-chip" data-prompt="Check Inverter Load Headroom">📊 Inverter Headroom</button>
+              <button class="quick-chip" data-prompt="Simulate 280W Overload Spike">⚠️ Overload Test</button>
+            </div>
+
+            <!-- Input Form -->
+            <form class="ai-input-form" id="ai-chat-form">
+              <input type="text" placeholder="Ask AI Copilot about solar, battery, tariff or devices..." id="ai-chat-input" />
+              <button type="submit" class="btn-send" title="Send Query">
+                <i data-lucide="arrow-right"></i>
+              </button>
+            </form>
+          </div>
+
+          <!-- Time-of-Use Tariff Schedule Panel -->
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <div class="panel-header-title">
+                <h3 class="panel-title">CEB Time-Of-Use (TOU) Tariff Tiers</h3>
+                <span class="panel-subtitle">Dynamic unit cost schedule mapped to battery dispatch</span>
+              </div>
+            </div>
+
+            <div class="tariff-tiers-grid">
+              <div class="tariff-tier-box" id="tier-offpeak">
+                <span class="t-tier-badge">OFF-PEAK</span>
+                <span class="t-rate-num">Rs. 13.00</span>
+                <span class="t-time-span">22:30 — 05:30</span>
+                <span class="t-action-hint text-mint">Grid Cheap Charging</span>
+              </div>
+              <div class="tariff-tier-box" id="tier-day">
+                <span class="t-tier-badge">DAY</span>
+                <span class="t-rate-num">Rs. 25.00</span>
+                <span class="t-time-span">05:30 — 18:30</span>
+                <span class="t-action-hint text-amber">Direct Solar Run</span>
+              </div>
+              <div class="tariff-tier-box active" id="tier-peak">
+                <span class="t-tier-badge current">● PEAK (ACTIVE)</span>
+                <span class="t-rate-num text-danger">Rs. 54.00</span>
+                <span class="t-time-span">18:30 — 22:30</span>
+                <span class="t-action-hint text-mint">Battery Max Avoidance</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- =========================================================
+         VIEW 2: DEDICATED DISTRIBUTION DIAGRAM VIEW
+         ========================================================= -->
+    <div class="app-view-container" id="view-flow">
+      <!-- Direct anchor for Distribution Diagram tab -->
+    </div>
+
+    <!-- =========================================================
+         VIEW 3: 24H SCADA ANALYTICS VIEW
+         ========================================================= -->
+    <div class="app-view-container" id="view-analytics">
+      
+      <div class="dashboard-panel chart-panel">
+        <div class="panel-header">
+          <div class="panel-header-title">
+            <h3 class="panel-title">24-Hour SCADA Real-Time Telemetry Trend</h3>
+            <span class="panel-subtitle">Multi-trace rolling buffer: Solar Generation (W), Battery Net (W), Grid Import (W), and House Load (W)</span>
+          </div>
+
+          <div class="panel-controls">
+            <div class="chart-legend-custom">
+              <div class="legend-item"><span class="legend-color-dot solar-dot"></span><span>Solar (W)</span></div>
+              <div class="legend-item"><span class="legend-color-dot bat-dot"></span><span>Battery (W)</span></div>
+              <div class="legend-item"><span class="legend-color-dot load-dot"></span><span>Load (W)</span></div>
+              <div class="legend-item"><span class="legend-color-dot grid-dot"></span><span>Grid (W)</span></div>
+            </div>
+
+            <div class="time-range-selector">
+              <button class="time-btn live-mode-btn active" data-range="live"><span class="live-dot-pulse"></span><span>LIVE</span></button>
+              <button class="time-btn" data-range="1h">1h</button>
+              <button class="time-btn" data-range="6h">6h</button>
+              <button class="time-btn" data-range="24h">24h</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-canvas-wrapper">
+          <canvas id="scadaTrendChart"></canvas>
+          <div class="chart-tooltip" id="chart-tooltip">
+            <span class="tooltip-time" id="tt-time">18:40:00 SLST</span>
+            <div class="tooltip-values">
+              <div class="tt-row"><span class="tt-dot solar-dot"></span><span>Solar:</span><span class="tt-val" id="tt-solar">850 W</span></div>
+              <div class="tt-row"><span class="tt-dot bat-dot"></span><span>Battery:</span><span class="tt-val" id="tt-battery">-520 W</span></div>
+              <div class="tt-row"><span class="tt-dot load-dot"></span><span>Load:</span><span class="tt-val" id="tt-load">720 W</span></div>
+              <div class="tt-row"><span class="tt-dot grid-dot"></span><span>Grid:</span><span class="tt-val" id="tt-grid">0 W</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-footer-metrics">
+          <div class="chart-stat-item">
+            <span class="stat-caption">SOLAR GENERATION TODAY</span>
+            <span class="stat-bold stat-highlight">6.84 kWh</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption">AVOIDED PEAK GRID IMPORT</span>
+            <span class="stat-bold stat-highlight">4.20 kWh</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption">INVERTER EFFICIENCY</span>
+            <span class="stat-bold">94.8%</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption">BATTERY SOH</span>
+            <span class="stat-bold">98.5%</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption">TOTAL SAVINGS TODAY</span>
+            <span class="stat-bold text-amber">Rs. 248.50</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inverter Pure Sine Wave Synchroscope -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="panel-header-title">
+            <h3 class="panel-title">Inverter 50.0 Hz Pure Sine Wave Synchroscope</h3>
+            <span class="panel-subtitle">Live 230V AC output waveform • THD &lt; 2.1% • Crystal Locked Frequency</span>
+          </div>
+          <div class="device-count-pill">
+            <span class="pulse-dot-green"></span>
+            <span>230.1 V • 50.02 Hz Stable</span>
+          </div>
+        </div>
+        <canvas id="inverterWaveformCanvas" height="120"></canvas>
+      </div>
+
+    </div>
+
+    <!-- =========================================================
+         VIEW 4: APPLIANCES ACS712 ANALOG ADC VIEW
+         ========================================================= -->
+    <div class="app-view-container" id="view-appliances">
+      
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="panel-header-title">
+            <h3 class="panel-title">ACS712 Current Sensor Telemetry Channels</h3>
+            <span class="panel-subtitle">Analog voltage readout, branch circuit Amperes, Wattage calculation and relay switching</span>
+          </div>
+        </div>
+
+        <table class="ems-table">
+          <thead>
+            <tr>
+              <th>Channel / Appliance</th>
+              <th>Sensor Model</th>
+              <th>Analog ADC</th>
+              <th>Current (A)</th>
+              <th>Power (W)</th>
+              <th>Today (kWh)</th>
+              <th>Est. Cost</th>
+              <th>Status</th>
+              <th>Relay Switch</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>CH 1: Bulb 1 (Living)</strong></td>
+              <td>ACS712-05B (185 mV/A)</td>
+              <td><code>ADC: 542</code></td>
+              <td id="tbl-amp-bulb1">0.41 A</td>
+              <td id="tbl-w-bulb1">95 W</td>
+              <td>0.32 kWh</td>
+              <td>Rs. 8.00</td>
+              <td><span class="status-pill on" id="tbl-status-bulb1">ACTIVE</span></td>
+              <td><button class="table-switch-btn active" data-app="bulb1">ON</button></td>
+            </tr>
+            <tr>
+              <td><strong>CH 2: Bulb 2 (Kitchen)</strong></td>
+              <td>ACS712-05B (185 mV/A)</td>
+              <td><code>ADC: 512</code></td>
+              <td id="tbl-amp-bulb2">0.00 A</td>
+              <td id="tbl-w-bulb2">0 W</td>
+              <td>0.00 kWh</td>
+              <td>Rs. 0.00</td>
+              <td><span class="status-pill off" id="tbl-status-bulb2">OFF</span></td>
+              <td><button class="table-switch-btn" data-app="bulb2">OFF</button></td>
+            </tr>
+            <tr>
+              <td><strong>CH 3: Bulb 3 (Study)</strong></td>
+              <td>ACS712-05B (185 mV/A)</td>
+              <td><code>ADC: 531</code></td>
+              <td id="tbl-amp-bulb3">0.26 A</td>
+              <td id="tbl-w-bulb3">60 W</td>
+              <td>0.18 kWh</td>
+              <td>Rs. 4.50</td>
+              <td><span class="status-pill on" id="tbl-status-bulb3">ACTIVE</span></td>
+              <td><button class="table-switch-btn active" data-app="bulb3">ON</button></td>
+            </tr>
+            <tr>
+              <td><strong>CH 4: Power Socket (Heavy)</strong></td>
+              <td>ACS712-20A (100 mV/A)</td>
+              <td><code>ADC: 648</code></td>
+              <td id="tbl-amp-socket">2.46 A</td>
+              <td id="tbl-w-socket">565 W</td>
+              <td>1.45 kWh</td>
+              <td>Rs. 36.25</td>
+              <td><span class="status-pill on heavy" id="tbl-status-socket">HEAVY LOAD</span></td>
+              <td><button class="table-switch-btn active" data-app="socket">ON</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- =========================================================
+         VIEW 5: BILLING & COST SAVINGS FULL BREAKDOWN
+         ========================================================= -->
+    <div class="app-view-container" id="view-billing">
+      
+      <div class="billing-cards-hero-row">
+        
+        <div class="dashboard-panel billing-hero-card">
+          <span class="b-badge">ACTUAL GRID BILL</span>
+          <h4 class="b-card-title">Current Month (Aug 2026)</h4>
+          <div class="b-big-currency text-mint">Rs. 3,600</div>
+          <div class="b-breakdown-list">
+            <div class="b-item"><span>Grid Energy (68.4 kWh):</span><strong>Rs. 3,060</strong></div>
+            <div class="b-item"><span>CEB Fixed Charge:</span><strong>Rs. 540</strong></div>
+            <div class="b-item"><span>Grid Import Status:</span><strong class="text-mint">Minimal Peak Import</strong></div>
+          </div>
+        </div>
+
+        <div class="dashboard-panel billing-hero-card">
+          <span class="b-badge danger">WITHOUT SOLAR EMS</span>
+          <h4 class="b-card-title">Projected Unmanaged Cost</h4>
+          <div class="b-big-currency strikethrough text-danger">Rs. 8,420</div>
+          <div class="b-breakdown-list">
+            <div class="b-item"><span>Unmanaged Grid kWh:</span><strong>184.2 kWh</strong></div>
+            <div class="b-item"><span>Peak Surcharge Cost:</span><strong>Rs. 4,820</strong></div>
+            <div class="b-item"><span>Tariff Optimization:</span><strong>None</strong></div>
+          </div>
+        </div>
+
+        <div class="dashboard-panel billing-hero-card savings-highlight">
+          <span class="b-badge success">NET SAVINGS</span>
+          <h4 class="b-card-title">Total Money Saved This Month</h4>
+          <div class="b-big-currency text-mint">Rs. 4,820</div>
+          <div class="b-breakdown-list">
+            <div class="b-item"><span>Cost Avoidance Ratio:</span><strong class="text-mint">+57.2% Saved</strong></div>
+            <div class="b-item"><span>Avoided Peak kWh:</span><strong>89.2 kWh @ Rs. 54</strong></div>
+            <div class="b-item"><span>Est. Annual Savings:</span><strong class="text-amber">Rs. 57,840</strong></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- =========================================================
+         VIEW 6: SWITCHING HISTORY AUDIT LOG
+         ========================================================= -->
+    <div class="app-view-container" id="view-history">
+      
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="panel-header-title">
+            <h3 class="panel-title">Source Switching & SCADA Event History Log</h3>
+            <span class="panel-subtitle">Automated source transfers, high-load interventions, and battery protection audit trail</span>
+          </div>
+        </div>
+
+        <table class="ems-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Transition</th>
+              <th>Trigger Reason</th>
+              <th>House Load</th>
+              <th>Battery SOC</th>
+              <th>Active Tariff</th>
+              <th>Cost Impact</th>
+            </tr>
+          </thead>
+          <tbody id="history-events-tbody">
+            <tr>
+              <td><strong>18:30:00</strong></td>
+              <td><span class="transition-pill solar-bat">Solar &rarr; Battery</span></td>
+              <td>Sunset threshold & Peak Tariff interval activation</td>
+              <td>720 W</td>
+              <td>78%</td>
+              <td><span class="status-pill peak">PEAK Rs. 54</span></td>
+              <td><strong class="text-mint">+Rs. 38.88/hr saved</strong></td>
+            </tr>
+            <tr>
+              <td><strong>12:15:30</strong></td>
+              <td><span class="transition-pill bat-solar">Battery &rarr; Direct Solar</span></td>
+              <td>High solar irradiance (>800W) available</td>
+              <td>650 W</td>
+              <td>92%</td>
+              <td><span class="status-pill day">DAY Rs. 25</span></td>
+              <td><strong class="text-mint">+Rs. 16.25/hr saved</strong></td>
+            </tr>
+            <tr>
+              <td><strong>05:30:00</strong></td>
+              <td><span class="transition-pill grid-bat">Off-Peak &rarr; Battery Standby</span></td>
+              <td>Transition from Off-Peak to Day Tariff</td>
+              <td>420 W</td>
+              <td>95%</td>
+              <td><span class="status-pill day">DAY Rs. 25</span></td>
+              <td><strong class="text-mint">Nominal</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- =========================================================
+         VIEW 7: SETTINGS
+         ========================================================= -->
+    <div class="app-view-container" id="view-settings">
+      
+      <div class="settings-two-col-grid">
+        <div class="dashboard-panel">
+          <h3 class="panel-title">Hardware Ratings & Parameters</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Inverter Rated Capacity (Watts):</label>
+              <input type="number" value="1000" id="cfg-inv-cap" />
+              <span class="field-hint">Defines overload warning threshold</span>
+            </div>
+            <div class="form-group">
+              <label>Battery Bank Nominal Capacity (kWh):</label>
+              <input type="number" value="4.8" step="0.1" id="cfg-bat-cap" />
+              <span class="field-hint">48V 100Ah LiFePO4 Battery pack</span>
+            </div>
+            <div class="form-group">
+              <label>Minimum SOC Cutoff (%):</label>
+              <input type="number" value="20" id="cfg-min-soc" />
+              <span class="field-hint">System switches to grid below this level</span>
+            </div>
+            <div class="form-group">
+              <label>Overload Countdown Delay (Seconds):</label>
+              <input type="number" value="30" id="cfg-countdown-delay" />
+              <span class="field-hint">Grace period before automated grid transfer</span>
+            </div>
+            <button class="settings-save-btn" id="btn-save-settings">Save Hardware Settings</button>
+          </div>
+        </div>
+
+        <div class="dashboard-panel">
+          <h3 class="panel-title">CEB Electricity Tariff Rates (Rs/kWh)</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Off-Peak Rate (22:30 — 05:30):</label>
+              <input type="number" value="13.00" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Day Rate (05:30 — 18:30):</label>
+              <input type="number" value="25.00" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Peak Rate (18:30 — 22:30):</label>
+              <input type="number" value="54.00" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Fixed Monthly Utility Charge (Rs):</label>
+              <input type="number" value="540.00" />
+            </div>
+            <button class="settings-save-btn">Update Tariff Structure</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>
