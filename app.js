@@ -1655,6 +1655,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  window.openTelemetryModal = openTelemetryModal;
+  window.closeTelemetryModal = closeTelemetryModal;
+
   if (btnCloseModal) btnCloseModal.addEventListener('click', closeTelemetryModal);
   if (btnModalCloseAction) btnModalCloseAction.addEventListener('click', closeTelemetryModal);
   if (detailModal) {
