@@ -78,35 +78,35 @@ body.theme-dark {
 }
 
 /* ---------------------------------------------------------
-   LIGHT THEME
+   LIGHT THEME (Modern Apple / Linear-Grade Crisp Palette)
    --------------------------------------------------------- */
 body.theme-light {
-  --bg-main: #f6f8fa;
+  --bg-main: #f1f5f9;
   --bg-card: #ffffff;
   --bg-card-subtle: #f8fafc;
   --bg-card-hover: #f1f5f9;
   --bg-meter-track: #e2e8f0;
 
-  --border-subtle: #edf2f7;
-  --border-card: #e5e9f0;
-  --border-highlight: #d1fae5;
+  --border-subtle: #e2e8f0;
+  --border-card: #cbd5e1;
+  --border-highlight: #10b981;
 
-  --text-main: #111827;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
   --text-inverse: #ffffff;
 
-  --nav-pill-active-bg: #121212;
-  --nav-pill-active-text: #ffffff;
-  --nav-pill-hover: #f1f5f9;
+  --nav-pill-active-bg: #05df72;
+  --nav-pill-active-text: #042410;
+  --nav-pill-hover: #e2e8f0;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.04);
-  --shadow-float: 0 20px 35px -10px rgba(0, 0, 0, 0.08);
-  --shadow-mint-glow: 0 16px 36px -6px rgba(34, 197, 94, 0.35);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-float: 0 20px 35px -8px rgba(15, 23, 42, 0.12);
+  --shadow-mint-glow: 0 10px 25px -4px rgba(16, 185, 129, 0.3);
 
-  --card-highlight-bg: linear-gradient(to bottom, #ffffff, #f9fefb);
-  --slider-dash-bg: #121212;
+  --card-highlight-bg: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+  --slider-dash-bg: #05df72;
   --slider-dot-bg: #cbd5e1;
 }
 
@@ -2266,3 +2266,309 @@ body {
   .demo-scenarios-wrapper { order: 2; }
   .user-profile-capsule { order: 3; }
 }
+
+/* =========================================================
+   COMPREHENSIVE LIGHT THEME RULES & OVERRIDES (Apple-Grade Polish)
+   ========================================================= */
+body.theme-light .top-nav {
+  border-bottom-color: var(--border-subtle);
+}
+
+body.theme-light .brand-title {
+  color: #0f172a;
+}
+
+body.theme-light .nav-pills-bar {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+body.theme-light .nav-pill {
+  color: #475569;
+}
+
+body.theme-light .nav-pill:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+body.theme-light .nav-pill.active {
+  background: #05df72 !important;
+  color: #042410 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(5, 223, 114, 0.35);
+}
+
+body.theme-light .operating-mode-capsule,
+body.theme-light .demo-scenarios-capsule,
+body.theme-light .user-profile-capsule,
+body.theme-light .nav-icon-btn,
+body.theme-light .date-filter-capsule,
+body.theme-light .site-dropdown-btn {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+body.theme-light .scenario-select {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+body.theme-light .mode-radio-btn {
+  color: #64748b;
+}
+
+body.theme-light .mode-radio-btn.active {
+  background: #05df72;
+  color: #042410;
+  font-weight: 800;
+}
+
+body.theme-light .profile-details .user-name {
+  color: #0f172a;
+}
+
+/* Metric Cards in Light Mode */
+body.theme-light .metric-card {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+}
+
+body.theme-light .metric-card.highlight-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+body.theme-light .metric-title {
+  color: #475569;
+}
+
+body.theme-light .load-num-display,
+body.theme-light .main-metric-val,
+body.theme-light .gauge-big-pct,
+body.theme-light .g-sub-num {
+  color: #0f172a;
+}
+
+body.theme-light .gauge-dots-btn {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+body.theme-light .gauge-dots-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body.theme-light .gauge-subpanel-capsule {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+body.theme-light .headroom-highlight {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+body.theme-light .live-power-spectrum {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+body.theme-light .bms-battery-pack {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+body.theme-light .bms-cell {
+  background: #e2e8f0;
+}
+
+body.theme-light .savings-bar-track {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+/* SVG Capacity Load Gauge in Light Mode */
+body.theme-light .gauge-svg-element path[stroke="#172333"] {
+  stroke: #e2e8f0 !important;
+}
+
+body.theme-light #gauge-arc-knob {
+  fill: #ffffff !important;
+}
+
+/* Home Energy Distribution Diagram in Light Mode */
+body.theme-light .diagram-header-title {
+  color: #0f172a;
+}
+
+body.theme-light .distribution-vector-container {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-light .svg-wire-path {
+  stroke: #cbd5e1;
+}
+
+body.theme-light .svg-node-title {
+  fill: #0f172a;
+}
+
+body.theme-light .svg-node-sub {
+  fill: #64748b;
+}
+
+body.theme-light .bg-yellow { fill: #fefce8; stroke: #ca8a04; }
+body.theme-light .bg-blue { fill: #f0f9ff; stroke: #0284c7; }
+body.theme-light .bg-green { fill: #f0fdf4; stroke: #16a34a; }
+body.theme-light .bg-purple { fill: #faf5ff; stroke: #9333ea; }
+body.theme-light .bg-darkblue { fill: #eff6ff; stroke: #2563eb; }
+body.theme-light .bg-amber { fill: #fffbeb; stroke: #d97706; }
+
+body.theme-light .dashboard-panel {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
+}
+
+body.theme-light .panel-title {
+  color: #0f172a;
+}
+
+body.theme-light .panel-subtitle {
+  color: #64748b;
+}
+
+body.theme-light .appliance-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+body.theme-light .appliance-card.active {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12);
+}
+
+body.theme-light .dev-title {
+  color: #0f172a;
+}
+
+body.theme-light .stat-val {
+  color: #0f172a;
+}
+
+body.theme-light .scada-data-table th {
+  background: #f8fafc;
+  color: #475569;
+  border-bottom-color: #cbd5e1;
+}
+
+body.theme-light .scada-data-table td {
+  border-bottom-color: #e2e8f0;
+  color: #0f172a;
+}
+
+body.theme-light .scada-data-table tr:hover td {
+  background: #f1f5f9;
+}
+
+body.theme-light .hero-overview-header {
+  border-bottom-color: #e2e8f0;
+}
+
+body.theme-light .hero-title-main {
+  color: #0f172a;
+}
+
+body.theme-light .hero-glass-badge {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+body.theme-light .ai-copilot-panel {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+body.theme-light .chat-container {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+body.theme-light .chat-message.ai-msg .msg-body {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+body.theme-light .chat-message.user-msg .msg-body {
+  background: #f0fdf4;
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #0f172a;
+}
+
+body.theme-light .quick-chip {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+body.theme-light .quick-chip:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #05df72;
+}
+
+body.theme-light .chat-input-wrapper {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+body.theme-light .chat-input-field {
+  color: #0f172a;
+}
+
+body.theme-light .chat-input-field::placeholder {
+  color: #94a3b8;
+}
+
+body.theme-light .settings-card,
+body.theme-light .billing-summary-card,
+body.theme-light .savings-metric-card,
+body.theme-light .history-stat-card {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+body.theme-light .status-pill.on {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+body.theme-light .status-pill.off {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+body.theme-light .tariff-legend-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+body.theme-light .legend-name {
+  color: #0f172a;
+}
+
