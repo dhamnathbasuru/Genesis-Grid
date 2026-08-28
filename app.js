@@ -1610,7 +1610,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeTelemetryModal() {
-    if (detailModal) detailModal.classList.remove('active');
+    if (detailModal) {
+      detailModal.classList.remove('active');
+    }
   }
 
   if (btnCloseModal) btnCloseModal.addEventListener('click', closeTelemetryModal);
@@ -1621,12 +1623,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Bind click handlers on all interactive detail triggers
-  document.querySelectorAll('.clickable-kpi-card, .clickable-chart-card').forEach(el => {
-    el.addEventListener('click', () => {
-      const detailKey = el.getAttribute('data-detail');
-      if (detailKey) openTelemetryModal(detailKey);
-    });
+  // Global Delegated Click Listener for ANY [data-detail] Box/Card/Capsule across the app
+  document.addEventListener('click', (e) => {
+    // If clicking close buttons
+    if (e.target.closest('#btn-close-modal') || e.target.closest('#btn-modal-close-action')) {
+      closeTelemetryModal();
+      return;
+    }
+    // If clicking inside the modal content, do not re-trigger
+    if (e.target.closest('.modal-card') || e.target.closest('.demo-scenarios-wrapper') || e.target.closest('.operating-mode-capsule') || e.target.closest('.theme-toggle-btn') || e.target.closest('.nav-pill')) {
+      return;
+    }
+    const trigger = e.target.closest('[data-detail]');
+    if (trigger) {
+      const detailKey = trigger.getAttribute('data-detail');
+      if (detailKey) {
+        openTelemetryModal(detailKey);
+      }
+    }
+  });
+
+  // ESC key to close modal
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeTelemetryModal();
   });
 
   // Initial Load
