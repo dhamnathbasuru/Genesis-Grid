@@ -1017,22 +1017,45 @@
           </div>
         </div>
 
-        <!-- Top Summary KPI Metrics Bar (Interactive Clickable Deep-Dive Tiles) -->
+        <!-- Top Summary KPI Metrics Bar (Interactive Clickable Deep-Dive Tiles - 6 Channels) -->
         <div class="chart-top-metrics-bar">
+          <!-- 1. Solar Generation -->
           <div class="chart-stat-item clickable-kpi-card" data-detail="solar" title="Click to view detailed Solar Generation analytics">
             <div class="kpi-header-row">
-              <span class="stat-caption" id="chart-stat-lbl-1">SOLAR GENERATION</span>
+              <span class="stat-caption text-amber" id="chart-stat-lbl-1">SOLAR PV GENERATION</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
             </div>
-            <span class="stat-bold stat-highlight" id="chart-stat-val-1">6.84 kWh</span>
+            <span class="stat-bold stat-highlight text-amber" id="chart-stat-val-1">6.84 kWh</span>
           </div>
+
+          <!-- 2. Household Current AC Load -->
+          <div class="chart-stat-item clickable-kpi-card" data-detail="load" title="Click to view detailed Household Load analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption text-mint" id="chart-stat-lbl-load">CURRENT HOUSE LOAD</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
+            <span class="stat-bold text-mint" id="chart-stat-val-load">720 W</span>
+          </div>
+
+          <!-- 3. Battery BMS Storage -->
+          <div class="chart-stat-item clickable-kpi-card" data-detail="battery" title="Click to view detailed Battery BMS & Cell Health analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption text-purple" id="chart-stat-lbl-4">BATTERY BMS (SOC/SOH)</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
+            <span class="stat-bold text-purple" id="chart-stat-val-4">78% • 98.5% SOH</span>
+          </div>
+
+          <!-- 4. Avoided Peak Grid -->
           <div class="chart-stat-item clickable-kpi-card" data-detail="grid" title="Click to view detailed Avoided Peak Grid analytics">
             <div class="kpi-header-row">
-              <span class="stat-caption" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
+              <span class="stat-caption text-cyan" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
             </div>
-            <span class="stat-bold stat-highlight" id="chart-stat-val-2">4.20 kWh</span>
+            <span class="stat-bold text-cyan" id="chart-stat-val-2">4.20 kWh</span>
           </div>
+
+          <!-- 5. Inverter Efficiency -->
           <div class="chart-stat-item clickable-kpi-card" data-detail="inverter" title="Click to view detailed Inverter Efficiency & Waveform analytics">
             <div class="kpi-header-row">
               <span class="stat-caption" id="chart-stat-lbl-3">INVERTER EFFICIENCY</span>
@@ -1040,13 +1063,8 @@
             </div>
             <span class="stat-bold" id="chart-stat-val-3">94.8%</span>
           </div>
-          <div class="chart-stat-item clickable-kpi-card" data-detail="battery" title="Click to view detailed Battery BMS & Cell Health analytics">
-            <div class="kpi-header-row">
-              <span class="stat-caption" id="chart-stat-lbl-4">BATTERY SOH</span>
-              <i data-lucide="external-link" class="kpi-link-icon"></i>
-            </div>
-            <span class="stat-bold" id="chart-stat-val-4">98.5%</span>
-          </div>
+
+          <!-- 6. Total Savings -->
           <div class="chart-stat-item clickable-kpi-card" data-detail="savings" title="Click to view detailed Tariff Savings & ROI analytics">
             <div class="kpi-header-row">
               <span class="stat-caption" id="chart-stat-lbl-5">TOTAL SAVINGS</span>
