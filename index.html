@@ -224,19 +224,21 @@
           </div>
 
           <!-- Live Solar Generation Display in Overview -->
-          <div class="solar-live-capsule" id="hero-solar-badge">
+          <div class="solar-live-capsule clickable-kpi-card" id="hero-solar-badge" data-detail="solar" title="Click to view detailed Solar PV analytics">
             <span class="live-pulse-dot amber"></span>
             <i data-lucide="sun"></i>
             <span class="solar-lbl">Solar Gen:</span>
             <span class="solar-val" id="hero-solar-val">850 W</span>
+            <i data-lucide="external-link" class="kpi-link-icon"></i>
           </div>
 
           <!-- Current Time-Of-Use Tariff Display in Overview -->
-          <div class="tariff-live-capsule" id="hero-tariff-capsule">
+          <div class="tariff-live-capsule clickable-kpi-card" id="hero-tariff-capsule" data-detail="grid" title="Click to view detailed CEB Tariff analytics">
             <span class="live-pulse-dot danger"></span>
             <i data-lucide="zap"></i>
             <span class="tariff-tier-label" id="hero-tariff-tier">PEAK TARIFF:</span>
             <span class="tariff-rate-val" id="hero-tariff-rate">Rs. 54.00/kWh</span>
+            <i data-lucide="external-link" class="kpi-link-icon"></i>
           </div>
 
           <div class="clock-capsule">
@@ -302,7 +304,7 @@
     <section class="metrics-grid">
       
       <!-- Card 1: CURRENT HOUSE LOAD (Live Wave Analyzer) -->
-      <div class="metric-card highlight-card">
+      <div class="metric-card highlight-card clickable-kpi-card" data-detail="load" title="Click to view detailed Household Load analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon"><i data-lucide="gauge"></i></span>
@@ -357,7 +359,7 @@
       </div>
 
       <!-- Card 2: CAPACITY LOAD GAUGE (1:1 with Reference Design) -->
-      <div class="metric-card capacity-gauge-card highlight-card">
+      <div class="metric-card capacity-gauge-card highlight-card clickable-kpi-card" data-detail="inverter" title="Click to view detailed Inverter & Capacity analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon"><i data-lucide="gauge-circle"></i></span>
@@ -417,7 +419,7 @@
       </div>
 
       <!-- Card 3: BATTERY STORAGE BMS (Animated Flow & Energy Cells) -->
-      <div class="metric-card battery-card-flow">
+      <div class="metric-card battery-card-flow clickable-kpi-card" data-detail="battery" title="Click to view detailed Battery BMS analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon text-purple"><i data-lucide="battery-charging"></i></span>
@@ -468,7 +470,7 @@
       </div>
 
       <!-- Card 4: ESTIMATED MONEY SAVED (Tariff Avoidance Graph) -->
-      <div class="metric-card savings-card-flow">
+      <div class="metric-card savings-card-flow clickable-kpi-card" data-detail="savings" title="Click to view detailed Savings analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon text-amber"><i data-lucide="trending-up"></i></span>
