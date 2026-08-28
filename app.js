@@ -312,15 +312,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroStatus = document.getElementById('hero-status-name');
     const heroSource = document.getElementById('hero-source-name');
     const pulseDot = document.getElementById('online-pulse-dot');
+    const heroSolarVal = document.getElementById('hero-solar-val');
+    const heroTariffTier = document.getElementById('hero-tariff-tier');
+    const heroTariffRate = document.getElementById('hero-tariff-rate');
 
     if (heroStatus) heroStatus.textContent = state.systemOnline ? 'ONLINE (NORMAL)' : 'OFFLINE (STANDBY)';
     if (heroSource) {
       if (state.currentSource === 'grid') heroSource.textContent = 'MAIN GRID ACTIVE (STANDBY)';
-      else if (state.currentSource === 'solar') heroSource.textContent = 'DIRECT SOLAR RUN';
+      else if (state.currentSource === 'solar' || state.operatingMode === 'solar') heroSource.textContent = '100% DIRECT SOLAR PV RUN';
       else heroSource.textContent = 'SOLAR + BATTERY ACTIVE';
     }
     if (pulseDot) {
       pulseDot.className = `live-pulse-dot ${state.currentSource === 'grid' ? 'grid' : ''}`;
+    }
+
+    // Live Solar Power Generation in Overview
+    if (heroSolarVal) {
+      heroSolarVal.textContent = `${state.solarPower} W`;
+    }
+
+    // Live CEB Tariff in Overview
+    if (heroTariffTier && heroTariffRate) {
+      const tierName = state.currentTariff ? state.currentTariff.toUpperCase() : 'PEAK';
+      const rateVal = state.tariffRates[state.currentTariff] || 54.00;
+      heroTariffTier.textContent = `${tierName} TARIFF:`;
+      heroTariffRate.textContent = `Rs. ${rateVal.toFixed(2)}/kWh`;
     }
 
     // Top 4 Metric Cards
