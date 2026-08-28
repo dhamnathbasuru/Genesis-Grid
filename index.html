@@ -750,17 +750,17 @@
 
       </div>
 
-      <!-- ROW 2: SPLIT GRID (INDIVIDUAL APPLIANCES & AI COPILOT) -->
+      <!-- ROW 2: SPLIT GRID (HOME APPLIANCES & AI COPILOT) -->
       <div class="dashboard-split-grid">
         
-        <!-- LEFT COLUMN: INDIVIDUAL APPLIANCE MONITORING (ACS712 SENSORS) -->
+        <!-- LEFT COLUMN: HOME APPLIANCES & SMART CIRCUIT CONTROL -->
         <div class="split-left-column">
           
           <div class="dashboard-panel devices-panel">
-            <div class="panel-header">
+            <div class="panel-header clickable-kpi-card" data-detail="load" title="Click to view detailed Home Appliances & Load analytics">
               <div class="panel-header-title">
-                <h3 class="panel-title">Individual Appliance Monitoring (ACS712 Sensors)</h3>
-                <span class="panel-subtitle">Real-time branch current telemetry, wattage calculation, and interactive relays</span>
+                <h3 class="panel-title">Home Appliances &amp; Smart Circuit Control</h3>
+                <span class="panel-subtitle">Real-time ACS712 current telemetry, wattage calculation, and automated relay control</span>
               </div>
               <div class="device-count-pill">
                 <span class="pulse-dot-green"></span>
@@ -769,7 +769,7 @@
             </div>
 
             <!-- Disaggregation Multi-Bar for House Load -->
-            <div class="disaggregation-summary-card">
+            <div class="disaggregation-summary-card clickable-kpi-card" data-detail="load" title="Click to view detailed Load Disaggregation">
               <div class="disagg-header">
                 <span class="disagg-title">ACTIVE BRANCH LOAD DISAGGREGATION</span>
                 <span class="disagg-val" id="appliances-sum-watts">720 W Total Active Demand</span>
@@ -786,7 +786,7 @@
             <div class="devices-list" id="appliances-cards-list">
               
               <!-- Appliance 1: Bulb 1 -->
-              <div class="device-row-item active" id="app-card-bulb1">
+              <div class="device-row-item active clickable-kpi-card" id="app-card-bulb1" data-detail="load" title="Click to view detailed circuit telemetry">
                 <div class="dev-icon-box light-box">
                   <i data-lucide="lightbulb"></i>
                 </div>
@@ -807,7 +807,7 @@
               </div>
 
               <!-- Appliance 2: Bulb 2 -->
-              <div class="device-row-item" id="app-card-bulb2">
+              <div class="device-row-item clickable-kpi-card" id="app-card-bulb2" data-detail="load" title="Click to view detailed circuit telemetry">
                 <div class="dev-icon-box light-box-off">
                   <i data-lucide="lightbulb-off"></i>
                 </div>
@@ -828,7 +828,7 @@
               </div>
 
               <!-- Appliance 3: Bulb 3 -->
-              <div class="device-row-item active" id="app-card-bulb3">
+              <div class="device-row-item active clickable-kpi-card" id="app-card-bulb3" data-detail="load" title="Click to view detailed circuit telemetry">
                 <div class="dev-icon-box light-box">
                   <i data-lucide="lightbulb"></i>
                 </div>
@@ -849,7 +849,7 @@
               </div>
 
               <!-- Appliance 4: Power Socket (Heavy Load) -->
-              <div class="device-row-item active heavy-card" id="app-card-socket">
+              <div class="device-row-item active heavy-card clickable-kpi-card" id="app-card-socket" data-detail="load" title="Click to view detailed circuit telemetry">
                 <div class="dev-icon-box socket-box">
                   <i data-lucide="tv"></i>
                 </div>
