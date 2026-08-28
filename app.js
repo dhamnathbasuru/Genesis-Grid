@@ -378,6 +378,69 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Battery BMS Visualizer (Charging & Discharging Animations)
+    const bmsFlowBadge = document.getElementById('bms-flow-badge');
+    const bmsFlowIcon = document.getElementById('bms-flow-icon');
+    const bmsFlowText = document.getElementById('bms-flow-text');
+    const bmsTimeEst = document.getElementById('bms-time-estimate');
+    const valBatVolt = document.getElementById('val-bat-voltage');
+    const valBatCurr = document.getElementById('val-bat-current');
+
+    const batSoc = state.batterySOC;
+    const isCharging = state.batteryState === 'charging';
+    const isDischarging = state.batteryState === 'discharging';
+
+    if (valBatVolt) valBatVolt.innerHTML = `${state.batteryVoltage.toFixed(1)} <small>V</small>`;
+    if (valBatCurr) valBatCurr.innerHTML = `${(load / state.batteryVoltage).toFixed(2)} <small>A</small>`;
+
+    if (bmsFlowBadge && bmsFlowText && bmsFlowIcon) {
+      if (isCharging) {
+        bmsFlowBadge.className = 'bms-flow-indicator charging';
+        bmsFlowIcon.textContent = '▲';
+        bmsFlowText.textContent = `+${state.solarPower}W Charging`;
+        if (bmsTimeEst) bmsTimeEst.textContent = 'Est. Full in: ~1h 35m (Solar PV Run)';
+      } else if (isDischarging) {
+        bmsFlowBadge.className = 'bms-flow-indicator discharging';
+        bmsFlowIcon.textContent = '▼';
+        bmsFlowText.textContent = `${load}W Discharging`;
+        const hoursRemaining = load > 0 ? ((state.batteryCapacityKwh * (batSoc / 100) * 1000) / load).toFixed(1) : '24';
+        if (bmsTimeEst) bmsTimeEst.textContent = `Est. Runtime: ~${hoursRemaining}h at current load`;
+      } else {
+        bmsFlowBadge.className = 'bms-flow-indicator idle';
+        bmsFlowIcon.textContent = '●';
+        bmsFlowText.textContent = 'Float Standby';
+        if (bmsTimeEst) bmsTimeEst.textContent = 'Battery fully charged and on float';
+      }
+    }
+
+    // Update 4 Battery Cells
+    for (let c = 1; c <= 4; c++) {
+      const cell = document.getElementById(`bcell-${c}`);
+      if (cell) {
+        const threshold = c * 25;
+        if (batSoc >= threshold) {
+          cell.className = `bms-cell active filled ${isDischarging ? 'discharging' : ''}`;
+        } else if (batSoc >= threshold - 20) {
+          cell.className = `bms-cell active partial ${isDischarging ? 'discharging' : ''}`;
+        } else {
+          cell.className = 'bms-cell';
+        }
+      }
+    }
+
+    // Load Power Spectrum Animation
+    const spectrumBars = document.querySelectorAll('.spectrum-bar');
+    if (spectrumBars.length > 0) {
+      spectrumBars.forEach((bar, idx) => {
+        const baseHeight = Math.min(100, Math.max(20, (load / 1000) * 90));
+        const variance = (Math.sin(Date.now() / 200 + idx) * 15);
+        bar.style.height = `${Math.min(100, Math.max(15, baseHeight + variance))}%`;
+      });
+    }
+
+    const miniBranches = document.getElementById('mini-branches-active');
+    if (miniBranches) miniBranches.textContent = `${activeCount}/4 ON`;
+
     // Micro Sparklines
     if (sparkBars.length > 0) {
       sparkBars.forEach(bar => {
