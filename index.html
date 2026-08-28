@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=3.8" />
+  <link rel="stylesheet" href="styles.css?v=3.9" />
 </head>
 <body class="theme-dark">
   
@@ -304,15 +304,16 @@
     <section class="metrics-grid">
       
       <!-- Card 1: CURRENT HOUSE LOAD (Live Wave Analyzer) -->
-      <div class="metric-card highlight-card clickable-kpi-card" data-detail="load" onclick="openTelemetryModal('load')" title="Click to view detailed Household Load analytics">
+      <div class="metric-card highlight-card clickable-kpi-card" data-detail="load" onclick="switchTab('appliances')" title="Click to open full Current House Load detailed page">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon"><i data-lucide="gauge"></i></span>
             <span class="metric-title">CURRENT HOUSE LOAD</span>
           </div>
-          <div class="metric-delta-tag positive">
+          <div class="metric-delta-tag positive" style="display: flex; align-items: center; gap: 4px;">
             <span class="pulse-green-dot"></span>
             <span id="card-load-state-tag">Active Demand</span>
+            <i data-lucide="arrow-up-right" style="width: 13px; height: 13px; opacity: 0.8;"></i>
           </div>
         </div>
 
@@ -1597,6 +1598,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=3.8"></script>
+  <script src="app.js?v=3.9"></script>
 </body>
 </html>
