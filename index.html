@@ -22,8 +22,8 @@
          TOP NAVIGATION BAR (Genesis Grid Themed)
          ========================================================= -->
     <header class="top-nav">
-      <!-- Left: Logo & Brand -->
-      <div class="nav-brand-group">
+      <!-- Top Tier: Brand Logo & Control Center -->
+      <div class="nav-top-tier">
         <div class="brand-logo" id="logo-home-trigger">
           <div class="brand-sparkle-pill">
             <svg class="brand-star" viewBox="0 0 24 24" fill="currentColor">
@@ -33,7 +33,110 @@
           <span class="brand-title">Genesis Grid <small class="brand-sub-badge">EMS</small></span>
         </div>
 
-        <!-- Center-Left Nav Pills -->
+        <!-- Right Nav Tools -->
+        <div class="nav-actions-group">
+          <!-- Operating Mode Capsule Selector -->
+          <div class="operating-mode-capsule">
+            <span class="capsule-label">MODE:</span>
+            <div class="mode-buttons-group">
+              <button class="mode-btn active" data-mode="auto" title="Automatic Cost & Battery Optimization">AUTO</button>
+              <button class="mode-btn" data-mode="solar" title="Force Solar / Battery Inverter">SOLAR</button>
+              <button class="mode-btn" data-mode="grid" title="Force Main Grid Power">GRID</button>
+            </div>
+          </div>
+
+          <!-- Demo Scenarios Dropdown Menu -->
+          <div class="demo-scenarios-wrapper">
+            <button class="demo-trigger-btn" id="demo-dropdown-btn" title="One-Click Presentation Demos">
+              <i data-lucide="play-circle"></i>
+              <span>Demo Scenarios</span>
+              <i data-lucide="chevron-down" class="btn-chevron"></i>
+            </button>
+            <div class="demo-dropdown-menu" id="demo-dropdown-menu">
+              <div class="dropdown-header">Interactive EMS Test Scenarios</div>
+              <button class="demo-preset-opt" data-scenario="1">
+                <span class="preset-num">1</span>
+                <div class="preset-meta">
+                  <span class="preset-title">Solar Gen + Low Load</span>
+                  <span class="preset-desc">Solar (850W) powers house & charges battery</span>
+                </div>
+              </button>
+              <button class="demo-preset-opt" data-scenario="2">
+                <span class="preset-num">2</span>
+                <div class="preset-meta">
+                  <span class="preset-title">Peak Tariff Optimization</span>
+                  <span class="preset-desc">Battery Inverter saves Rs. 54/kWh Peak Grid tariff</span>
+                </div>
+              </button>
+              <button class="demo-preset-opt warning-preset" data-scenario="3">
+                <span class="preset-num">3</span>
+                <div class="preset-meta">
+                  <span class="preset-title">⚠️ Overload Spike (1.28 kW)</span>
+                  <span class="preset-desc">Triggers 30s High Load Warning countdown</span>
+                </div>
+              </button>
+              <button class="demo-preset-opt success-preset" data-scenario="4">
+                <span class="preset-num">4</span>
+                <div class="preset-meta">
+                  <span class="preset-title">⚡ Load Shedding / Reduction</span>
+                  <span class="preset-desc">User sheds socket -> Load automatically normalizes</span>
+                </div>
+              </button>
+              <button class="demo-preset-opt" data-scenario="5">
+                <span class="preset-num">5</span>
+                <div class="preset-meta">
+                  <span class="preset-title">⏳ Auto Grid Timeout</span>
+                  <span class="preset-desc">Countdown ends -> Automated safety switch to Grid</span>
+                </div>
+              </button>
+              <button class="demo-preset-opt" data-scenario="6">
+                <span class="preset-num">6</span>
+                <div class="preset-meta">
+                  <span class="preset-title">🔌 Grid Blackout Outage</span>
+                  <span class="preset-desc">Grid fails -> Inverter seamless backup power</span>
+                </div>
+              </button>
+              <button class="demo-preset-opt" data-scenario="7">
+                <span class="preset-num">7</span>
+                <div class="preset-meta">
+                  <span class="preset-title">🪫 Critical Low Battery (&lt;20%)</span>
+                  <span class="preset-desc">SOC cutoff protection -> Switches to Grid</span>
+                </div>
+              </button>
+              <div class="dropdown-divider"></div>
+              <button class="demo-preset-opt reset-preset" data-scenario="reset">
+                <i data-lucide="rotate-ccw"></i>
+                <div class="preset-meta">
+                  <span class="preset-title">Reset Normal Baseline</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Notification Bell -->
+          <button class="icon-circle-btn" id="notif-btn" title="Alerts & System Notifications">
+            <i data-lucide="bell"></i>
+            <span class="notif-dot"></span>
+          </button>
+
+          <!-- Theme Switcher -->
+          <button class="icon-circle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+            <i data-lucide="sun" id="theme-icon"></i>
+          </button>
+
+          <!-- User Profile Capsule -->
+          <div class="user-profile-capsule">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Jordan Lee" class="user-avatar-img" />
+            <div class="user-meta">
+              <span class="user-display-name">Jordan Lee</span>
+              <span class="user-role-tag">Energy Controller</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Tier: Segmented Navigation Bar -->
+      <div class="nav-bottom-tier">
         <nav class="nav-pills-bar">
           <button class="nav-pill active" data-tab="overview">Overview</button>
           <button class="nav-pill" data-tab="analytics">Analytics</button>
@@ -42,109 +145,6 @@
           <button class="nav-pill" data-tab="history">Switching History</button>
           <button class="nav-pill" data-tab="settings">Settings</button>
         </nav>
-      </div>
-
-      <!-- Right Nav Tools -->
-      <div class="nav-actions-group">
-        
-        <!-- Operating Mode Capsule Selector -->
-        <div class="operating-mode-capsule">
-          <span class="capsule-label">MODE:</span>
-          <div class="mode-buttons-group">
-            <button class="mode-btn active" data-mode="auto" title="Automatic Cost & Battery Optimization">AUTO</button>
-            <button class="mode-btn" data-mode="solar" title="Force Solar / Battery Inverter">SOLAR</button>
-            <button class="mode-btn" data-mode="grid" title="Force Main Grid Power">GRID</button>
-          </div>
-        </div>
-
-        <!-- Demo Scenarios Dropdown Menu -->
-        <div class="demo-scenarios-wrapper">
-          <button class="demo-trigger-btn" id="demo-dropdown-btn" title="One-Click Presentation Demos">
-            <i data-lucide="play-circle"></i>
-            <span>Demo Scenarios</span>
-            <i data-lucide="chevron-down" class="btn-chevron"></i>
-          </button>
-          <div class="demo-dropdown-menu" id="demo-dropdown-menu">
-            <div class="dropdown-header">Interactive EMS Test Scenarios</div>
-            <button class="demo-preset-opt" data-scenario="1">
-              <span class="preset-num">1</span>
-              <div class="preset-meta">
-                <span class="preset-title">Solar Gen + Low Load</span>
-                <span class="preset-desc">Solar (850W) powers house & charges battery</span>
-              </div>
-            </button>
-            <button class="demo-preset-opt" data-scenario="2">
-              <span class="preset-num">2</span>
-              <div class="preset-meta">
-                <span class="preset-title">Peak Tariff Optimization</span>
-                <span class="preset-desc">Battery Inverter saves Rs. 54/kWh Peak Grid tariff</span>
-              </div>
-            </button>
-            <button class="demo-preset-opt warning-preset" data-scenario="3">
-              <span class="preset-num">3</span>
-              <div class="preset-meta">
-                <span class="preset-title">⚠️ Overload Spike (1.28 kW)</span>
-                <span class="preset-desc">Triggers 30s High Load Warning countdown</span>
-              </div>
-            </button>
-            <button class="demo-preset-opt success-preset" data-scenario="4">
-              <span class="preset-num">4</span>
-              <div class="preset-meta">
-                <span class="preset-title">⚡ Load Shedding / Reduction</span>
-                <span class="preset-desc">User sheds socket -> Load automatically normalizes</span>
-              </div>
-            </button>
-            <button class="demo-preset-opt" data-scenario="5">
-              <span class="preset-num">5</span>
-              <div class="preset-meta">
-                <span class="preset-title">⏳ Auto Grid Timeout</span>
-                <span class="preset-desc">Countdown ends -> Automated safety switch to Grid</span>
-              </div>
-            </button>
-            <button class="demo-preset-opt" data-scenario="6">
-              <span class="preset-num">6</span>
-              <div class="preset-meta">
-                <span class="preset-title">🔌 Grid Blackout Outage</span>
-                <span class="preset-desc">Grid fails -> Inverter seamless backup power</span>
-              </div>
-            </button>
-            <button class="demo-preset-opt" data-scenario="7">
-              <span class="preset-num">7</span>
-              <div class="preset-meta">
-                <span class="preset-title">🪫 Critical Low Battery (&lt;20%)</span>
-                <span class="preset-desc">SOC cutoff protection -> Switches to Grid</span>
-              </div>
-            </button>
-            <div class="dropdown-divider"></div>
-            <button class="demo-preset-opt reset-preset" data-scenario="reset">
-              <i data-lucide="rotate-ccw"></i>
-              <div class="preset-meta">
-                <span class="preset-title">Reset Normal Baseline</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Notification Bell -->
-        <button class="icon-circle-btn" id="notif-btn" title="Alerts & System Notifications">
-          <i data-lucide="bell"></i>
-          <span class="notif-dot"></span>
-        </button>
-
-        <!-- Theme Switcher -->
-        <button class="icon-circle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
-          <i data-lucide="sun" id="theme-icon"></i>
-        </button>
-
-        <!-- User Profile Capsule -->
-        <div class="user-profile-capsule">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Jordan Lee" class="user-avatar-img" />
-          <div class="user-meta">
-            <span class="user-display-name">Jordan Lee</span>
-            <span class="user-role-tag">Energy Controller</span>
-          </div>
-        </div>
-
       </div>
     </header>
 
