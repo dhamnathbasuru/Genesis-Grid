@@ -156,23 +156,24 @@ body {
 }
 
 /* =========================================================
-   TOP NAVIGATION BAR (Genesis Grid Themed — Clean & Polished)
+   TOP NAVIGATION BAR (Genesis Grid Themed — 2-Tier Architecture)
    ========================================================= */
 .top-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 0 16px;
+  width: 100%;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav-top-tier {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 0 16px;
   width: 100%;
-}
-
-.nav-brand-group {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-shrink: 1;
-  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .brand-logo {
@@ -186,8 +187,8 @@ body {
 }
 
 .brand-sparkle-pill {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: linear-gradient(135deg, #86efac, #4ade80);
   display: flex;
@@ -203,13 +204,13 @@ body {
 }
 
 .brand-star {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   fill: #052e16;
 }
 
 .brand-title {
-  font-size: 1.15rem;
+  font-size: 1.22rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text-main);
@@ -229,28 +230,41 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* Nav Pills Bar - Segmented Glass Capsule */
+/* Nav Bottom Tier - Segmented Glass Nav Capsule */
+.nav-bottom-tier {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-bottom-tier::-webkit-scrollbar {
+  display: none;
+}
+
 .nav-pills-bar {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  padding: 3px 4px;
+  padding: 4px 6px;
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
-  max-width: 100%;
 }
 
 .nav-pill {
   border: none;
   background: transparent;
-  height: 32px;
-  padding: 0 13px;
+  height: 34px;
+  padding: 0 16px;
   border-radius: var(--radius-full);
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
@@ -279,8 +293,9 @@ body {
 .nav-actions-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 /* Operating Mode Capsule */
