@@ -309,26 +309,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Top 4 Metric Cards
     const valPower = document.getElementById('val-power-load');
-    const valCap = document.getElementById('val-capacity-pct');
-    const progFill = document.getElementById('overview-progress-bar-fill');
     const valBatSoc = document.getElementById('val-bat-soc');
     const valBatEnergy = document.getElementById('val-bat-energy-left');
     const valBatDesc = document.getElementById('val-bat-state-desc');
     const valMoney = document.getElementById('val-money-saved');
 
     if (valPower) valPower.textContent = load;
-    if (valCap) {
-      valCap.textContent = `${invPct}%`;
-      valCap.style.color = invPct > 100 ? 'var(--rose-danger)' : (invPct > 80 ? 'var(--solar-amber)' : 'var(--text-main)');
-    }
-    if (progFill) {
-      progFill.style.width = `${Math.min(100, invPct)}%`;
-      progFill.style.background = invPct > 100 ? 'var(--rose-danger)' : (invPct > 80 ? 'var(--solar-amber)' : 'var(--mint-primary)');
-    }
     if (valBatSoc) valBatSoc.textContent = `${Math.round(state.batterySOC)}%`;
     if (valBatEnergy) valBatEnergy.textContent = `${((state.batteryCapacityKwh * state.batterySOC) / 100).toFixed(2)} kWh`;
     if (valBatDesc) valBatDesc.textContent = `${state.batteryVoltage.toFixed(1)}V • ${state.batteryState === 'charging' ? 'Charging' : 'Discharging'}`;
     if (valMoney) valMoney.textContent = state.moneySaved.toLocaleString();
+
+    // Capacity Load Gauge Animation & Real-Time Sync (1:1 with Reference Design)
+    const gaugePctEl = document.getElementById('val-gauge-pct');
+    const gaugeStatusEl = document.getElementById('val-gauge-status');
+    const gaugeCurEl = document.getElementById('val-gauge-current');
+    const gaugeMaxEl = document.getElementById('val-gauge-max');
+    const gaugeHeadroomEl = document.getElementById('val-gauge-headroom');
+    const gaugeArc = document.getElementById('gauge-arc-progress');
+    const gaugeKnob = document.getElementById('gauge-arc-knob');
+
+    const totalArcLen = 329.87;
+    const clampedPct = Math.max(0, Math.min(100, invPct));
+    const dashOffset = totalArcLen * (1 - (clampedPct / 100));
+
+    if (gaugeArc) {
+      gaugeArc.style.strokeDashoffset = dashOffset;
+      if (invPct > 100) {
+        gaugeArc.style.stroke = 'var(--rose-danger)';
+      } else if (invPct > 80) {
+        gaugeArc.style.stroke = 'var(--solar-amber)';
+      } else {
+        gaugeArc.style.stroke = 'url(#gauge-arc-gradient)';
+      }
+    }
+
+    if (gaugeKnob) {
+      const alpha = Math.PI * (1 - (clampedPct / 100));
+      const knobX = (140 + 105 * Math.cos(alpha)).toFixed(1);
+      const knobY = (125 - 105 * Math.sin(alpha)).toFixed(1);
+      gaugeKnob.setAttribute('cx', knobX);
+      gaugeKnob.setAttribute('cy', knobY);
+      gaugeKnob.setAttribute('stroke', invPct > 100 ? '#ef4444' : (invPct > 80 ? '#f59e0b' : '#05df72'));
+    }
+
+    if (gaugePctEl) gaugePctEl.textContent = `${invPct}%`;
+    if (gaugeCurEl) gaugeCurEl.innerHTML = `${load} <small>W</small>`;
+    if (gaugeMaxEl) gaugeMaxEl.innerHTML = `${invCap} <small>W</small>`;
+    if (gaugeHeadroomEl) {
+      const headroom = Math.max(0, invCap - load);
+      gaugeHeadroomEl.innerHTML = `${headroom} <small>W</small>`;
+      gaugeHeadroomEl.className = `g-sub-num ${headroom === 0 ? 'text-danger' : 'text-mint'}`;
+    }
+
+    if (gaugeStatusEl) {
+      if (invPct > 100) {
+        gaugeStatusEl.textContent = 'High Load';
+        gaugeStatusEl.className = 'gauge-status-badge badge-high';
+      } else if (invPct > 75) {
+        gaugeStatusEl.textContent = 'Heavy Load';
+        gaugeStatusEl.className = 'gauge-status-badge badge-heavy';
+      } else if (invPct > 20) {
+        gaugeStatusEl.textContent = 'Normal Load';
+        gaugeStatusEl.className = 'gauge-status-badge badge-normal';
+      } else {
+        gaugeStatusEl.textContent = 'Low Load';
+        gaugeStatusEl.className = 'gauge-status-badge badge-low';
+      }
+    }
 
     // Micro Sparklines
     if (sparkBars.length > 0) {
