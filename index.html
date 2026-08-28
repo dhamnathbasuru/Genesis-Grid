@@ -1015,26 +1015,41 @@
           </div>
         </div>
 
-        <!-- Top Summary KPI Metrics Bar (Interval Telemetry Summary) -->
+        <!-- Top Summary KPI Metrics Bar (Interactive Clickable Deep-Dive Tiles) -->
         <div class="chart-top-metrics-bar">
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-1">SOLAR GENERATION</span>
+          <div class="chart-stat-item clickable-kpi-card" data-detail="solar" title="Click to view detailed Solar Generation analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption" id="chart-stat-lbl-1">SOLAR GENERATION</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
             <span class="stat-bold stat-highlight" id="chart-stat-val-1">6.84 kWh</span>
           </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
+          <div class="chart-stat-item clickable-kpi-card" data-detail="grid" title="Click to view detailed Avoided Peak Grid analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
             <span class="stat-bold stat-highlight" id="chart-stat-val-2">4.20 kWh</span>
           </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-3">INVERTER EFFICIENCY</span>
+          <div class="chart-stat-item clickable-kpi-card" data-detail="inverter" title="Click to view detailed Inverter Efficiency & Waveform analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption" id="chart-stat-lbl-3">INVERTER EFFICIENCY</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
             <span class="stat-bold" id="chart-stat-val-3">94.8%</span>
           </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-4">BATTERY SOH</span>
+          <div class="chart-stat-item clickable-kpi-card" data-detail="battery" title="Click to view detailed Battery BMS & Cell Health analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption" id="chart-stat-lbl-4">BATTERY SOH</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
             <span class="stat-bold" id="chart-stat-val-4">98.5%</span>
           </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-5">TOTAL SAVINGS</span>
+          <div class="chart-stat-item clickable-kpi-card" data-detail="savings" title="Click to view detailed Tariff Savings & ROI analytics">
+            <div class="kpi-header-row">
+              <span class="stat-caption" id="chart-stat-lbl-5">TOTAL SAVINGS</span>
+              <i data-lucide="external-link" class="kpi-link-icon"></i>
+            </div>
             <span class="stat-bold text-amber" id="chart-stat-val-5">Rs. 248.50</span>
           </div>
         </div>
@@ -1043,7 +1058,7 @@
         <div class="scada-charts-grid">
           
           <!-- Chart 1: Solar PV Generation -->
-          <div class="scada-single-chart-card">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="solar" title="Click to view Solar Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-amber">
@@ -1064,7 +1079,7 @@
           </div>
 
           <!-- Chart 2: Household Load Demand -->
-          <div class="scada-single-chart-card">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="load" title="Click to view Household Load Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-mint">
@@ -1085,7 +1100,7 @@
           </div>
 
           <!-- Chart 3: Battery Storage Net Flow -->
-          <div class="scada-single-chart-card">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="battery" title="Click to view Battery BMS Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-purple">
@@ -1106,7 +1121,7 @@
           </div>
 
           <!-- Chart 4: CEB Grid Utility Power -->
-          <div class="scada-single-chart-card">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="grid" title="Click to view CEB Grid Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-cyan">
@@ -1371,6 +1386,41 @@
 
     </div>
 
+  <!-- =========================================================
+       TELEMETRY DEEP-DIVE DETAILS MODAL (Channel Detailed View)
+       ========================================================= -->
+  <div class="modal-overlay" id="telemetry-detail-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-icon-badge" id="modal-icon-badge">
+            <i data-lucide="sun" id="modal-header-icon"></i>
+          </div>
+          <div>
+            <h3 class="modal-title" id="modal-channel-title">Solar PV Generation Deep-Dive</h3>
+            <span class="modal-subtitle" id="modal-channel-subtitle">Real-time MPPT string parameters and yield metrics</span>
+          </div>
+        </div>
+        <div class="modal-header-right">
+          <span class="modal-status-badge" id="modal-status-badge">Active Normal</span>
+          <button class="modal-close-btn" id="btn-close-modal" title="Close Detailed View">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body" id="modal-dynamic-body">
+        <!-- Injected via JavaScript dynamically -->
+      </div>
+
+      <div class="modal-footer">
+        <span class="modal-footer-note" id="modal-footer-note">Telemetry Synced with Real-Time SCADA Controller</span>
+        <div class="modal-action-btns">
+          <button class="modal-action-btn secondary" id="btn-modal-close-action">Close</button>
+          <button class="modal-action-btn primary" id="btn-modal-navigate">View Control Tab</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
