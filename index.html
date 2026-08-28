@@ -983,25 +983,18 @@
     </div>
 
     <!-- =========================================================
-         VIEW 3: 24H SCADA ANALYTICS VIEW
+         VIEW 3: 24H SCADA ANALYTICS VIEW (Dedicated Separate Channels)
          ========================================================= -->
     <div class="app-view-container" id="view-analytics">
       
       <div class="dashboard-panel chart-panel">
         <div class="panel-header">
           <div class="panel-header-title">
-            <h3 class="panel-title">24-Hour SCADA Real-Time Telemetry Trend</h3>
-            <span class="panel-subtitle">Multi-trace rolling buffer: Solar Generation (W), Battery Net (W), Grid Import (W), and House Load (W)</span>
+            <h3 class="panel-title">SCADA Real-Time Channel Analytics</h3>
+            <span class="panel-subtitle">Independent high-resolution telemetry feeds for Solar Generation, Load Demand, Battery Flow, and Grid Import</span>
           </div>
 
           <div class="panel-controls">
-            <div class="chart-legend-custom">
-              <div class="legend-item"><span class="legend-color-dot solar-dot"></span><span>Solar (W)</span></div>
-              <div class="legend-item"><span class="legend-color-dot bat-dot"></span><span>Battery (W)</span></div>
-              <div class="legend-item"><span class="legend-color-dot load-dot"></span><span>Load (W)</span></div>
-              <div class="legend-item"><span class="legend-color-dot grid-dot"></span><span>Grid (W)</span></div>
-            </div>
-
             <div class="time-range-selector">
               <button class="time-btn live-mode-btn active" data-range="live"><span class="live-dot-pulse"></span><span>LIVE</span></button>
               <button class="time-btn" data-range="1h">1h</button>
@@ -1011,17 +1004,93 @@
           </div>
         </div>
 
-        <div class="chart-canvas-wrapper">
-          <canvas id="scadaTrendChart"></canvas>
-          <div class="chart-tooltip" id="chart-tooltip">
-            <span class="tooltip-time" id="tt-time">18:40:00 SLST</span>
-            <div class="tooltip-values">
-              <div class="tt-row"><span class="tt-dot solar-dot"></span><span>Solar:</span><span class="tt-val" id="tt-solar">850 W</span></div>
-              <div class="tt-row"><span class="tt-dot bat-dot"></span><span>Battery:</span><span class="tt-val" id="tt-battery">-520 W</span></div>
-              <div class="tt-row"><span class="tt-dot load-dot"></span><span>Load:</span><span class="tt-val" id="tt-load">720 W</span></div>
-              <div class="tt-row"><span class="tt-dot grid-dot"></span><span>Grid:</span><span class="tt-val" id="tt-grid">0 W</span></div>
+        <!-- 2x2 Grid of Dedicated Telemetry Graphs -->
+        <div class="scada-charts-grid">
+          
+          <!-- Chart 1: Solar PV Generation -->
+          <div class="scada-single-chart-card">
+            <div class="scada-chart-top-row">
+              <div class="scada-chart-titles">
+                <span class="scada-chart-title text-amber">
+                  <i data-lucide="sun"></i> Solar PV Generation
+                </span>
+                <span class="scada-chart-subtitle">Monocrystalline Array • Direct DC Output</span>
+              </div>
+              <span class="scada-live-pill text-amber" id="solar-live-badge">850 W</span>
+            </div>
+            <div class="scada-canvas-box">
+              <canvas id="solarTrendChart"></canvas>
+            </div>
+            <div class="scada-card-footer">
+              <div>Peak: <span id="solar-peak-val">1060 W</span></div>
+              <div>Harvest: <span id="solar-harvest-val">6.84 kWh</span></div>
+              <div>Eff: <span id="solar-eff-val">98.2%</span></div>
             </div>
           </div>
+
+          <!-- Chart 2: Household Load Demand -->
+          <div class="scada-single-chart-card">
+            <div class="scada-chart-top-row">
+              <div class="scada-chart-titles">
+                <span class="scada-chart-title text-mint">
+                  <i data-lucide="zap"></i> Household Load Demand
+                </span>
+                <span class="scada-chart-subtitle">Active AC Circuits • Real-Time Power Draw</span>
+              </div>
+              <span class="scada-live-pill text-mint" id="load-live-badge">720 W</span>
+            </div>
+            <div class="scada-canvas-box">
+              <canvas id="loadTrendChart"></canvas>
+            </div>
+            <div class="scada-card-footer">
+              <div>Peak: <span id="load-peak-val">1280 W</span></div>
+              <div>Energy: <span id="load-energy-val">5.40 kWh</span></div>
+              <div>Inverter Load: <span id="load-inv-pct">72%</span></div>
+            </div>
+          </div>
+
+          <!-- Chart 3: Battery Storage Net Flow -->
+          <div class="scada-single-chart-card">
+            <div class="scada-chart-top-row">
+              <div class="scada-chart-titles">
+                <span class="scada-chart-title text-purple">
+                  <i data-lucide="battery-charging"></i> Battery Storage Net Flow
+                </span>
+                <span class="scada-chart-subtitle">LiFePO4 Pack • +Charging / -Discharging</span>
+              </div>
+              <span class="scada-live-pill text-purple" id="battery-live-badge">-520 W</span>
+            </div>
+            <div class="scada-canvas-box">
+              <canvas id="batteryTrendChart"></canvas>
+            </div>
+            <div class="scada-card-footer">
+              <div>Current SOC: <span id="battery-soc-val">78%</span></div>
+              <div>Net Discharged: <span id="battery-cycled-val">3.74 kWh</span></div>
+              <div>Health SOH: <span id="battery-soh-val">98.5%</span></div>
+            </div>
+          </div>
+
+          <!-- Chart 4: CEB Grid Utility Power -->
+          <div class="scada-single-chart-card">
+            <div class="scada-chart-top-row">
+              <div class="scada-chart-titles">
+                <span class="scada-chart-title text-cyan">
+                  <i data-lucide="plug"></i> CEB Utility Grid Power
+                </span>
+                <span class="scada-chart-subtitle">230V 50Hz AC Import • TOU Tariff Mapping</span>
+              </div>
+              <span class="scada-live-pill text-cyan" id="grid-live-badge">0 W</span>
+            </div>
+            <div class="scada-canvas-box">
+              <canvas id="gridTrendChart"></canvas>
+            </div>
+            <div class="scada-card-footer">
+              <div>Active Rate: <span id="grid-tariff-val">Rs. 54.00/kWh</span></div>
+              <div>Avoided Peak: <span id="grid-avoided-val">4.20 kWh</span></div>
+              <div>Saved: <span id="grid-saved-val">Rs. 248.50</span></div>
+            </div>
+          </div>
+
         </div>
 
         <div class="chart-footer-metrics">
