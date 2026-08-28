@@ -2198,18 +2198,78 @@ body {
 .tt-dot { width: 6px; height: 6px; border-radius: 50%; }
 .tt-val { font-weight: 700; font-family: var(--font-mono); color: #ffffff; margin-left: auto; }
 
-.chart-footer-metrics {
+.chart-top-metrics-bar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-subtle);
+  gap: 14px;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 900px) {
+  .chart-top-metrics-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .chart-stat-item { display: flex; flex-direction: column; gap: 2px; }
 .stat-caption { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.04em; }
 .stat-bold { font-size: 0.94rem; font-weight: 800; color: var(--text-main); font-family: var(--font-mono); }
 .stat-highlight { color: var(--mint-primary); }
+
+.solar-live-capsule {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-full);
+  padding: 7px 15px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.solar-live-capsule svg {
+  width: 15px;
+  height: 15px;
+  color: #f59e0b;
+}
+
+.solar-live-capsule .solar-val {
+  color: #f59e0b;
+  font-weight: 800;
+}
+
+.live-pulse-dot.amber {
+  background: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  animation: pulse-amber 2s infinite;
+}
+
+.live-pulse-dot.danger {
+  background: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-danger 2s infinite;
+}
+
+@keyframes pulse-amber {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@keyframes pulse-danger {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
 
 #inverterWaveformCanvas { width: 100%; background: #080c12; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: block; }
 
