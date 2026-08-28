@@ -2583,3 +2583,19 @@ body.theme-light .legend-name {
   color: #0f172a;
 }
 
+body.theme-light .chart-tooltip {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+}
+
+body.theme-light .tooltip-time {
+  color: #64748b;
+  border-bottom-color: #e2e8f0;
+}
+
+body.theme-light .tt-val {
+  color: #0f172a;
+}
+
