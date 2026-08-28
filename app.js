@@ -485,12 +485,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Disaggregation Multi-Bar
     const sumWattsEl = document.getElementById('appliances-sum-watts');
     const countBadge = document.getElementById('active-appliances-count-badge');
+    const appViewWatts = document.getElementById('appliances-view-watts');
+    const appViewSumWatts = document.getElementById('app-view-sum-watts');
+    const appViewActiveBadge = document.getElementById('app-view-active-badge');
+
     if (sumWattsEl) sumWattsEl.textContent = `${load} W Total Active Demand`;
     if (countBadge) countBadge.textContent = `${activeCount} of 4 Appliances Active`;
+    if (appViewWatts) appViewWatts.textContent = load;
+    if (appViewSumWatts) appViewSumWatts.textContent = `${load} W Total Active Demand`;
+    if (appViewActiveBadge) appViewActiveBadge.textContent = `${activeCount} of 4 ON`;
 
     Object.keys(state.appliances).forEach(key => {
       const app = state.appliances[key];
       const seg = document.getElementById(app.segId);
+      const appViewSeg = document.getElementById(`app-view-${app.segId}`);
       const card = document.getElementById(`app-card-${key}`);
       const statusTag = document.getElementById(`app-status-${key}`);
       const wattsEl = document.getElementById(`app-watts-${key}`);
@@ -499,6 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const pctOfLoad = load > 0 && app.active ? ((app.baseWatts / load) * 100).toFixed(1) : '0';
       if (seg) seg.style.width = app.active ? `${pctOfLoad}%` : '0%';
+      if (appViewSeg) appViewSeg.style.width = app.active ? `${pctOfLoad}%` : '0%';
       if (card) card.classList.toggle('active', app.active);
       if (statusTag) {
         statusTag.textContent = app.active ? (app.isHeavy ? 'HEAVY LOAD' : 'ON') : 'OFF';
