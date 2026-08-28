@@ -1252,6 +1252,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  window.switchTab = switchTab;
+
   navPills.forEach(pill => {
     pill.addEventListener('click', () => switchTab(pill.getAttribute('data-tab')));
   });
