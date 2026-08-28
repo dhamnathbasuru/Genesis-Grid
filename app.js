@@ -1,0 +1,957 @@
+/**
+ * GENESIS GRID EMS — IoT SOLAR POWER MANAGEMENT SYSTEM
+ * Central Telemetry Controller, Pixel-Perfect Vector SVG Diagram & Scenario Supervisor
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Lucide Icons
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+
+  // =========================================================
+  // 1. CENTRAL APPLICATION STATE (Solar EMS Core)
+  // =========================================================
+  const state = {
+    systemOnline: true,
+    operatingMode: 'auto', // 'auto' | 'solar' | 'grid'
+    currentSource: 'solar_bat', // 'solar_bat' | 'solar' | 'battery' | 'grid'
+    gridAvailable: true,
+
+    // Battery Storage (LiFePO4 48V 100Ah = 4.8 kWh)
+    batterySOC: 78,
+    batteryVoltage: 51.2,
+    batteryCurrent: 10.15,
+    batteryPower: 520, // Watts
+    batteryState: 'discharging', // 'discharging' | 'charging' | 'idle'
+    batteryCapacityKwh: 4.8,
+    minSocCutoff: 20,
+
+    // Solar PV Generation
+    solarPower: 850, // Watts
+    solarVoltage: 68.4,
+    solarCurrent: 12.42,
+
+    // SMP Charge Controller (MPPT / AC-DC SMPS)
+    smpPower: 0,
+    smpMode: 'standby', // 'standby' | 'charging' | 'pass-through'
+
+    // Inverter (1000W Pure Sine Wave)
+    inverterCapacity: 1000, // Watts rated
+    inverterPower: 720, // Active output W
+    inverterVoltage: 230.1,
+    inverterCurrent: 3.13,
+
+    // Main Grid (CEB 230V 50Hz)
+    gridVoltage: 231.4,
+    gridCurrent: 0.0,
+    gridPower: 0,
+    gridEnergyToday: 1.40, // kWh
+
+    // Time-of-Use Tariff (CEB Tiers)
+    currentTariff: 'peak', // 'off_peak' | 'day' | 'peak'
+    tariffRates: {
+      off_peak: 13.0,
+      day: 25.0,
+      peak: 54.0
+    },
+    fixedMonthlyCharge: 540.0,
+
+    // Financials & Monthly Savings
+    monthlyGridEnergyKwh: 68.4,
+    monthlyBill: 3600,
+    estimatedBillWithoutSolar: 8420,
+    moneySaved: 4820,
+
+    // Individual ACS712 Branch Sensors
+    appliances: {
+      bulb1: { name: 'Bulb 1 (Living Room)', baseWatts: 95, current: 0.41, kwh: 0.32, cost: 8.00, active: true, duration: '3h 24m', sensor: 'ACS712-05A', segId: 'seg-bulb1' },
+      bulb2: { name: 'Bulb 2 (Kitchen / Dining)', baseWatts: 110, current: 0.00, kwh: 0.00, cost: 0.00, active: false, duration: '0m', sensor: 'ACS712-05A', segId: 'seg-bulb2' },
+      bulb3: { name: 'Bulb 3 (Study / Bedroom)', baseWatts: 60, current: 0.26, kwh: 0.18, cost: 4.50, active: true, duration: '3h 05m', sensor: 'ACS712-05A', segId: 'seg-bulb3' },
+      socket: { name: 'Power Socket (TV / Fridge)', baseWatts: 565, current: 2.46, kwh: 1.45, cost: 36.25, active: true, duration: '2h 10m', sensor: 'ACS712-20A', isHeavy: true, segId: 'seg-socket' }
+    },
+
+    // High Load Overload Intervention
+    highLoadWarning: false,
+    countdownSeconds: 30,
+    countdownTimer: null,
+    countdownInitial: 30,
+
+    // UI View
+    activeTab: 'overview',
+    chartRange: 'live',
+    theme: 'dark'
+  };
+
+  // Sparkline buffer for Card 1
+  const sparklineEl = document.getElementById('meter-power-load');
+  const sparklineCount = 18;
+  const sparkBars = [];
+
+  if (sparklineEl) {
+    sparklineEl.innerHTML = '';
+    for (let i = 0; i < sparklineCount; i++) {
+      const bar = document.createElement('div');
+      bar.className = `spark-bar ${i >= sparklineCount - 6 ? 'active' : ''}`;
+      const h = Math.round(20 + Math.random() * 80);
+      bar.style.height = `${h}%`;
+      sparklineEl.appendChild(bar);
+      sparkBars.push(bar);
+    }
+  }
+
+  // Rolling SCADA Chart Buffer
+  const chartBuffer = [];
+  const chartPoints = 25;
+  const now = Date.now();
+
+  for (let i = chartPoints - 1; i >= 0; i--) {
+    const t = new Date(now - i * 2000);
+    const timeStr = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')}`;
+    chartBuffer.push({
+      time: timeStr,
+      solar: 840 + Math.sin(i / 2) * 40,
+      battery: -510 - Math.cos(i / 3) * 30,
+      grid: 0,
+      load: 710 + Math.sin(i / 2) * 20
+    });
+  }
+
+  // =========================================================
+  // 2. LIVE CLOCK & HEADER SYNCHRONIZATION
+  // =========================================================
+  function updateLiveClock() {
+    const clockEl = document.getElementById('live-clock');
+    if (!clockEl) return;
+    const d = new Date();
+    const hrs = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    const secs = String(d.getSeconds()).padStart(2, '0');
+    clockEl.textContent = `${hrs}:${mins}:${secs}`;
+  }
+  setInterval(updateLiveClock, 1000);
+  updateLiveClock();
+
+  // =========================================================
+  // 3. APPLIANCE RECALCULATION & OVERLOAD SUPERVISOR
+  // =========================================================
+  function calculateTotalHouseLoad() {
+    let totalWatts = 0;
+    let activeCount = 0;
+
+    Object.keys(state.appliances).forEach(key => {
+      const app = state.appliances[key];
+      if (app.active) {
+        totalWatts += app.baseWatts;
+        app.current = parseFloat((app.baseWatts / 230.0).toFixed(2));
+        activeCount++;
+      } else {
+        app.current = 0.0;
+      }
+    });
+
+    state.inverterPower = totalWatts;
+    state.inverterCurrent = parseFloat((totalWatts / state.inverterVoltage).toFixed(2));
+
+    evaluateSystemSource();
+    updateUI(activeCount);
+  }
+
+  function evaluateSystemSource() {
+    const load = state.inverterPower;
+    const isOverloaded = load > state.inverterCapacity;
+
+    if (state.operatingMode === 'grid') {
+      state.currentSource = 'grid';
+      state.gridPower = load;
+      state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
+      dismissHighLoadWarning(false);
+      return;
+    }
+
+    if (!state.gridAvailable) {
+      state.currentSource = 'solar_bat';
+      state.gridPower = 0;
+      state.gridCurrent = 0;
+      if (isOverloaded) triggerHighLoadWarning(load);
+      else dismissHighLoadWarning(true);
+      return;
+    }
+
+    // Auto Mode Logic
+    if (state.operatingMode === 'auto' || state.operatingMode === 'solar') {
+      if (isOverloaded) {
+        triggerHighLoadWarning(load);
+      } else {
+        dismissHighLoadWarning(true);
+
+        if (state.batterySOC <= state.minSocCutoff) {
+          state.currentSource = 'grid';
+          state.gridPower = load;
+          state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
+        } else {
+          state.currentSource = 'solar_bat';
+          state.gridPower = 0;
+          state.gridCurrent = 0;
+        }
+      }
+    }
+  }
+
+  // Trigger High Load Warning & Countdown
+  function triggerHighLoadWarning(currentLoad) {
+    if (state.currentSource === 'grid') return;
+
+    const banner = document.getElementById('high-load-banner');
+    const loadEl = document.getElementById('hl-current-load');
+    const capEl = document.getElementById('hl-inverter-cap');
+    const excessEl = document.getElementById('hl-excess-load');
+    const secondsEl = document.getElementById('countdown-seconds');
+    const fillEl = document.getElementById('countdown-progress-fill');
+
+    if (loadEl) loadEl.textContent = `${(currentLoad / 1000).toFixed(2)} kW`;
+    if (capEl) capEl.textContent = `${(state.inverterCapacity / 1000).toFixed(2)} kW`;
+    if (excessEl) excessEl.textContent = `${currentLoad - state.inverterCapacity} W`;
+
+    if (banner) banner.style.display = 'block';
+
+    if (!state.highLoadWarning) {
+      state.highLoadWarning = true;
+      state.countdownSeconds = state.countdownInitial;
+
+      if (state.countdownTimer) clearInterval(state.countdownTimer);
+
+      state.countdownTimer = setInterval(() => {
+        state.countdownSeconds--;
+        if (secondsEl) secondsEl.textContent = state.countdownSeconds;
+        if (fillEl) {
+          const pct = (state.countdownSeconds / state.countdownInitial) * 100;
+          fillEl.style.width = `${pct}%`;
+        }
+
+        if (state.countdownSeconds <= 0) {
+          clearInterval(state.countdownTimer);
+          transferToGrid('Automatic Grid Fallback (30s Overload Countdown Expired)');
+        }
+      }, 1000);
+    }
+  }
+
+  function dismissHighLoadWarning(showNormalizedToast) {
+    const banner = document.getElementById('high-load-banner');
+    if (banner) banner.style.display = 'none';
+
+    if (state.countdownTimer) {
+      clearInterval(state.countdownTimer);
+      state.countdownTimer = null;
+    }
+
+    if (state.highLoadWarning && showNormalizedToast) {
+      state.highLoadWarning = false;
+      showToast('LOAD NORMALIZED — Continuing on Solar/Battery', 'success');
+      logSwitchEvent('Inverter Active', 'Load Normalized below 1000W Inverter Capacity', '+Rs. 38.88/hr saved');
+    } else {
+      state.highLoadWarning = false;
+    }
+  }
+
+  function transferToGrid(reason) {
+    state.currentSource = 'grid';
+    state.gridPower = state.inverterPower;
+    state.gridCurrent = parseFloat((state.inverterPower / state.gridVoltage).toFixed(2));
+    dismissHighLoadWarning(false);
+    logSwitchEvent('Inverter → Grid', reason, 'Grid Import Active');
+    showToast(`Transferred to Main Grid: ${reason}`, 'warning');
+    updateUI();
+  }
+
+  function logSwitchEvent(transition, reason, costImpact) {
+    const tbody = document.getElementById('history-events-tbody');
+    if (!tbody) return;
+
+    const d = new Date();
+    const timeStr = d.toTimeString().split(' ')[0];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${timeStr}</strong></td>
+      <td><span class="transition-pill ${transition.includes('Grid') ? 'bat-grid' : 'grid-bat'}">${transition}</span></td>
+      <td>${reason}</td>
+      <td>${state.inverterPower} W</td>
+      <td>${Math.round(state.batterySOC)}%</td>
+      <td><span class="status-pill ${state.currentTariff}">${state.currentTariff.toUpperCase()} Rs. ${state.tariffRates[state.currentTariff]}</span></td>
+      <td><strong class="${costImpact.includes('+') ? 'text-mint' : 'text-muted'}">${costImpact}</strong></td>
+    `;
+    tbody.insertBefore(tr, tbody.firstChild);
+  }
+
+  // =========================================================
+  // 4. UI SYNCHRONIZATION & TELEMETRY RENDERER
+  // =========================================================
+  function updateUI(activeCount = 3) {
+    const load = state.inverterPower;
+    const invCap = state.inverterCapacity;
+    const invPct = Math.round((load / invCap) * 100);
+
+    // Hero Submeta
+    const heroStatus = document.getElementById('hero-status-name');
+    const heroSource = document.getElementById('hero-source-name');
+    const pulseDot = document.getElementById('online-pulse-dot');
+
+    if (heroStatus) heroStatus.textContent = state.systemOnline ? 'ONLINE (NORMAL)' : 'OFFLINE (STANDBY)';
+    if (heroSource) {
+      if (state.currentSource === 'grid') heroSource.textContent = 'MAIN GRID ACTIVE (STANDBY)';
+      else if (state.currentSource === 'solar') heroSource.textContent = 'DIRECT SOLAR RUN';
+      else heroSource.textContent = 'SOLAR + BATTERY ACTIVE';
+    }
+    if (pulseDot) {
+      pulseDot.className = `live-pulse-dot ${state.currentSource === 'grid' ? 'grid' : ''}`;
+    }
+
+    // Top 4 Metric Cards
+    const valPower = document.getElementById('val-power-load');
+    const valCap = document.getElementById('val-capacity-pct');
+    const progFill = document.getElementById('overview-progress-bar-fill');
+    const valBatSoc = document.getElementById('val-bat-soc');
+    const valBatEnergy = document.getElementById('val-bat-energy-left');
+    const valBatDesc = document.getElementById('val-bat-state-desc');
+    const valMoney = document.getElementById('val-money-saved');
+
+    if (valPower) valPower.textContent = load;
+    if (valCap) {
+      valCap.textContent = `${invPct}%`;
+      valCap.style.color = invPct > 100 ? 'var(--rose-danger)' : (invPct > 80 ? 'var(--solar-amber)' : 'var(--text-main)');
+    }
+    if (progFill) {
+      progFill.style.width = `${Math.min(100, invPct)}%`;
+      progFill.style.background = invPct > 100 ? 'var(--rose-danger)' : (invPct > 80 ? 'var(--solar-amber)' : 'var(--mint-primary)');
+    }
+    if (valBatSoc) valBatSoc.textContent = `${Math.round(state.batterySOC)}%`;
+    if (valBatEnergy) valBatEnergy.textContent = `${((state.batteryCapacityKwh * state.batterySOC) / 100).toFixed(2)} kWh`;
+    if (valBatDesc) valBatDesc.textContent = `${state.batteryVoltage.toFixed(1)}V • ${state.batteryState === 'charging' ? 'Charging' : 'Discharging'}`;
+    if (valMoney) valMoney.textContent = state.moneySaved.toLocaleString();
+
+    // Micro Sparklines
+    if (sparkBars.length > 0) {
+      sparkBars.forEach(bar => {
+        const randH = Math.round(25 + Math.random() * 75);
+        bar.style.height = `${randH}%`;
+      });
+    }
+
+    // Disaggregation Multi-Bar
+    const sumWattsEl = document.getElementById('appliances-sum-watts');
+    const countBadge = document.getElementById('active-appliances-count-badge');
+    if (sumWattsEl) sumWattsEl.textContent = `${load} W Total Active Demand`;
+    if (countBadge) countBadge.textContent = `${activeCount} of 4 Appliances Active`;
+
+    Object.keys(state.appliances).forEach(key => {
+      const app = state.appliances[key];
+      const seg = document.getElementById(app.segId);
+      const card = document.getElementById(`app-card-${key}`);
+      const statusTag = document.getElementById(`app-status-${key}`);
+      const wattsEl = document.getElementById(`app-watts-${key}`);
+      const costEl = document.getElementById(`app-cost-${key}`);
+      const toggleBtn = document.getElementById(`toggle-${key}`);
+
+      const pctOfLoad = load > 0 && app.active ? ((app.baseWatts / load) * 100).toFixed(1) : '0';
+      if (seg) seg.style.width = app.active ? `${pctOfLoad}%` : '0%';
+      if (card) card.classList.toggle('active', app.active);
+      if (statusTag) {
+        statusTag.textContent = app.active ? (app.isHeavy ? 'HEAVY LOAD' : 'ON') : 'OFF';
+        statusTag.className = `dev-status-tag ${app.active ? (app.isHeavy ? 'tag-heavy' : 'tag-running') : 'tag-off'}`;
+      }
+      if (wattsEl) wattsEl.innerHTML = `${app.active ? app.baseWatts : 0} <small>W</small>`;
+      if (costEl) costEl.textContent = `Rs. ${app.cost.toFixed(2)}`;
+      if (toggleBtn) toggleBtn.classList.toggle('active', app.active);
+
+      // Table elements
+      const tblAmp = document.getElementById(`tbl-amp-${key}`);
+      const tblW = document.getElementById(`tbl-w-${key}`);
+      const tblStatus = document.getElementById(`tbl-status-${key}`);
+      const tblBtn = document.querySelector(`.table-switch-btn[data-app="${key}"]`);
+
+      if (tblAmp) tblAmp.textContent = `${app.current.toFixed(2)} A`;
+      if (tblW) tblW.textContent = `${app.active ? app.baseWatts : 0} W`;
+      if (tblStatus) {
+        tblStatus.textContent = app.active ? (app.isHeavy ? 'HEAVY LOAD' : 'ACTIVE') : 'OFF';
+        tblStatus.className = `status-pill ${app.active ? (app.isHeavy ? 'on heavy' : 'on') : 'off'}`;
+      }
+      if (tblBtn) {
+        tblBtn.classList.toggle('active', app.active);
+        tblBtn.textContent = app.active ? 'ON' : 'OFF';
+      }
+    });
+
+    // Update Pixel-Perfect Vector SVG Diagram
+    updateVectorSvgDiagram();
+  }
+
+  // =========================================================
+  // 5. VECTOR SVG DISTRIBUTION DIAGRAM CONTROLLER
+  // =========================================================
+  function updateVectorSvgDiagram() {
+    // Header Badges
+    const flowSolar = document.getElementById('flow-head-solar');
+    const flowBat = document.getElementById('flow-head-bat');
+    const flowGrid = document.getElementById('flow-head-grid');
+    const flowLoad = document.getElementById('flow-head-load');
+
+    if (flowSolar) flowSolar.textContent = `${state.solarPower}W`;
+    if (flowBat) flowBat.textContent = `${state.batteryState === 'charging' ? '+' : '-'}${state.batteryPower}W`;
+    if (flowGrid) flowGrid.textContent = `${state.gridPower}W`;
+    if (flowLoad) flowLoad.textContent = `${state.inverterPower}W`;
+
+    // SVG Text Metrics
+    const svgHouseWatts = document.getElementById('svg-house-watts');
+    const svgHouseBadge = document.getElementById('svg-house-badge');
+    const svgGridWatts = document.getElementById('svg-grid-watts');
+    const svgGridBadge = document.getElementById('svg-grid-badge');
+    const svgSmpWatts = document.getElementById('svg-smp-watts');
+    const svgSmpBadge = document.getElementById('svg-smp-badge');
+    const svgInvWatts = document.getElementById('svg-inv-watts');
+    const svgInvBadge = document.getElementById('svg-inv-badge');
+    const svgBatSoc = document.getElementById('svg-bat-soc');
+    const svgBatBadge = document.getElementById('svg-bat-badge');
+    const svgSolarWatts = document.getElementById('svg-solar-watts');
+    const svgSolarBadge = document.getElementById('svg-solar-badge');
+
+    if (svgHouseWatts) svgHouseWatts.textContent = `${state.inverterPower} W`;
+    if (svgHouseBadge) svgHouseBadge.textContent = state.currentSource === 'grid' ? 'Powered by CEB Grid' : 'Powered by Inverter';
+
+    if (svgGridWatts) svgGridWatts.textContent = state.currentSource === 'grid' ? `${state.gridPower} W Active` : '0 W (Standby)';
+    if (svgGridBadge) svgGridBadge.textContent = state.gridAvailable ? (state.currentSource === 'grid' ? 'Supplying Load' : '230V • Standby') : 'Grid Outage / Offline';
+
+    if (svgSmpWatts) svgSmpWatts.textContent = state.batteryState === 'charging' && state.solarPower > 0 ? `${state.batteryPower} W Regulated` : '48V DC Bus';
+    if (svgSmpBadge) svgSmpBadge.textContent = state.batteryState === 'charging' ? 'MPPT Charging Active' : 'Bus Synchronized';
+
+    if (svgInvWatts) svgInvWatts.textContent = `${state.inverterPower} W (${Math.round((state.inverterPower / state.inverterCapacity) * 100)}%)`;
+    if (svgInvBadge) svgInvBadge.textContent = state.currentSource === 'grid' ? 'Bypassed to Grid' : 'DC → 230V AC Active';
+
+    if (svgBatSoc) svgBatSoc.textContent = `${Math.round(state.batterySOC)}% SOC`;
+    if (svgBatBadge) svgBatBadge.textContent = state.batteryState === 'charging' ? `Charging ${state.batteryPower}W` : `Discharging ${state.batteryPower}W`;
+
+    if (svgSolarWatts) svgSolarWatts.textContent = `${state.solarPower} W`;
+    if (svgSolarBadge) svgSolarBadge.textContent = state.solarPower > 50 ? 'Generating Peak' : 'Night / Standby';
+
+    // SVG Wire Paths Active Animation
+    const pathGridApp = document.getElementById('path-grid-appliances');
+    const pathGridSmp = document.getElementById('path-grid-smp');
+    const pathSmpInv = document.getElementById('path-smp-inverter');
+    const pathSolarInv = document.getElementById('path-solar-inverter');
+    const pathBatInv = document.getElementById('path-battery-inverter');
+    const pathInvApp = document.getElementById('path-inverter-appliances');
+
+    if (state.currentSource === 'grid') {
+      if (pathGridApp) pathGridApp.classList.add('active-flow');
+      if (pathInvApp) pathInvApp.classList.remove('active-flow');
+      if (pathBatInv) pathBatInv.classList.remove('active-flow');
+      if (pathGridSmp) pathGridSmp.classList.add('active-flow');
+      if (pathSmpInv) pathSmpInv.classList.remove('active-flow');
+    } else {
+      if (pathGridApp) pathGridApp.classList.remove('active-flow');
+      if (pathInvApp) pathInvApp.classList.add('active-flow');
+
+      if (state.solarPower > 50) {
+        if (pathSolarInv) pathSolarInv.classList.add('active-flow');
+      } else {
+        if (pathSolarInv) pathSolarInv.classList.remove('active-flow');
+      }
+
+      if (state.batteryState === 'discharging') {
+        if (pathBatInv) pathBatInv.classList.add('active-flow');
+      } else {
+        if (pathBatInv) pathBatInv.classList.remove('active-flow');
+      }
+
+      if (state.batteryState === 'charging') {
+        if (pathSmpInv) pathSmpInv.classList.add('active-flow');
+      } else {
+        if (pathSmpInv) pathSmpInv.classList.remove('active-flow');
+      }
+    }
+  }
+
+  // Node clicks inside SVG
+  document.querySelectorAll('.svg-node-group').forEach(group => {
+    group.addEventListener('click', () => {
+      const id = group.id;
+      if (id.includes('appliances')) showToast('Home Appliances Load: 720 W across 4 monitored branches.');
+      else if (id.includes('ceb')) showToast('CEB Main Utility Grid: 230V 50Hz • Peak Tariff Rs. 54/kWh.');
+      else if (id.includes('smp')) showToast('SMP Charge Controller: MPPT 48V DC bus synchronized.');
+      else if (id.includes('inverter')) showToast('Pure Sine Wave Inverter: 1000W Capacity (72% current load).');
+      else if (id.includes('battery')) showToast('Battery Storage BMS: 78% SOC • 51.2V • 3.74 kWh remaining.');
+      else if (id.includes('solar')) showToast('Solar PV Generation: 850W active generation.');
+    });
+  });
+
+  // =========================================================
+  // 6. APPLIANCE TOGGLE HANDLERS
+  // =========================================================
+  document.querySelectorAll('.dev-toggle-switch, .table-switch-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const appKey = btn.getAttribute('data-app');
+      if (state.appliances[appKey]) {
+        state.appliances[appKey].active = !state.appliances[appKey].active;
+        calculateTotalHouseLoad();
+        showToast(`${state.appliances[appKey].name}: Switched ${state.appliances[appKey].active ? 'ON' : 'OFF'}`);
+      }
+    });
+  });
+
+  // Intervention Buttons
+  const btnReduceLoad = document.getElementById('btn-action-reduce-load');
+  const btnSwitchGrid = document.getElementById('btn-action-switch-grid');
+  const btnContinueInv = document.getElementById('btn-action-continue-inv');
+
+  if (btnReduceLoad) {
+    btnReduceLoad.addEventListener('click', () => {
+      if (state.appliances.socket.active) {
+        state.appliances.socket.active = false;
+        calculateTotalHouseLoad();
+        showToast('Load Shed: Power Socket switched OFF. Load normalized.', 'success');
+      } else {
+        state.appliances.bulb1.active = false;
+        calculateTotalHouseLoad();
+      }
+    });
+  }
+
+  if (btnSwitchGrid) {
+    btnSwitchGrid.addEventListener('click', () => {
+      transferToGrid('User-Initiated Immediate Transfer to Grid');
+    });
+  }
+
+  if (btnContinueInv) {
+    btnContinueInv.addEventListener('click', () => {
+      dismissHighLoadWarning(false);
+      showToast('Temporary Surge Override: Continuing on Inverter for 60s', 'warning');
+    });
+  }
+
+  // Operating Mode Selection
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-mode');
+      state.operatingMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+      });
+      calculateTotalHouseLoad();
+      showToast(`Operating Mode set to ${mode.toUpperCase()}`, 'success');
+      logSwitchEvent('Mode Change', `User selected ${mode.toUpperCase()} Mode`, 'Operating state set');
+    });
+  });
+
+  // =========================================================
+  // 7. DEMO SCENARIO PRESETS (1-Click Engine)
+  // =========================================================
+  const demoBtn = document.getElementById('demo-dropdown-btn');
+  const demoMenu = document.getElementById('demo-dropdown-menu');
+
+  if (demoBtn && demoMenu) {
+    demoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      demoMenu.classList.toggle('show');
+    });
+    document.addEventListener('click', () => demoMenu.classList.remove('show'));
+  }
+
+  document.querySelectorAll('.demo-preset-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const scenario = opt.getAttribute('data-scenario');
+      triggerScenario(scenario);
+      if (demoMenu) demoMenu.classList.remove('show');
+    });
+  });
+
+  function triggerScenario(scenarioId) {
+    switch (scenarioId) {
+      case '1':
+        state.solarPower = 950;
+        state.batterySOC = 88;
+        state.batteryPower = 350;
+        state.batteryState = 'charging';
+        state.appliances.bulb1.active = true;
+        state.appliances.bulb2.active = false;
+        state.appliances.bulb3.active = true;
+        state.appliances.socket.active = false;
+        state.operatingMode = 'auto';
+        state.gridAvailable = true;
+        calculateTotalHouseLoad();
+        showToast('Scenario 1 Activated: High Solar Gen + Low Load', 'success');
+        break;
+
+      case '2':
+        state.solarPower = 0;
+        state.batterySOC = 78;
+        state.batteryPower = 520;
+        state.batteryState = 'discharging';
+        state.currentTariff = 'peak';
+        state.appliances.bulb1.active = true;
+        state.appliances.bulb2.active = false;
+        state.appliances.bulb3.active = true;
+        state.appliances.socket.active = true;
+        state.appliances.socket.baseWatts = 565;
+        state.operatingMode = 'auto';
+        state.gridAvailable = true;
+        calculateTotalHouseLoad();
+        showToast('Scenario 2 Activated: Peak Tariff Economy (Battery Saving Rs.54/kWh)', 'success');
+        break;
+
+      case '3':
+        state.solarPower = 200;
+        state.appliances.bulb1.active = true;
+        state.appliances.bulb2.active = true;
+        state.appliances.bulb3.active = true;
+        state.appliances.socket.active = true;
+        state.appliances.socket.baseWatts = 1015; // 1280W total load!
+        state.operatingMode = 'auto';
+        state.gridAvailable = true;
+        calculateTotalHouseLoad();
+        showToast('⚠️ Scenario 3: High Load Spike (1.28 kW > 1.00 kW) — 30s Countdown Started!', 'danger');
+        break;
+
+      case '4':
+        state.appliances.socket.active = false;
+        state.appliances.socket.baseWatts = 565;
+        state.appliances.bulb2.active = false;
+        calculateTotalHouseLoad();
+        showToast('Scenario 4: Load Shedding Triggered — Load Normalized', 'success');
+        break;
+
+      case '5':
+        state.countdownSeconds = 1;
+        showToast('Scenario 5: Countdown Timeout Simulated -> Grid Transfer', 'warning');
+        break;
+
+      case '6':
+        state.gridAvailable = false;
+        calculateTotalHouseLoad();
+        showToast('Scenario 6: Grid Blackout Outage! Inverter supplying seamless backup.', 'warning');
+        logSwitchEvent('Grid Outage', 'Main utility blackout detected — Inverter ride-through', 'Backup Active');
+        break;
+
+      case '7':
+        state.batterySOC = 18;
+        state.gridAvailable = true;
+        calculateTotalHouseLoad();
+        showToast('Scenario 7: Battery SOC < 20% Cutoff — Protected transfer to Grid', 'warning');
+        break;
+
+      case 'reset':
+      default:
+        state.solarPower = 850;
+        state.batterySOC = 78;
+        state.batteryPower = 520;
+        state.batteryState = 'discharging';
+        state.gridAvailable = true;
+        state.operatingMode = 'auto';
+        state.currentTariff = 'peak';
+        state.appliances.bulb1.active = true;
+        state.appliances.bulb2.active = false;
+        state.appliances.bulb3.active = true;
+        state.appliances.socket.active = true;
+        state.appliances.socket.baseWatts = 565;
+        calculateTotalHouseLoad();
+        showToast('System Reset to Nominal Baseline Telemetry');
+        break;
+    }
+  }
+
+  // =========================================================
+  // 8. AI COPILOT CHAT & QUICK CHIPS
+  // =========================================================
+  const aiForm = document.getElementById('ai-chat-form');
+  const aiInput = document.getElementById('ai-chat-input');
+  const aiThread = document.getElementById('ai-chat-thread');
+
+  if (aiForm && aiInput && aiThread) {
+    aiForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = aiInput.value.trim();
+      if (!text) return;
+
+      appendUserMessage(text);
+      aiInput.value = '';
+
+      setTimeout(() => respondAIMessage(text), 700);
+    });
+  }
+
+  document.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const prompt = chip.getAttribute('data-prompt');
+      appendUserMessage(prompt);
+      setTimeout(() => respondAIMessage(prompt), 600);
+    });
+  });
+
+  function appendUserMessage(text) {
+    const d = new Date();
+    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const div = document.createElement('div');
+    div.className = 'chat-message user-msg';
+    div.innerHTML = `
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="User" class="msg-avatar" />
+      <div class="msg-body">
+        <div class="msg-author-row"><span class="msg-author">Jordan Lee</span><span class="msg-time">${timeStr}</span></div>
+        <p class="msg-text">${text}</p>
+      </div>
+    `;
+    aiThread.appendChild(div);
+    aiThread.scrollTop = aiThread.scrollHeight;
+  }
+
+  function respondAIMessage(query) {
+    const d = new Date();
+    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const div = document.createElement('div');
+    div.className = 'chat-message ai-msg';
+
+    let reply = `Based on live telemetry, total house demand is <strong>${state.inverterPower} W</strong> (${Math.round((state.inverterPower / state.inverterCapacity) * 100)}% of inverter capacity).`;
+    if (query.includes('Peak') || query.includes('Savings')) {
+      reply = `Peak Tariff is active at <strong>Rs. 54.00/kWh</strong>. Battery storage is supplying the load, saving <strong>Rs. 38.88/hr</strong> in avoided grid peak charges!`;
+    } else if (query.includes('Overload') || query.includes('Headroom')) {
+      reply = `Inverter capacity limit is <strong>1000 W</strong>. Current headroom is <strong>${Math.max(0, state.inverterCapacity - state.inverterPower)} W</strong>.`;
+    }
+
+    div.innerHTML = `
+      <div class="ai-msg-avatar"><i data-lucide="sparkles"></i></div>
+      <div class="msg-body">
+        <div class="msg-author-row"><span class="msg-author">Solaris AI</span><span class="msg-time">${timeStr}</span></div>
+        <p class="msg-text">${reply}</p>
+      </div>
+    `;
+    aiThread.appendChild(div);
+    if (window.lucide) window.lucide.createIcons();
+    aiThread.scrollTop = aiThread.scrollHeight;
+  }
+
+  // =========================================================
+  // 9. SCADA CHART & 50HZ WAVEFORM (Analytics Tab)
+  // =========================================================
+  const canvas = document.getElementById('scadaTrendChart');
+
+  function renderScadaChart() {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    const padL = 45;
+    const padR = 20;
+    const padT = 20;
+    const padB = 30;
+    const chartW = w - padL - padR;
+    const chartH = h - padT - padB;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = state.theme === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (chartH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(w - padR, y);
+      ctx.stroke();
+
+      const val = Math.round(1200 - (1200 / 4) * i);
+      ctx.fillStyle = state.theme === 'dark' ? '#64748b' : '#94a3b8';
+      ctx.font = '10px JetBrains Mono';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${val}W`, padL - 8, y + 3);
+    }
+
+    const n = chartBuffer.length;
+    if (n < 2) return;
+    const stepX = chartW / (n - 1);
+    const getY = (val) => padT + chartH - (Math.max(0, Math.min(1200, val)) / 1200) * chartH;
+
+    // Solar Line
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, getY(chartBuffer[0].solar));
+    for (let i = 1; i < n; i++) ctx.lineTo(padL + i * stepX, getY(chartBuffer[i].solar));
+    ctx.stroke();
+
+    // Load Line
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, getY(chartBuffer[0].load));
+    for (let i = 1; i < n; i++) ctx.lineTo(padL + i * stepX, getY(chartBuffer[i].load));
+    ctx.stroke();
+  }
+
+  // 50Hz Sine Waveform Animation
+  const waveCanvas = document.getElementById('inverterWaveformCanvas');
+  let waveOffset = 0;
+
+  function animateWaveform() {
+    if (!waveCanvas) return;
+    const ctx = waveCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = waveCanvas.getBoundingClientRect();
+
+    waveCanvas.width = rect.width * dpr;
+    waveCanvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    const midY = h / 2;
+    const amp = h * 0.38;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Baseline
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(w, midY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Pure Sine Wave
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(16, 185, 129, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+
+    for (let x = 0; x < w; x++) {
+      const y = midY + Math.sin((x + waveOffset) * 0.04) * amp;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    waveOffset += 2;
+    requestAnimationFrame(animateWaveform);
+  }
+
+  // =========================================================
+  // 10. NAVIGATION & TAB SWITCHING
+  // =========================================================
+  const navPills = document.querySelectorAll('.nav-pill');
+  const viewContainers = {
+    overview: document.getElementById('view-overview'),
+    flow: document.getElementById('view-overview'),
+    analytics: document.getElementById('view-analytics'),
+    appliances: document.getElementById('view-appliances'),
+    billing: document.getElementById('view-billing'),
+    history: document.getElementById('view-history'),
+    settings: document.getElementById('view-settings')
+  };
+
+  function switchTab(tabKey) {
+    navPills.forEach(p => p.classList.toggle('active', p.getAttribute('data-tab') === tabKey));
+    Object.keys(viewContainers).forEach(k => {
+      if (viewContainers[k]) viewContainers[k].classList.remove('active');
+    });
+
+    if (viewContainers[tabKey]) {
+      viewContainers[tabKey].classList.add('active');
+    }
+    state.activeTab = tabKey;
+
+    if (tabKey === 'analytics') {
+      setTimeout(renderScadaChart, 60);
+    }
+  }
+
+  navPills.forEach(pill => {
+    pill.addEventListener('click', () => switchTab(pill.getAttribute('data-tab')));
+  });
+
+  const btnQuickBilling = document.getElementById('btn-quick-billing');
+  if (btnQuickBilling) {
+    btnQuickBilling.addEventListener('click', () => switchTab('billing'));
+  }
+
+  // Theme Switcher
+  const themeBtn = document.getElementById('theme-toggle-btn');
+  const themeIcon = document.getElementById('theme-icon');
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('theme-dark');
+      document.body.classList.toggle('theme-light', !isDark);
+      state.theme = isDark ? 'dark' : 'light';
+      if (themeIcon) {
+        themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+        if (window.lucide) window.lucide.createIcons();
+      }
+      renderScadaChart();
+      showToast(`Switched to ${isDark ? 'Dark Theme' : 'Light Theme'}`);
+    });
+  }
+
+  // Toast Utility
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : (type === 'warning' ? 'alert-triangle' : 'info')}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+
+    if (window.lucide) window.lucide.createIcons();
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3200);
+  }
+
+  // Real-Time Sensor Ingestion Loop (1.5s)
+  setInterval(() => {
+    if (state.appliances.socket.active && state.appliances.socket.baseWatts === 565) {
+      state.appliances.socket.baseWatts = 555 + Math.round(Math.random() * 20);
+    }
+    if (state.solarPower > 0) {
+      state.solarPower = Math.max(0, state.solarPower + Math.round((Math.random() - 0.5) * 15));
+    }
+
+    calculateTotalHouseLoad();
+
+    const d = new Date();
+    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+    chartBuffer.shift();
+    chartBuffer.push({
+      time: timeStr,
+      solar: state.solarPower,
+      battery: state.currentSource === 'grid' ? 0 : -state.batteryPower,
+      grid: state.gridPower,
+      load: state.inverterPower
+    });
+
+    if (state.activeTab === 'analytics') {
+      renderScadaChart();
+    }
+  }, 1500);
+
+  // Initial Load
+  calculateTotalHouseLoad();
+  renderScadaChart();
+  animateWaveform();
+  window.addEventListener('resize', renderScadaChart);
+});
