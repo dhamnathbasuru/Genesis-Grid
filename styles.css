@@ -452,7 +452,18 @@ body {
 }
 
 .preset-meta { display: flex; flex-direction: column; }
-.preset-title { font-size: 0.78rem; font-weight: 700; color: var(--text-main); }
+.preset-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preset-title svg {
+  width: 13px;
+  height: 13px;
+}
 .preset-desc { font-size: 0.66rem; color: var(--text-secondary); }
 .warning-preset .preset-title { color: var(--rose-danger); }
 .success-preset .preset-title { color: var(--mint-primary); }
