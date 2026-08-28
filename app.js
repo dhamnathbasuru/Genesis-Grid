@@ -1296,6 +1296,339 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 1000);
 
+  // =========================================================
+  // 11. TELEMETRY DEEP-DIVE MODAL CONTROLLER
+  // =========================================================
+  const detailModal = document.getElementById('telemetry-detail-modal');
+  const btnCloseModal = document.getElementById('btn-close-modal');
+  const btnModalCloseAction = document.getElementById('btn-modal-close-action');
+  const btnModalNavigate = document.getElementById('btn-modal-navigate');
+  const modalChannelTitle = document.getElementById('modal-channel-title');
+  const modalChannelSubtitle = document.getElementById('modal-channel-subtitle');
+  const modalStatusBadge = document.getElementById('modal-status-badge');
+  const modalDynamicBody = document.getElementById('modal-dynamic-body');
+  const modalIconBadge = document.getElementById('modal-icon-badge');
+
+  const detailContents = {
+    solar: {
+      title: "Solar PV Generation Deep-Dive",
+      subtitle: "Monocrystalline Array • Direct DC String Metrics & Irradiance Analysis",
+      icon: "sun",
+      iconColor: "#f59e0b",
+      badgeColor: "#f59e0b",
+      status: "Active Harvest",
+      navTab: "overview",
+      navLabel: "View Distribution Flow",
+      render: () => `
+        <div class="modal-grid-stats">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">LIVE PV GENERATION</span>
+            <span class="modal-stat-val text-amber">${state.solarPower} W</span>
+            <span class="modal-stat-sub">Real-Time DC Array Output</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">TODAY'S TOTAL HARVEST</span>
+            <span class="modal-stat-val text-mint">6.84 kWh</span>
+            <span class="modal-stat-sub">Peak Irradiance: 1,060 W at 12:45</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">MPPT TRACKER EFFICIENCY</span>
+            <span class="modal-stat-val text-mint">98.2%</span>
+            <span class="modal-stat-sub">Voltage: 48.2 V • Current: 17.6 A</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">CO₂ EMISSIONS OFFSET</span>
+            <span class="modal-stat-val text-amber">5.47 kg</span>
+            <span class="modal-stat-sub">Lifetime Clean Energy Harvest</span>
+          </div>
+        </div>
+
+        <div class="modal-section-box">
+          <span class="modal-section-title"><i data-lucide="activity"></i> Electrical String Parameters & Array Health</span>
+          <table class="modal-table-simple">
+            <tr><td>Solar Array Open Circuit Voltage (Voc)</td><td>58.4 V</td></tr>
+            <tr><td>MPPT Operating Point Voltage (Vmp)</td><td>48.2 V</td></tr>
+            <tr><td>Operating Current (Imp)</td><td>${(state.solarPower / 48.2).toFixed(1)} A</td></tr>
+            <tr><td>Photovoltaic Panel Temperature</td><td>38.5 °C (Nominal)</td></tr>
+            <tr><td>Inverter Clipping Threshold</td><td>1,200 W (No clipping observed)</td></tr>
+          </table>
+        </div>
+      `
+    },
+    load: {
+      title: "Household AC Load Demand Deep-Dive",
+      subtitle: "Smart Sub-Metering & Appliance Circuit Consumption Disaggregation",
+      icon: "zap",
+      iconColor: "#10b981",
+      badgeColor: "#10b981",
+      status: "Active AC Demand",
+      navTab: "appliances",
+      navLabel: "Manage Appliance Loads",
+      render: () => `
+        <div class="modal-grid-stats">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">TOTAL CURRENT LOAD</span>
+            <span class="modal-stat-val text-mint">${state.inverterPower} W</span>
+            <span class="modal-stat-sub">${Math.round((state.inverterPower / 1000) * 100)}% of 1000W Inverter Rating</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">DAILY ENERGY CONSUMED</span>
+            <span class="modal-stat-val text-cyan">5.40 kWh</span>
+            <span class="modal-stat-sub">Peak Load Today: 1,280 W</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">GRID VOLTAGE & FREQ</span>
+            <span class="modal-stat-val">230.1 V • 50.0 Hz</span>
+            <span class="modal-stat-sub">Harmonic Distortion THD &lt; 2.1%</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">POWER FACTOR</span>
+            <span class="modal-stat-val text-mint">0.98 PF</span>
+            <span class="modal-stat-sub">Active Smart Circuit Compensation</span>
+          </div>
+        </div>
+
+        <div class="modal-section-box">
+          <span class="modal-section-title"><i data-lucide="layers"></i> Live Circuit Disaggregation</span>
+          <table class="modal-table-simple">
+            <tr><td>Living Room (Fans, LED lighting, TV)</td><td>${state.appliances.living.active ? state.appliances.living.watts + ' W' : 'OFF (0 W)'}</td></tr>
+            <tr><td>Kitchen (Refrigerator, Prep counter)</td><td>${state.appliances.kitchen.active ? state.appliances.kitchen.watts + ' W' : 'OFF (0 W)'}</td></tr>
+            <tr><td>Master Bedroom (AC, LED lamps)</td><td>${state.appliances.bedroom.active ? state.appliances.bedroom.watts + ' W' : 'OFF (0 W)'}</td></tr>
+            <tr><td>High-Load Socket (Water Heater, Induction)</td><td>${state.appliances.socket.active ? state.appliances.socket.watts + ' W' : 'OFF (0 W)'}</td></tr>
+          </table>
+        </div>
+      `
+    },
+    battery: {
+      title: "Battery Storage & BMS Deep-Dive",
+      subtitle: "48V 100Ah (4.8 kWh) LiFePO4 Chemistry • Active Cell Telemetry",
+      icon: "battery-charging",
+      iconColor: "#a855f7",
+      badgeColor: "#a855f7",
+      status: "BMS Normal",
+      navTab: "overview",
+      navLabel: "View Energy Flow",
+      render: () => `
+        <div class="modal-grid-stats">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">STATE OF CHARGE (SOC)</span>
+            <span class="modal-stat-val text-mint">${Math.round(state.batterySOC)}%</span>
+            <span class="modal-stat-sub">${((state.batteryCapacityKwh * state.batterySOC) / 100).toFixed(2)} kWh Usable Energy</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">PACK STATE OF HEALTH (SOH)</span>
+            <span class="modal-stat-val text-purple">98.5%</span>
+            <span class="modal-stat-sub">342 Completed Cycles / 6,000 Rated</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">PACK VOLTAGE & CURRENT</span>
+            <span class="modal-stat-val">${state.batteryVoltage.toFixed(1)} V • ${(state.inverterPower / 51.2).toFixed(1)} A</span>
+            <span class="modal-stat-sub">${state.batteryState === 'charging' ? 'Charging Flow' : 'Discharge Inverting'}</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">INTERNAL TEMPERATURE</span>
+            <span class="modal-stat-val text-mint">28.4 °C</span>
+            <span class="modal-stat-sub">Nominal Safe Operating Range</span>
+          </div>
+        </div>
+
+        <div class="modal-section-box">
+          <span class="modal-section-title"><i data-lucide="cpu"></i> Individual Cell Voltages (Active Balancing)</span>
+          <table class="modal-table-simple">
+            <tr><td>Cell #1 Voltage</td><td>3.325 V (Balanced)</td></tr>
+            <tr><td>Cell #2 Voltage</td><td>3.321 V (Balanced)</td></tr>
+            <tr><td>Cell #3 Voltage</td><td>3.328 V (Balanced)</td></tr>
+            <tr><td>Cell #4 Voltage</td><td>3.324 V (Balanced)</td></tr>
+            <tr><td>Automated Cutoff Threshold</td><td>20.0% SOC (Safety Reserve)</td></tr>
+          </table>
+        </div>
+      `
+    },
+    grid: {
+      title: "CEB Utility Grid & Tariff Deep-Dive",
+      subtitle: "Time-of-Use (TOU) Smart Tariff Mapping & Grid Avoidance SCADA",
+      icon: "plug",
+      iconColor: "#38bdf8",
+      badgeColor: "#38bdf8",
+      status: "TOU Peak Optimization",
+      navTab: "billing",
+      navLabel: "View Billing Breakdown",
+      render: () => `
+        <div class="modal-grid-stats">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">ACTIVE CEB TARIFF RATE</span>
+            <span class="modal-stat-val text-danger">Rs. 54.00 / kWh</span>
+            <span class="modal-stat-sub">PEAK TARIFF (18:30 — 22:30 SLST)</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">AVOIDED PEAK GRID IMPORT</span>
+            <span class="modal-stat-val text-mint">4.20 kWh</span>
+            <span class="modal-stat-sub">100% Shifted to Solar + Battery</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">PEAK HOURS MONEY SAVED</span>
+            <span class="modal-stat-val text-amber">Rs. 226.80</span>
+            <span class="modal-stat-sub">Direct Peak Tariff Cost Avoidance</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">CEB GRID IMPORT STATUS</span>
+            <span class="modal-stat-val text-cyan">0 W (Idle)</span>
+            <span class="modal-stat-sub">Zero Peak Grid Import</span>
+          </div>
+        </div>
+
+        <div class="modal-section-box">
+          <span class="modal-section-title"><i data-lucide="dollar-sign"></i> CEB Time-of-Use Schedule</span>
+          <table class="modal-table-simple">
+            <tr><td>Off-Peak Interval (22:30 — 05:30)</td><td>Rs. 13.00 / kWh</td></tr>
+            <tr><td>Day Interval (05:30 — 18:30)</td><td>Rs. 25.00 / kWh</td></tr>
+            <tr><td>Peak Interval (18:30 — 22:30)</td><td>Rs. 54.00 / kWh</td></tr>
+            <tr><td>Estimated Monthly CEB Savings</td><td>Rs. 4,820.00</td></tr>
+          </table>
+        </div>
+      `
+    },
+    inverter: {
+      title: "Inverter Conversion & Waveform Deep-Dive",
+      subtitle: "Pure Sine Wave • 1000W Continuous Inverter Efficiency & Thermal Health",
+      icon: "cpu",
+      iconColor: "#10b981",
+      badgeColor: "#10b981",
+      status: "High Efficiency",
+      navTab: "overview",
+      navLabel: "View Load Gauge",
+      render: () => `
+        <div class="modal-grid-stats">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">CONVERSION EFFICIENCY</span>
+            <span class="modal-stat-val text-mint">94.8%</span>
+            <span class="modal-stat-sub">DC-AC Peak Inversion Efficiency</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">POWER HEADROOM</span>
+            <span class="modal-stat-val text-mint">${Math.max(0, 1000 - state.inverterPower)} W</span>
+            <span class="modal-stat-sub">Capacity Remaining Before Limit</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">INVERTER HEAT SINK TEMP</span>
+            <span class="modal-stat-val">34.2 °C</span>
+            <span class="modal-stat-sub">Intelligent Cooling Fan: Idle</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">SWITCHING SPEED</span>
+            <span class="modal-stat-val text-cyan">&lt; 10 ms</span>
+            <span class="modal-stat-sub">Zero-Flicker Seamless ATS Transfer</span>
+          </div>
+        </div>
+
+        <div class="modal-section-box">
+          <span class="modal-section-title"><i data-lucide="shield-check"></i> Inverter Protection Telemetry</span>
+          <table class="modal-table-simple">
+            <tr><td>Overload Safety Threshold</td><td>1,000 W Continuous (1,280 W Surge)</td></tr>
+            <tr><td>Auto-Transfer Countdown Trigger</td><td>&gt; 1,000 W sustained for 30 seconds</td></tr>
+            <tr><td>AC Output Frequency Stability</td><td>50.02 Hz ± 0.05%</td></tr>
+            <tr><td>Low Voltage Cutoff Protection</td><td>44.0 V DC</td></tr>
+          </table>
+        </div>
+      `
+    },
+    savings: {
+      title: "Financial ROI & Savings Breakdown",
+      subtitle: "Comprehensive Solar EMS Economic Analysis & Payback Trajectory",
+      icon: "trending-up",
+      iconColor: "#f59e0b",
+      badgeColor: "#f59e0b",
+      status: "ROI On Track",
+      navTab: "billing",
+      navLabel: "Open Billing Center",
+      render: () => `
+        <div class="modal-grid-stats">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">TODAY'S TOTAL SAVINGS</span>
+            <span class="modal-stat-val text-amber">Rs. 248.50</span>
+            <span class="modal-stat-sub">Solar Generation + Peak Shift</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">THIS MONTH SAVED</span>
+            <span class="modal-stat-val text-mint">Rs. 4,820.00</span>
+            <span class="modal-stat-sub">57% Reduction on CEB Electric Bill</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">ANNUAL PROJECTED BENEFIT</span>
+            <span class="modal-stat-val text-cyan">Rs. 57,840</span>
+            <span class="modal-stat-sub">Indexed Against Rising Utility Tariffs</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">ESTIMATED PAYBACK TIME</span>
+            <span class="modal-stat-val text-amber">2.1 Years</span>
+            <span class="modal-stat-sub">ROI Accelerated by Peak TOU Avoidance</span>
+          </div>
+        </div>
+
+        <div class="modal-section-box">
+          <span class="modal-section-title"><i data-lucide="pie-chart"></i> Savings Source Disaggregation</span>
+          <table class="modal-table-simple">
+            <tr><td>Direct Daytime Solar Consumption</td><td>Rs. 171.00 (68.8%)</td></tr>
+            <tr><td>Peak Night Battery Inverter Shift (Rs. 54/kWh)</td><td>Rs. 77.50 (31.2%)</td></tr>
+            <tr><td>Estimated Standard Utility Bill (Without EMS)</td><td>Rs. 8,450.00 / month</td></tr>
+            <tr><td>Optimized Bill With Genesis Grid EMS</td><td>Rs. 3,630.00 / month</td></tr>
+          </table>
+        </div>
+      `
+    }
+  };
+
+  function openTelemetryModal(detailKey) {
+    const data = detailContents[detailKey] || detailContents.solar;
+    if (!detailModal) return;
+
+    if (modalChannelTitle) modalChannelTitle.textContent = data.title;
+    if (modalChannelSubtitle) modalChannelSubtitle.textContent = data.subtitle;
+    if (modalStatusBadge) {
+      modalStatusBadge.textContent = data.status;
+      modalStatusBadge.style.color = data.badgeColor;
+      modalStatusBadge.style.borderColor = data.badgeColor;
+    }
+    if (modalIconBadge) {
+      modalIconBadge.innerHTML = `<i data-lucide="${data.icon}"></i>`;
+      modalIconBadge.style.borderColor = data.iconColor;
+    }
+    if (modalDynamicBody) {
+      modalDynamicBody.innerHTML = data.render();
+    }
+    if (btnModalNavigate) {
+      btnModalNavigate.textContent = data.navLabel;
+      btnModalNavigate.onclick = () => {
+        closeTelemetryModal();
+        switchTab(data.navTab);
+      };
+    }
+
+    if (window.lucide) window.lucide.createIcons();
+
+    detailModal.classList.add('active');
+  }
+
+  function closeTelemetryModal() {
+    if (detailModal) detailModal.classList.remove('active');
+  }
+
+  if (btnCloseModal) btnCloseModal.addEventListener('click', closeTelemetryModal);
+  if (btnModalCloseAction) btnModalCloseAction.addEventListener('click', closeTelemetryModal);
+  if (detailModal) {
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal) closeTelemetryModal();
+    });
+  }
+
+  // Bind click handlers on all interactive detail triggers
+  document.querySelectorAll('.clickable-kpi-card, .clickable-chart-card').forEach(el => {
+    el.addEventListener('click', () => {
+      const detailKey = el.getAttribute('data-detail');
+      if (detailKey) openTelemetryModal(detailKey);
+    });
+  });
+
   // Initial Load
   calculateTotalHouseLoad();
   renderScadaChart();
