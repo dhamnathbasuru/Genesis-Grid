@@ -100,20 +100,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Rolling SCADA Chart Buffer
-  const chartBuffer = [];
-  const chartPoints = 25;
-  const now = Date.now();
+  // Rolling SCADA Live Chart Buffer (30 points, 1s resolution)
+  const liveBuffer = [];
+  const livePoints = 30;
+  const initNow = Date.now();
 
-  for (let i = chartPoints - 1; i >= 0; i--) {
-    const t = new Date(now - i * 2000);
+  for (let i = livePoints - 1; i >= 0; i--) {
+    const t = new Date(initNow - i * 1000);
     const timeStr = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')}`;
-    chartBuffer.push({
+    liveBuffer.push({
       time: timeStr,
-      solar: 840 + Math.sin(i / 2) * 40,
-      battery: -510 - Math.cos(i / 3) * 30,
+      solar: 850 + Math.sin(i / 2) * 25,
+      battery: -520 - Math.cos(i / 3) * 15,
       grid: 0,
-      load: 710 + Math.sin(i / 2) * 20
+      load: 720 + Math.sin(i / 2) * 15
     });
   }
 
@@ -155,6 +155,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     evaluateSystemSource();
     updateUI(activeCount);
+
+    // Immediately push live event into chart buffer and trigger instantaneous repaint
+    const d = new Date();
+    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+    liveBuffer.shift();
+    liveBuffer.push({
+      time: timeStr,
+      solar: state.solarPower,
+      battery: state.currentSource === 'grid' ? 0 : (state.batteryState === 'charging' ? state.batteryPower : -state.batteryPower),
+      grid: state.gridPower,
+      load: state.inverterPower
+    });
+
+    if (state.activeTab === 'analytics' && typeof renderScadaChart === 'function') {
+      renderScadaChart();
+    }
   }
 
   function evaluateSystemSource() {
@@ -842,13 +858,169 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
-  // =========================================================
   // 9. SCADA REAL-TIME TREND CHART (Analytics Tab)
   // =========================================================
   const canvas = document.getElementById('scadaTrendChart');
   const chartWrapper = document.querySelector('.chart-canvas-wrapper');
   const chartTooltip = document.getElementById('chart-tooltip');
   let hoverX = -1;
+
+  // Distinct Historical Horizon Data Generators
+  function generateHistoricalData(range) {
+    const data = [];
+    const now = new Date();
+
+    if (range === '1h') {
+      // 60 points (1-minute intervals over past hour)
+      for (let i = 59; i >= 0; i--) {
+        const t = new Date(now.getTime() - i * 60000);
+        const timeStr = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+        const loadFluctuation = Math.sin(i / 4) * 80 + (i >= 12 && i <= 18 ? 220 : 0);
+        const curLoad = i === 0 ? state.inverterPower : Math.max(300, Math.min(1050, Math.round(680 + loadFluctuation)));
+        const solarVal = i === 0 ? state.solarPower : Math.max(150, Math.min(960, Math.round(830 + Math.cos(i / 6) * 90 - (i >= 25 && i <= 35 ? 240 : 0))));
+        const batVal = i === 0 
+          ? (state.batteryState === 'charging' ? state.batteryPower : -state.batteryPower) 
+          : (solarVal > curLoad ? Math.round(solarVal - curLoad) : -Math.round(curLoad - solarVal));
+        data.push({ time: timeStr, solar: solarVal, battery: batVal, grid: 0, load: curLoad });
+      }
+    } else if (range === '6h') {
+      // 72 points (5-minute intervals over past 6 hours)
+      for (let i = 71; i >= 0; i--) {
+        const t = new Date(now.getTime() - i * 300000);
+        const timeStr = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+        const frac = (71 - i) / 71; // 0 (6h ago ~13:00) to 1 (now ~19:00)
+        
+        // Solar drops significantly from bright afternoon to dusk
+        const solarVal = i === 0 ? state.solarPower : Math.max(0, Math.round(980 * Math.cos(frac * 1.55)));
+        
+        // Load peaks during evening dinner/lighting
+        const curLoad = i === 0 ? state.inverterPower : Math.round(420 + 380 * Math.sin(frac * Math.PI));
+        
+        // Battery charges during afternoon, then discharges during evening peak
+        let batVal = 0;
+        if (solarVal > curLoad) {
+          batVal = Math.min(480, solarVal - curLoad); // Charging
+        } else {
+          batVal = -Math.min(curLoad, curLoad - solarVal); // Discharging
+        }
+        if (i === 0) batVal = state.batteryState === 'charging' ? state.batteryPower : -state.batteryPower;
+
+        data.push({ time: timeStr, solar: solarVal, battery: batVal, grid: 0, load: curLoad });
+      }
+    } else if (range === '24h') {
+      // 96 points (15-minute intervals over full 24-hour diurnal cycle)
+      for (let i = 95; i >= 0; i--) {
+        const t = new Date(now.getTime() - i * 900000);
+        const hour = t.getHours() + t.getMinutes() / 60;
+        const timeStr = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+
+        // Diurnal Solar Bell Curve (06:00 to 18:00, Peak at 12:30)
+        let solarVal = 0;
+        if (hour >= 6.0 && hour <= 18.2) {
+          const sunAngle = ((hour - 6.0) / 12.2) * Math.PI;
+          solarVal = Math.round(Math.sin(sunAngle) * 1060 + (Math.sin(i / 2) * 40));
+          if (solarVal < 0) solarVal = 0;
+        }
+
+        // Daily Household Demand Profile
+        let curLoad = 180; // Baseline night load
+        if (hour >= 6.0 && hour < 8.5) curLoad = 620; // Morning rush
+        else if (hour >= 8.5 && hour < 17.0) curLoad = 410; // Daytime baseline
+        else if (hour >= 17.0 && hour < 22.5) curLoad = 860; // Peak cooking/lighting
+        else if (hour >= 22.5) curLoad = 260; // Night
+        curLoad += Math.round(Math.sin(i * 1.5) * 35);
+
+        // Battery & Grid Routing
+        let batVal = 0;
+        let gridVal = 0;
+        if (solarVal > curLoad) {
+          batVal = Math.min(520, solarVal - curLoad); // Charging
+        } else {
+          if (hour >= 18.5 && hour <= 22.5) {
+            batVal = -(curLoad - solarVal); // Peak tariff avoidance discharge
+          } else if (hour < 5.5) {
+            gridVal = curLoad; // Off-peak grid power
+            batVal = 0;
+          } else {
+            batVal = -(curLoad - solarVal);
+          }
+        }
+
+        if (i === 0) {
+          solarVal = state.solarPower;
+          curLoad = state.inverterPower;
+          batVal = state.batteryState === 'charging' ? state.batteryPower : -state.batteryPower;
+          gridVal = state.gridPower;
+        }
+
+        data.push({ time: timeStr, solar: solarVal, battery: batVal, grid: gridVal, load: curLoad });
+      }
+    }
+    return data;
+  }
+
+  // Update Footer Metric Values according to active time range
+  function updateChartFooterMetrics(range) {
+    const lbl1 = document.getElementById('chart-stat-lbl-1');
+    const val1 = document.getElementById('chart-stat-val-1');
+    const lbl2 = document.getElementById('chart-stat-lbl-2');
+    const val2 = document.getElementById('chart-stat-val-2');
+    const lbl3 = document.getElementById('chart-stat-lbl-3');
+    const val3 = document.getElementById('chart-stat-val-3');
+    const lbl4 = document.getElementById('chart-stat-lbl-4');
+    const val4 = document.getElementById('chart-stat-val-4');
+    const lbl5 = document.getElementById('chart-stat-lbl-5');
+    const val5 = document.getElementById('chart-stat-val-5');
+
+    if (!lbl1) return;
+
+    if (range === 'live') {
+      lbl1.textContent = 'CURRENT SOLAR';
+      val1.textContent = `${state.solarPower} W`;
+      lbl2.textContent = 'ACTIVE HOUSE LOAD';
+      val2.textContent = `${state.inverterPower} W`;
+      lbl3.textContent = 'INVERTER EFFICIENCY';
+      val3.textContent = '95.2%';
+      lbl4.textContent = 'BATTERY NET FLOW';
+      val4.textContent = `${state.batteryState === 'charging' ? '+' + state.solarPower + ' W' : '-' + state.inverterPower + ' W'}`;
+      lbl5.textContent = 'ACTIVE TARIFF RATE';
+      val5.textContent = 'Rs. 54.00 / kWh';
+    } else if (range === '1h') {
+      lbl1.textContent = '1H SOLAR HARVEST';
+      val1.textContent = '0.82 kWh';
+      lbl2.textContent = '1H HOUSE DEMAND';
+      val2.textContent = '0.69 kWh';
+      lbl3.textContent = 'AVG EFFICIENCY';
+      val3.textContent = '95.1%';
+      lbl4.textContent = 'BATTERY DISCHARGE';
+      val4.textContent = '0.51 kWh';
+      lbl5.textContent = '1H COST SAVINGS';
+      val5.textContent = 'Rs. 38.88';
+    } else if (range === '6h') {
+      lbl1.textContent = '6H SOLAR TOTAL';
+      val1.textContent = '3.42 kWh';
+      lbl2.textContent = 'PEAK LOAD AVOIDED';
+      val2.textContent = '2.10 kWh';
+      lbl3.textContent = 'AVG EFFICIENCY';
+      val3.textContent = '94.6%';
+      lbl4.textContent = 'BATTERY SOH';
+      val4.textContent = '98.5%';
+      lbl5.textContent = '6H TARIFF SAVINGS';
+      val5.textContent = 'Rs. 162.00';
+    } else {
+      // 24h
+      lbl1.textContent = 'SOLAR GENERATION TODAY';
+      val1.textContent = '6.84 kWh';
+      lbl2.textContent = 'AVOIDED PEAK GRID IMPORT';
+      val2.textContent = '4.20 kWh';
+      lbl3.textContent = 'INVERTER EFFICIENCY';
+      val3.textContent = '94.8%';
+      lbl4.textContent = 'BATTERY SOH';
+      val4.textContent = '98.5%';
+      lbl5.textContent = 'TOTAL SAVINGS TODAY';
+      val5.textContent = 'Rs. 248.50';
+    }
+  }
 
   function renderScadaChart() {
     if (!canvas) return;
@@ -876,7 +1048,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.clearRect(0, 0, w, h);
 
     const isLight = document.body.classList.contains('theme-light');
-    const maxVal = 1200;
+    const range = state.chartRange || 'live';
+    const currentData = range === 'live' ? liveBuffer : generateHistoricalData(range);
+    const n = currentData.length;
+    if (n < 2) return;
+
+    // Determine max dynamic scale
+    let maxPeak = 1200;
+    for (let i = 0; i < n; i++) {
+      if (currentData[i].solar > maxPeak) maxPeak = currentData[i].solar;
+      if (currentData[i].load > maxPeak) maxPeak = currentData[i].load;
+    }
+    const maxVal = Math.ceil(maxPeak / 200) * 200;
 
     // Grid lines & Y-Axis Ticks
     ctx.lineWidth = 1;
@@ -895,8 +1078,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillText(`${val} W`, padL - 8, y + 4);
     }
 
-    const n = chartBuffer.length;
-    if (n < 2) return;
     const stepX = chartW / (n - 1);
     const getY = (val) => padT + chartH - (Math.max(0, Math.min(maxVal, val)) / maxVal) * chartH;
 
@@ -908,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(padL, padT + chartH);
         for (let i = 0; i < n; i++) {
           const x = padL + i * stepX;
-          const y = getY(Math.abs(chartBuffer[i][dataKey] || 0));
+          const y = getY(Math.abs(currentData[i][dataKey] || 0));
           ctx.lineTo(x, y);
         }
         ctx.lineTo(padL + (n - 1) * stepX, padT + chartH);
@@ -921,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       for (let i = 0; i < n; i++) {
         const x = padL + i * stepX;
-        const y = getY(Math.abs(chartBuffer[i][dataKey] || 0));
+        const y = getY(Math.abs(currentData[i][dataKey] || 0));
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
@@ -956,17 +1137,20 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillStyle = isLight ? '#64748b' : '#64748b';
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
-    const tickInterval = Math.max(1, Math.floor(n / 5));
+    const tickInterval = Math.max(1, Math.floor(n / 6));
     for (let i = 0; i < n; i += tickInterval) {
       const x = padL + i * stepX;
-      ctx.fillText(chartBuffer[i].time || '', x, padT + chartH + 18);
+      ctx.fillText(currentData[i].time || '', x, padT + chartH + 18);
     }
+    // Also draw the last timestamp
+    const lastX = padL + (n - 1) * stepX;
+    ctx.fillText(currentData[n - 1].time || '', lastX, padT + chartH + 18);
 
     // Hover Crosshair & Data Indicator
     if (hoverX >= padL && hoverX <= padL + chartW) {
       const closestIdx = Math.max(0, Math.min(n - 1, Math.round((hoverX - padL) / stepX)));
       const snapX = padL + closestIdx * stepX;
-      const pt = chartBuffer[closestIdx];
+      const pt = currentData[closestIdx];
 
       // Vertical guide line
       ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.4)';
@@ -1017,6 +1201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (chartTooltip) {
       chartTooltip.style.display = 'none';
     }
+
+    updateChartFooterMetrics(range);
   }
 
   // Mouse interactivity for hover crosshair
@@ -1133,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3200);
   }
 
-  // Real-Time Sensor Ingestion Loop (1.5s)
+  // Real-Time Sensor Ingestion Loop (1.0s)
   setInterval(() => {
     if (state.appliances.socket.active && state.appliances.socket.baseWatts === 565) {
       state.appliances.socket.baseWatts = 555 + Math.round(Math.random() * 20);
@@ -1144,25 +1330,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     calculateTotalHouseLoad();
 
-    const d = new Date();
-    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
-    chartBuffer.shift();
-    chartBuffer.push({
-      time: timeStr,
-      solar: state.solarPower,
-      battery: state.currentSource === 'grid' ? 0 : -state.batteryPower,
-      grid: state.gridPower,
-      load: state.inverterPower
-    });
-
     if (state.activeTab === 'analytics') {
       renderScadaChart();
     }
-  }, 1500);
+  }, 1000);
 
   // Initial Load
   calculateTotalHouseLoad();
   renderScadaChart();
-  animateWaveform();
   window.addEventListener('resize', renderScadaChart);
 });
