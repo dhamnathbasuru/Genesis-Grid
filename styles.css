@@ -1855,16 +1855,36 @@ body {
 .dev-toggle-switch.active::after { left: 19px; }
 
 /* =========================================================
-   SPLIT GRID LAYOUT (AI Copilot & Tariff Tiers)
+   SPLIT GRID LAYOUT (Home Appliances & AI Copilot)
    ========================================================= */
 .dashboard-split-grid {
   display: grid;
   grid-template-columns: 1fr 440px;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
 }
 
-.split-left-column, .split-right-column { display: flex; flex-direction: column; gap: 24px; }
+@media (max-width: 1100px) {
+  .dashboard-split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.split-left-column,
+.split-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.devices-panel,
+.ai-copilot-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
 .dashboard-panel {
   background: var(--bg-card);
