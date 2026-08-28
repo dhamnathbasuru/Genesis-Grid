@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=3.6" />
 </head>
 <body class="theme-dark">
   
@@ -224,7 +224,7 @@
           </div>
 
           <!-- Live Solar Generation Display in Overview -->
-          <div class="solar-live-capsule clickable-kpi-card" id="hero-solar-badge" data-detail="solar" title="Click to view detailed Solar PV analytics">
+          <div class="solar-live-capsule clickable-kpi-card" id="hero-solar-badge" data-detail="solar" onclick="openTelemetryModal('solar')" title="Click to view detailed Solar PV analytics">
             <span class="live-pulse-dot amber"></span>
             <i data-lucide="sun"></i>
             <span class="solar-lbl">Solar Gen:</span>
@@ -233,7 +233,7 @@
           </div>
 
           <!-- Current Time-Of-Use Tariff Display in Overview -->
-          <div class="tariff-live-capsule clickable-kpi-card" id="hero-tariff-capsule" data-detail="grid" title="Click to view detailed CEB Tariff analytics">
+          <div class="tariff-live-capsule clickable-kpi-card" id="hero-tariff-capsule" data-detail="grid" onclick="openTelemetryModal('grid')" title="Click to view detailed CEB Tariff analytics">
             <span class="live-pulse-dot danger"></span>
             <i data-lucide="zap"></i>
             <span class="tariff-tier-label" id="hero-tariff-tier">PEAK TARIFF:</span>
@@ -304,7 +304,7 @@
     <section class="metrics-grid">
       
       <!-- Card 1: CURRENT HOUSE LOAD (Live Wave Analyzer) -->
-      <div class="metric-card highlight-card clickable-kpi-card" data-detail="load" title="Click to view detailed Household Load analytics">
+      <div class="metric-card highlight-card clickable-kpi-card" data-detail="load" onclick="openTelemetryModal('load')" title="Click to view detailed Household Load analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon"><i data-lucide="gauge"></i></span>
@@ -359,7 +359,7 @@
       </div>
 
       <!-- Card 2: CAPACITY LOAD GAUGE (1:1 with Reference Design) -->
-      <div class="metric-card capacity-gauge-card highlight-card clickable-kpi-card" data-detail="inverter" title="Click to view detailed Inverter & Capacity analytics">
+      <div class="metric-card capacity-gauge-card highlight-card clickable-kpi-card" data-detail="inverter" onclick="openTelemetryModal('inverter')" title="Click to view detailed Inverter & Capacity analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon"><i data-lucide="gauge-circle"></i></span>
@@ -419,7 +419,7 @@
       </div>
 
       <!-- Card 3: BATTERY STORAGE BMS (Animated Flow & Energy Cells) -->
-      <div class="metric-card battery-card-flow clickable-kpi-card" data-detail="battery" title="Click to view detailed Battery BMS analytics">
+      <div class="metric-card battery-card-flow clickable-kpi-card" data-detail="battery" onclick="openTelemetryModal('battery')" title="Click to view detailed Battery BMS analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon text-purple"><i data-lucide="battery-charging"></i></span>
@@ -470,7 +470,7 @@
       </div>
 
       <!-- Card 4: ESTIMATED MONEY SAVED (Tariff Avoidance Graph) -->
-      <div class="metric-card savings-card-flow clickable-kpi-card" data-detail="savings" title="Click to view detailed Savings analytics">
+      <div class="metric-card savings-card-flow clickable-kpi-card" data-detail="savings" onclick="openTelemetryModal('savings')" title="Click to view detailed Savings analytics">
         <div class="metric-card-header">
           <div class="metric-title-group">
             <span class="metric-category-icon text-amber"><i data-lucide="trending-up"></i></span>
@@ -1020,7 +1020,7 @@
         <!-- Top Summary KPI Metrics Bar (Interactive Clickable Deep-Dive Tiles - 6 Channels) -->
         <div class="chart-top-metrics-bar">
           <!-- 1. Solar Generation -->
-          <div class="chart-stat-item clickable-kpi-card" data-detail="solar" title="Click to view detailed Solar Generation analytics">
+          <div class="chart-stat-item clickable-kpi-card" data-detail="solar" onclick="openTelemetryModal('solar')" title="Click to view detailed Solar Generation analytics">
             <div class="kpi-header-row">
               <span class="stat-caption text-amber" id="chart-stat-lbl-1">SOLAR PV GENERATION</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
@@ -1029,7 +1029,7 @@
           </div>
 
           <!-- 2. Household Current AC Load -->
-          <div class="chart-stat-item clickable-kpi-card" data-detail="load" title="Click to view detailed Household Load analytics">
+          <div class="chart-stat-item clickable-kpi-card" data-detail="load" onclick="openTelemetryModal('load')" title="Click to view detailed Household Load analytics">
             <div class="kpi-header-row">
               <span class="stat-caption text-mint" id="chart-stat-lbl-load">CURRENT HOUSE LOAD</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
@@ -1038,7 +1038,7 @@
           </div>
 
           <!-- 3. Battery BMS Storage -->
-          <div class="chart-stat-item clickable-kpi-card" data-detail="battery" title="Click to view detailed Battery BMS & Cell Health analytics">
+          <div class="chart-stat-item clickable-kpi-card" data-detail="battery" onclick="openTelemetryModal('battery')" title="Click to view detailed Battery BMS & Cell Health analytics">
             <div class="kpi-header-row">
               <span class="stat-caption text-purple" id="chart-stat-lbl-4">BATTERY BMS (SOC/SOH)</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
@@ -1047,7 +1047,7 @@
           </div>
 
           <!-- 4. Avoided Peak Grid -->
-          <div class="chart-stat-item clickable-kpi-card" data-detail="grid" title="Click to view detailed Avoided Peak Grid analytics">
+          <div class="chart-stat-item clickable-kpi-card" data-detail="grid" onclick="openTelemetryModal('grid')" title="Click to view detailed Avoided Peak Grid analytics">
             <div class="kpi-header-row">
               <span class="stat-caption text-cyan" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
@@ -1056,7 +1056,7 @@
           </div>
 
           <!-- 5. Inverter Efficiency -->
-          <div class="chart-stat-item clickable-kpi-card" data-detail="inverter" title="Click to view detailed Inverter Efficiency & Waveform analytics">
+          <div class="chart-stat-item clickable-kpi-card" data-detail="inverter" onclick="openTelemetryModal('inverter')" title="Click to view detailed Inverter Efficiency & Waveform analytics">
             <div class="kpi-header-row">
               <span class="stat-caption" id="chart-stat-lbl-3">INVERTER EFFICIENCY</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
@@ -1065,7 +1065,7 @@
           </div>
 
           <!-- 6. Total Savings -->
-          <div class="chart-stat-item clickable-kpi-card" data-detail="savings" title="Click to view detailed Tariff Savings & ROI analytics">
+          <div class="chart-stat-item clickable-kpi-card" data-detail="savings" onclick="openTelemetryModal('savings')" title="Click to view detailed Tariff Savings & ROI analytics">
             <div class="kpi-header-row">
               <span class="stat-caption" id="chart-stat-lbl-5">TOTAL SAVINGS</span>
               <i data-lucide="external-link" class="kpi-link-icon"></i>
@@ -1078,7 +1078,7 @@
         <div class="scada-charts-grid">
           
           <!-- Chart 1: Solar PV Generation -->
-          <div class="scada-single-chart-card clickable-chart-card" data-detail="solar" title="Click to view Solar Deep-Dive">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="solar" onclick="openTelemetryModal('solar')" title="Click to view Solar Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-amber">
@@ -1099,7 +1099,7 @@
           </div>
 
           <!-- Chart 2: Household Load Demand -->
-          <div class="scada-single-chart-card clickable-chart-card" data-detail="load" title="Click to view Household Load Deep-Dive">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="load" onclick="openTelemetryModal('load')" title="Click to view Household Load Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-mint">
@@ -1120,7 +1120,7 @@
           </div>
 
           <!-- Chart 3: Battery Storage Net Flow -->
-          <div class="scada-single-chart-card clickable-chart-card" data-detail="battery" title="Click to view Battery BMS Deep-Dive">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="battery" onclick="openTelemetryModal('battery')" title="Click to view Battery BMS Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-purple">
@@ -1141,7 +1141,7 @@
           </div>
 
           <!-- Chart 4: CEB Grid Utility Power -->
-          <div class="scada-single-chart-card clickable-chart-card" data-detail="grid" title="Click to view CEB Grid Deep-Dive">
+          <div class="scada-single-chart-card clickable-chart-card" data-detail="grid" onclick="openTelemetryModal('grid')" title="Click to view CEB Grid Deep-Dive">
             <div class="scada-chart-top-row">
               <div class="scada-chart-titles">
                 <span class="scada-chart-title text-cyan">
@@ -1404,7 +1404,9 @@
         </div>
       </div>
 
-    </div>
+    </div> <!-- Close #view-settings -->
+
+  </div> <!-- Close .app-container -->
 
   <!-- =========================================================
        TELEMETRY DEEP-DIVE DETAILS MODAL (Channel Detailed View)
@@ -1447,6 +1449,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js"></script>
+  <script src="app.js?v=3.6"></script>
 </body>
 </html>
