@@ -214,7 +214,7 @@
           </div>
         </div>
 
-        <!-- Meta Sub-Row -->
+        <!-- Meta Sub-Row: Live System Status, Solar Generation, Tariff, and Clock -->
         <div class="hero-submeta-row">
           <div class="status-live-pill">
             <span class="live-pulse-dot" id="online-pulse-dot"></span>
@@ -223,15 +223,26 @@
             <span class="site-desc" id="hero-source-name">SOLAR + BATTERY ACTIVE</span>
           </div>
 
+          <!-- Live Solar Generation Display in Overview -->
+          <div class="solar-live-capsule" id="hero-solar-badge">
+            <span class="live-pulse-dot amber"></span>
+            <i data-lucide="sun"></i>
+            <span class="solar-lbl">Solar Gen:</span>
+            <span class="solar-val" id="hero-solar-val">850 W</span>
+          </div>
+
+          <!-- Current Time-Of-Use Tariff Display in Overview -->
+          <div class="tariff-live-capsule" id="hero-tariff-capsule">
+            <span class="live-pulse-dot danger"></span>
+            <i data-lucide="zap"></i>
+            <span class="tariff-tier-label" id="hero-tariff-tier">PEAK TARIFF:</span>
+            <span class="tariff-rate-val" id="hero-tariff-rate">Rs. 54.00/kWh</span>
+          </div>
+
           <div class="clock-capsule">
             <i data-lucide="clock" class="mini-icon"></i>
             <span id="live-clock">23:40:45</span>
             <span class="tz-tag">SLST</span>
-          </div>
-
-          <div class="tariff-live-capsule">
-            <i data-lucide="activity" class="mini-icon"></i>
-            <span id="hero-tariff-rate">PEAK: Rs. 54.00/kWh</span>
           </div>
 
           <button class="stream-pill-toggle active" id="live-stream-toggle">
@@ -1004,6 +1015,30 @@
           </div>
         </div>
 
+        <!-- Top Summary KPI Metrics Bar (Interval Telemetry Summary) -->
+        <div class="chart-top-metrics-bar">
+          <div class="chart-stat-item">
+            <span class="stat-caption" id="chart-stat-lbl-1">SOLAR GENERATION</span>
+            <span class="stat-bold stat-highlight" id="chart-stat-val-1">6.84 kWh</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
+            <span class="stat-bold stat-highlight" id="chart-stat-val-2">4.20 kWh</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption" id="chart-stat-lbl-3">INVERTER EFFICIENCY</span>
+            <span class="stat-bold" id="chart-stat-val-3">94.8%</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption" id="chart-stat-lbl-4">BATTERY SOH</span>
+            <span class="stat-bold" id="chart-stat-val-4">98.5%</span>
+          </div>
+          <div class="chart-stat-item">
+            <span class="stat-caption" id="chart-stat-lbl-5">TOTAL SAVINGS</span>
+            <span class="stat-bold text-amber" id="chart-stat-val-5">Rs. 248.50</span>
+          </div>
+        </div>
+
         <!-- 2x2 Grid of Dedicated Telemetry Graphs -->
         <div class="scada-charts-grid">
           
@@ -1091,29 +1126,6 @@
             </div>
           </div>
 
-        </div>
-
-        <div class="chart-footer-metrics">
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-1">SOLAR GENERATION</span>
-            <span class="stat-bold stat-highlight" id="chart-stat-val-1">6.84 kWh</span>
-          </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-2">AVOIDED PEAK GRID</span>
-            <span class="stat-bold stat-highlight" id="chart-stat-val-2">4.20 kWh</span>
-          </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-3">INVERTER EFFICIENCY</span>
-            <span class="stat-bold" id="chart-stat-val-3">94.8%</span>
-          </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-4">BATTERY SOH</span>
-            <span class="stat-bold" id="chart-stat-val-4">98.5%</span>
-          </div>
-          <div class="chart-stat-item">
-            <span class="stat-caption" id="chart-stat-lbl-5">TOTAL SAVINGS</span>
-            <span class="stat-bold text-amber" id="chart-stat-val-5">Rs. 248.50</span>
-          </div>
         </div>
       </div>
 
