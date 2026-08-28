@@ -396,21 +396,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bmsFlowBadge && bmsFlowText && bmsFlowIcon) {
       if (isCharging) {
         bmsFlowBadge.className = 'bms-flow-indicator charging';
-        bmsFlowIcon.textContent = '▲';
+        bmsFlowIcon.innerHTML = '<i data-lucide="arrow-up-right"></i>';
         bmsFlowText.textContent = `+${state.solarPower}W Charging`;
         if (bmsTimeEst) bmsTimeEst.textContent = 'Est. Full in: ~1h 35m (Solar PV Run)';
       } else if (isDischarging) {
         bmsFlowBadge.className = 'bms-flow-indicator discharging';
-        bmsFlowIcon.textContent = '▼';
+        bmsFlowIcon.innerHTML = '<i data-lucide="arrow-down-right"></i>';
         bmsFlowText.textContent = `${load}W Discharging`;
         const hoursRemaining = load > 0 ? ((state.batteryCapacityKwh * (batSoc / 100) * 1000) / load).toFixed(1) : '24';
         if (bmsTimeEst) bmsTimeEst.textContent = `Est. Runtime: ~${hoursRemaining}h at current load`;
       } else {
         bmsFlowBadge.className = 'bms-flow-indicator idle';
-        bmsFlowIcon.textContent = '●';
+        bmsFlowIcon.innerHTML = '<i data-lucide="minus"></i>';
         bmsFlowText.textContent = 'Float Standby';
         if (bmsTimeEst) bmsTimeEst.textContent = 'Battery fully charged and on float';
       }
+      if (window.lucide) window.lucide.createIcons();
     }
 
     // Update 4 Battery Cells
@@ -721,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.operatingMode = 'auto';
         state.gridAvailable = true;
         calculateTotalHouseLoad();
-        showToast('⚠️ Scenario 3: High Load Spike (1.28 kW > 1.00 kW) — 30s Countdown Started!', 'danger');
+        showToast('Scenario 3: High Load Spike (1.28 kW > 1.00 kW) — 30s Countdown Started!', 'danger');
         break;
 
       case '4':
