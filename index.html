@@ -71,35 +71,35 @@
               <button class="demo-preset-opt warning-preset" data-scenario="3">
                 <span class="preset-num">3</span>
                 <div class="preset-meta">
-                  <span class="preset-title">⚠️ Overload Spike (1.28 kW)</span>
+                  <span class="preset-title"><i data-lucide="alert-triangle"></i> Overload Spike (1.28 kW)</span>
                   <span class="preset-desc">Triggers 30s High Load Warning countdown</span>
                 </div>
               </button>
               <button class="demo-preset-opt success-preset" data-scenario="4">
                 <span class="preset-num">4</span>
                 <div class="preset-meta">
-                  <span class="preset-title">⚡ Load Shedding / Reduction</span>
+                  <span class="preset-title"><i data-lucide="sliders"></i> Load Shedding / Reduction</span>
                   <span class="preset-desc">User sheds socket -> Load automatically normalizes</span>
                 </div>
               </button>
               <button class="demo-preset-opt" data-scenario="5">
                 <span class="preset-num">5</span>
                 <div class="preset-meta">
-                  <span class="preset-title">⏳ Auto Grid Timeout</span>
+                  <span class="preset-title"><i data-lucide="timer"></i> Auto Grid Timeout</span>
                   <span class="preset-desc">Countdown ends -> Automated safety switch to Grid</span>
                 </div>
               </button>
               <button class="demo-preset-opt" data-scenario="6">
                 <span class="preset-num">6</span>
                 <div class="preset-meta">
-                  <span class="preset-title">🔌 Grid Blackout Outage</span>
+                  <span class="preset-title"><i data-lucide="zap-off"></i> Grid Blackout Outage</span>
                   <span class="preset-desc">Grid fails -> Inverter seamless backup power</span>
                 </div>
               </button>
               <button class="demo-preset-opt" data-scenario="7">
                 <span class="preset-num">7</span>
                 <div class="preset-meta">
-                  <span class="preset-title">🪫 Critical Low Battery (&lt;20%)</span>
+                  <span class="preset-title"><i data-lucide="battery-warning"></i> Critical Low Battery (&lt;20%)</span>
                   <span class="preset-desc">SOC cutoff protection -> Switches to Grid</span>
                 </div>
               </button>
@@ -423,7 +423,7 @@
               <span class="bms-cap-label" id="val-bat-energy-left">3.74 kWh</span>
             </div>
             <div class="bms-flow-indicator discharging" id="bms-flow-badge">
-              <span class="flow-arrow-icon" id="bms-flow-icon">▼</span>
+              <span class="flow-arrow-icon" id="bms-flow-icon"><i data-lucide="arrow-down-right"></i></span>
               <span id="bms-flow-text">520W Discharging</span>
             </div>
           </div>
@@ -924,9 +924,9 @@
 
             <!-- Quick Action Chips -->
             <div class="ai-quick-chips">
-              <button class="quick-chip" data-prompt="Analyze Peak Tariff vs Battery Savings">⚡ Peak Savings</button>
-              <button class="quick-chip" data-prompt="Check Inverter Load Headroom">📊 Inverter Headroom</button>
-              <button class="quick-chip" data-prompt="Simulate 280W Overload Spike">⚠️ Overload Test</button>
+              <button class="quick-chip" data-prompt="Analyze Peak Tariff vs Battery Savings"><i data-lucide="trending-up"></i> Peak Savings</button>
+              <button class="quick-chip" data-prompt="Check Inverter Load Headroom"><i data-lucide="gauge"></i> Inverter Headroom</button>
+              <button class="quick-chip" data-prompt="Simulate 280W Overload Spike"><i data-lucide="alert-triangle"></i> Overload Test</button>
             </div>
 
             <!-- Input Form -->
