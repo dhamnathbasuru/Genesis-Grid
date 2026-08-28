@@ -1366,45 +1366,75 @@ document.addEventListener('DOMContentLoaded', () => {
       `
     },
     load: {
-      title: "Household AC Load Demand Deep-Dive",
-      subtitle: "Smart Sub-Metering & Appliance Circuit Consumption Disaggregation",
-      icon: "zap",
+      title: "Home Appliances & Current Load Deep-Dive",
+      subtitle: "Smart AC Sub-Metering (ACS712) • Branch Circuit Disaggregation & Relays",
+      icon: "plug-zap",
       iconColor: "#10b981",
       badgeColor: "#10b981",
       status: "Active AC Demand",
       navTab: "appliances",
-      navLabel: "Manage Appliance Loads",
+      navLabel: "Open Full Appliance Control",
       render: () => `
         <div class="modal-grid-stats">
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">TOTAL CURRENT LOAD</span>
+            <span class="modal-stat-lbl">TOTAL ACTIVE HOUSE LOAD</span>
             <span class="modal-stat-val text-mint">${state.inverterPower} W</span>
-            <span class="modal-stat-sub">${Math.round((state.inverterPower / 1000) * 100)}% of 1000W Inverter Rating</span>
+            <span class="modal-stat-sub">${Math.round((state.inverterPower / 1000) * 100)}% of 1,000 W Inverter Rating</span>
           </div>
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">DAILY ENERGY CONSUMED</span>
+            <span class="modal-stat-lbl">TODAY'S ENERGY CONSUMED</span>
             <span class="modal-stat-val text-cyan">5.40 kWh</span>
-            <span class="modal-stat-sub">Peak Load Today: 1,280 W</span>
+            <span class="modal-stat-sub">Peak Load Recorded: 1,280 W</span>
           </div>
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">GRID VOLTAGE & FREQ</span>
-            <span class="modal-stat-val">230.1 V • 50.0 Hz</span>
-            <span class="modal-stat-sub">Harmonic Distortion THD &lt; 2.1%</span>
+            <span class="modal-stat-lbl">SUPPLY VOLTAGE & FREQ</span>
+            <span class="modal-stat-val">230.1 V • 50.02 Hz</span>
+            <span class="modal-stat-sub">Pure Sine Wave • THD &lt; 2.1%</span>
           </div>
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">POWER FACTOR</span>
-            <span class="modal-stat-val text-mint">0.98 PF</span>
-            <span class="modal-stat-sub">Active Smart Circuit Compensation</span>
+            <span class="modal-stat-lbl">CIRCUITS ACTIVE</span>
+            <span class="modal-stat-val text-mint">${Object.values(state.appliances).filter(a => a.active).length} of 4 ON</span>
+            <span class="modal-stat-sub">Power Factor: 0.98 PF (Compensated)</span>
           </div>
         </div>
 
         <div class="modal-section-box">
-          <span class="modal-section-title"><i data-lucide="layers"></i> Live Circuit Disaggregation</span>
+          <span class="modal-section-title"><i data-lucide="layers"></i> Individual Branch Circuit Breakdown (ACS712 Current Sensors)</span>
           <table class="modal-table-simple">
-            <tr><td>Living Room (Fans, LED lighting, TV)</td><td>${state.appliances.living.active ? state.appliances.living.watts + ' W' : 'OFF (0 W)'}</td></tr>
-            <tr><td>Kitchen (Refrigerator, Prep counter)</td><td>${state.appliances.kitchen.active ? state.appliances.kitchen.watts + ' W' : 'OFF (0 W)'}</td></tr>
-            <tr><td>Master Bedroom (AC, LED lamps)</td><td>${state.appliances.bedroom.active ? state.appliances.bedroom.watts + ' W' : 'OFF (0 W)'}</td></tr>
-            <tr><td>High-Load Socket (Water Heater, Induction)</td><td>${state.appliances.socket.active ? state.appliances.socket.watts + ' W' : 'OFF (0 W)'}</td></tr>
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.72rem;">
+                <th style="text-align: left; padding: 4px 0;">CIRCUIT / APPLIANCE</th>
+                <th style="text-align: center; padding: 4px 0;">CURRENT</th>
+                <th style="text-align: center; padding: 4px 0;">STATUS</th>
+                <th style="text-align: right; padding: 4px 0;">POWER</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Bulb 1 (Living Room Lighting &amp; TV)</strong></td>
+                <td style="text-align: center;">${state.appliances.living.active ? '0.41 A' : '0.00 A'}</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.living.active ? 'tag-running' : 'tag-off'}">${state.appliances.living.active ? 'ON' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="text-mint">${state.appliances.living.active ? state.appliances.living.watts + ' W' : '0 W'}</td>
+              </tr>
+              <tr>
+                <td><strong>Bulb 2 (Kitchen &amp; Dining Refrigerator)</strong></td>
+                <td style="text-align: center;">${state.appliances.kitchen.active ? '0.00 A' : '0.00 A'}</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.kitchen.active ? 'tag-running' : 'tag-off'}">${state.appliances.kitchen.active ? 'ON' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="${state.appliances.kitchen.active ? 'text-mint' : 'text-muted'}">${state.appliances.kitchen.active ? state.appliances.kitchen.watts + ' W' : '0 W'}</td>
+              </tr>
+              <tr>
+                <td><strong>Bulb 3 (Study &amp; Master Bedroom AC)</strong></td>
+                <td style="text-align: center;">${state.appliances.bedroom.active ? '0.26 A' : '0.00 A'}</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.bedroom.active ? 'tag-running' : 'tag-off'}">${state.appliances.bedroom.active ? 'ON' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="text-mint">${state.appliances.bedroom.active ? state.appliances.bedroom.watts + ' W' : '0 W'}</td>
+              </tr>
+              <tr>
+                <td><strong>Power Socket (Heater / High-Load Cooker)</strong></td>
+                <td style="text-align: center;">${state.appliances.socket.active ? '2.46 A' : '0.00 A'}</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.socket.active ? 'tag-heavy' : 'tag-off'}">${state.appliances.socket.active ? 'HEAVY' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="${state.appliances.socket.active ? 'text-amber' : 'text-muted'}">${state.appliances.socket.active ? state.appliances.socket.watts + ' W' : '0 W'}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       `
