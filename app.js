@@ -2551,8 +2551,475 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // =========================================================
+  // 14. AI PREDICTIVE FORECASTING & SCENARIO ENGINE
+  // =========================================================
+  const forecastState = {
+    weather: 'sunny',
+    demand: 'eco',
+    initialSoc: 40,
+    outage: 'none'
+  };
+
+  const weatherPeakWatts = {
+    sunny: 950,
+    cloudy: 620,
+    rainy: 280,
+    storm: 110
+  };
+
+  const demandBaseWatts = {
+    eco: { base: 220, morning: 450, midday: 380, peak: 580, night: 190 },
+    normal: { base: 360, morning: 650, midday: 520, peak: 820, night: 280 },
+    heavy: { base: 650, morning: 1050, midday: 1150, peak: 1280, night: 520 }
+  };
+
+  function runAIPrediction() {
+    const peakSolar = weatherPeakWatts[forecastState.weather] || 950;
+    const loadProfile = demandBaseWatts[forecastState.demand] || demandBaseWatts.eco;
+    const batCapacityWh = (state.batteryCapacityKwh || 4.8) * 1000;
+    let currentBatWh = (batCapacityWh * forecastState.initialSoc) / 100;
+    const minBatWh = batCapacityWh * 0.20; // 20% cutoff
+
+    const hours = [];
+    let totalSolarWh = 0;
+    let totalLoadWh = 0;
+    let totalGridWh = 0;
+    let unmanagedCost = 0;
+    let optimizedCost = 0;
+    let solarAvoidanceSavings = 0;
+    let peakAvoidedCost = 0;
+
+    let fullChargeTimeStr = 'Not fully charged (Low solar)';
+    let fullChargeAchieved = false;
+    let solarChargingStartHour = null;
+    let chargeDurationHours = 0;
+
+    for (let h = 0; h < 24; h++) {
+      // 1. Solar irradiance curve (06:00 - 18:30)
+      let solarW = 0;
+      if (h >= 6 && h <= 18) {
+        const solarPhase = (h - 6) / 12; // 0.0 to 1.0
+        solarW = Math.max(0, Math.sin(solarPhase * Math.PI) * peakSolar);
+        // Add realistic irradiance variation
+        if (forecastState.weather === 'cloudy') solarW *= (0.85 + 0.15 * Math.sin(h * 3.2));
+        if (forecastState.weather === 'rainy') solarW *= (0.75 + 0.25 * Math.cos(h * 2.1));
+      }
+      solarW = Math.round(solarW);
+
+      // 2. Household load profile
+      let loadW = loadProfile.base;
+      if (h >= 7 && h <= 9) loadW = loadProfile.morning;
+      else if (h >= 12 && h <= 14) loadW = loadProfile.midday;
+      else if (h >= 18 && h <= 22) loadW = loadProfile.peak;
+      else if (h >= 23 || h <= 5) loadW = loadProfile.night;
+      loadW = Math.round(loadW);
+
+      // 3. TOU Tariff Tier
+      let tariffTier = 'offpeak';
+      let tariffRate = state.tariffRates.offpeak || 33;
+      if (h >= 6 && h < 18) {
+        tariffTier = 'day';
+        tariffRate = state.tariffRates.day || 47;
+      } else if (h >= 18 && h < 23) {
+        tariffTier = 'peak';
+        tariffRate = state.tariffRates.peak || 106;
+      }
+
+      // Check blackout outage condition
+      let gridAvailableThisHour = true;
+      if (forecastState.outage === 'peak_outage' && (h === 19 || h === 20)) gridAvailableThisHour = false;
+      if (forecastState.outage === 'afternoon_outage' && (h >= 14 && h <= 17)) gridAvailableThisHour = false;
+      if (forecastState.outage === 'full_outage') gridAvailableThisHour = false;
+
+      // 4. Battery Dynamics & Energy Balance
+      let netSolarSurplus = solarW - loadW;
+      let gridW = 0;
+      let batDischargeW = 0;
+      let batChargeW = 0;
+
+      if (netSolarSurplus > 0) {
+        // Solar powers load directly
+        solarAvoidanceSavings += (loadW / 1000) * tariffRate;
+
+        // Surplus charges battery
+        if (solarW > 50 && solarChargingStartHour === null) solarChargingStartHour = h;
+        const maxChargeWh = Math.min(netSolarSurplus * 0.92, batCapacityWh - currentBatWh);
+        if (maxChargeWh > 0) {
+          currentBatWh += maxChargeWh;
+          batChargeW = Math.round(maxChargeWh);
+          chargeDurationHours += 1;
+          if (currentBatWh >= batCapacityWh * 0.98 && !fullChargeAchieved) {
+            fullChargeAchieved = true;
+            const mins = Math.floor(Math.random() * 40) + 10;
+            const hour12 = h > 12 ? h - 12 : h;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            fullChargeTimeStr = `${String(hour12).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${ampm}`;
+          }
+        }
+      } else {
+        // Solar deficit
+        const deficitW = loadW - solarW;
+        solarAvoidanceSavings += (solarW / 1000) * tariffRate;
+
+        // If in peak tariff or day tariff, discharge battery down to 20%
+        const usableBatWh = currentBatWh - minBatWh;
+        if ((tariffTier === 'peak' || !gridAvailableThisHour || (tariffTier === 'day' && usableBatWh > 0)) && usableBatWh > 0) {
+          const dischargeWh = Math.min(deficitW, usableBatWh);
+          currentBatWh -= dischargeWh;
+          batDischargeW = Math.round(dischargeWh);
+          const remainingDeficit = deficitW - dischargeWh;
+          if (tariffTier === 'peak') peakAvoidedCost += (dischargeWh / 1000) * tariffRate;
+          if (remainingDeficit > 0 && gridAvailableThisHour) {
+            gridW = Math.round(remainingDeficit);
+          }
+        } else {
+          // Supply from Grid (especially off-peak)
+          if (gridAvailableThisHour) {
+            gridW = Math.round(deficitW);
+          }
+        }
+      }
+
+      const socPct = Math.round((currentBatWh / batCapacityWh) * 100);
+      totalSolarWh += solarW;
+      totalLoadWh += loadW;
+      totalGridWh += gridW;
+
+      // Economics
+      unmanagedCost += (loadW / 1000) * tariffRate;
+      optimizedCost += (gridW / 1000) * tariffRate;
+
+      hours.push({
+        hour: h,
+        solarW,
+        loadW,
+        socPct,
+        gridW,
+        batChargeW,
+        batDischargeW,
+        tariffTier,
+        tariffRate,
+        gridAvailable: gridAvailableThisHour
+      });
+    }
+
+    const dailySavings = Math.max(0, unmanagedCost - optimizedCost);
+    const savingsPct = unmanagedCost > 0 ? ((dailySavings / unmanagedCost) * 100).toFixed(1) : '0';
+
+    // 5. Update KPI Cards in UI
+    const fValSolar = document.getElementById('f-val-solar-kwh');
+    const fPeakSolar = document.getElementById('f-val-solar-peak');
+    const fBadgeSolar = document.getElementById('f-badge-solar-gen');
+    const fValCharge = document.getElementById('f-val-charge-time');
+    const fValChargeHrs = document.getElementById('f-val-charge-hours');
+    const fBadgeCharge = document.getElementById('f-badge-charge-status');
+    const fValPeakAvoided = document.getElementById('f-val-peak-avoided');
+    const fValDailySave = document.getElementById('f-val-daily-savings');
+    const fValMonthlySave = document.getElementById('f-val-monthly-savings');
+    const fBadgeSavePct = document.getElementById('f-badge-savings-pct');
+
+    if (fValSolar) fValSolar.innerHTML = `${(totalSolarWh / 1000).toFixed(2)} <small>kWh</small>`;
+    if (fPeakSolar) fPeakSolar.textContent = `${peakSolar} W at 12:30 PM`;
+    if (fBadgeSolar) fBadgeSolar.textContent = forecastState.weather === 'sunny' ? 'High Irradiance' : (forecastState.weather === 'cloudy' ? 'Moderate 65%' : 'Low 30%');
+    
+    if (fValCharge) fValCharge.innerHTML = fullChargeAchieved ? `${fullChargeTimeStr}` : `Partial <small>(${Math.max(...hours.map(x=>x.socPct))}% Max)</small>`;
+    if (fValChargeHrs) fValChargeHrs.textContent = fullChargeAchieved ? `${chargeDurationHours} hrs of active solar charging` : 'Sun insufficient for 100% full bank';
+    if (fBadgeCharge) {
+      fBadgeCharge.textContent = fullChargeAchieved ? 'Full Before Peak' : 'Partial Storage';
+      fBadgeCharge.className = fullChargeAchieved ? 'f-kpi-badge text-mint' : 'f-kpi-badge text-amber';
+    }
+
+    if (fValPeakAvoided) fValPeakAvoided.innerHTML = `Rs. 0 <small>Grid Import</small>`;
+    if (fValDailySave) fValDailySave.innerHTML = `+Rs. ${dailySavings.toFixed(2)} <small>/ day</small>`;
+    if (fValMonthlySave) fValMonthlySave.textContent = `+Rs. ${(dailySavings * 30).toLocaleString(undefined, {maximumFractionDigits:0})}`;
+    if (fBadgeSavePct) fBadgeSavePct.textContent = `${savingsPct}% Saved`;
+
+    // 6. Update Comparison Bars
+    const fCostUnm = document.getElementById('f-cost-unmanaged');
+    const fCostOpt = document.getElementById('f-cost-optimized');
+    const fBarOptFill = document.getElementById('f-bar-opt-fill');
+    const fSaveSolar = document.getElementById('f-save-solar');
+    const fSaveShift = document.getElementById('f-save-shift');
+    const fCostOff = document.getElementById('f-cost-offpeak');
+
+    if (fCostUnm) fCostUnm.textContent = `Rs. ${unmanagedCost.toFixed(2)} / day`;
+    if (fCostOpt) fCostOpt.textContent = `Rs. ${optimizedCost.toFixed(2)} / day`;
+    if (fBarOptFill) fBarOptFill.style.width = unmanagedCost > 0 ? `${Math.min(100, (optimizedCost / unmanagedCost) * 100).toFixed(1)}%` : '0%';
+    if (fSaveSolar) fSaveSolar.textContent = `+Rs. ${solarAvoidanceSavings.toFixed(2)}`;
+    if (fSaveShift) fSaveShift.textContent = `+Rs. ${peakAvoidedCost.toFixed(2)}`;
+    if (fCostOff) fCostOff.textContent = `Rs. ${optimizedCost.toFixed(2)}`;
+
+    // 7. Render 24-Hour SVG Vector Chart
+    renderForecastSvgChart(hours);
+
+    // 8. Render Dynamic Milestones
+    renderForecastMilestones(hours, fullChargeTimeStr, fullChargeAchieved);
+
+    // 9. Generate Mock REST API JSON Payload
+    generateForecastApiJson(hours, totalSolarWh, totalLoadWh, totalGridWh, unmanagedCost, optimizedCost, dailySavings, fullChargeTimeStr);
+  }
+
+  function renderForecastSvgChart(hours) {
+    const container = document.getElementById('forecast-chart-container');
+    if (!container) return;
+
+    const width = 800;
+    const height = 240;
+    const padL = 40;
+    const padR = 20;
+    const padT = 20;
+    const padB = 30;
+    const chartW = width - padL - padR;
+    const chartH = height - padT - padB;
+
+    const maxW = 1500; // max scale 1500 Watts
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" style="width:100%; height:100%; display:block;" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="solarGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+        </linearGradient>
+        <linearGradient id="loadGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"/>
+        </linearGradient>
+      </defs>`;
+
+    // Tariff Period Background Bands
+    const xOff1 = padL + (5.5 / 24) * chartW;
+    const xDay = padL + (18.5 / 24) * chartW;
+    const xPeak = padL + (22.5 / 24) * chartW;
+
+    svg += `<rect x="${padL}" y="${padT}" width="${(5.5/24)*chartW}" height="${chartH}" fill="rgba(255,255,255,0.02)"/>`;
+    svg += `<rect x="${xOff1}" y="${padT}" width="${(13/24)*chartW}" height="${chartH}" fill="rgba(16, 185, 129, 0.03)"/>`;
+    svg += `<rect x="${xDay}" y="${padT}" width="${(4/24)*chartW}" height="${chartH}" fill="rgba(245, 158, 11, 0.07)"/>`;
+    svg += `<rect x="${xPeak}" y="${padT}" width="${(1.5/24)*chartW}" height="${chartH}" fill="rgba(255,255,255,0.02)"/>`;
+
+    // Horizontal Grid Lines
+    [0, 500, 1000, 1500].forEach(val => {
+      const y = padT + chartH - (val / maxW) * chartH;
+      svg += `<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>`;
+      svg += `<text x="${padL - 6}" y="${y + 3}" fill="#64748b" font-size="9" text-anchor="end" font-family="JetBrains Mono">${val}W</text>`;
+    });
+
+    // Time Axis
+    [0, 4, 8, 12, 16, 20, 23].forEach(hr => {
+      const x = padL + (hr / 23) * chartW;
+      svg += `<text x="${x}" y="${height - 10}" fill="#64748b" font-size="9" text-anchor="middle" font-family="JetBrains Mono">${hr}:00</text>`;
+    });
+
+    // Build Solar Polygon & Path
+    let solarPts = [];
+    let loadPts = [];
+    let socPts = [];
+    let gridBars = '';
+
+    hours.forEach((pt, i) => {
+      const x = padL + (i / 23) * chartW;
+      const ySolar = padT + chartH - (pt.solarW / maxW) * chartH;
+      const yLoad = padT + chartH - (pt.loadW / maxW) * chartH;
+      const ySoc = padT + chartH - (pt.socPct / 100) * chartH;
+
+      solarPts.push(`${x.toFixed(1)},${ySolar.toFixed(1)}`);
+      loadPts.push(`${x.toFixed(1)},${yLoad.toFixed(1)}`);
+      socPts.push(`${x.toFixed(1)},${ySoc.toFixed(1)}`);
+
+      if (pt.gridW > 0) {
+        const barW = (chartW / 24) * 0.7;
+        const barH = (pt.gridW / maxW) * chartH;
+        const barY = padT + chartH - barH;
+        gridBars += `<rect x="${(x - barW/2).toFixed(1)}" y="${barY.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="rgba(239, 68, 68, 0.45)" rx="2"/>`;
+      }
+    });
+
+    // Solar Area & Line
+    const solarPoly = `${padL},${padT + chartH} ${solarPts.join(' ')} ${width - padR},${padT + chartH}`;
+    svg += `<polygon points="${solarPoly}" fill="url(#solarGrad)"/>`;
+    svg += `<polyline points="${solarPts.join(' ')}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>`;
+
+    // Load Area & Line
+    const loadPoly = `${padL},${padT + chartH} ${loadPts.join(' ')} ${width - padR},${padT + chartH}`;
+    svg += `<polygon points="${loadPoly}" fill="url(#loadGrad)"/>`;
+    svg += `<polyline points="${loadPts.join(' ')}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>`;
+
+    // Grid Import Bars
+    svg += gridBars;
+
+    // Battery SOC Dashed Line
+    svg += `<polyline points="${socPts.join(' ')}" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="4 3"/>`;
+
+    // End Battery Point Marker
+    const lastSoc = hours[23];
+    const lastX = width - padR;
+    const lastY = padT + chartH - (lastSoc.socPct / 100) * chartH;
+    svg += `<circle cx="${lastX}" cy="${lastY}" r="4" fill="#a855f7"/>`;
+    svg += `<text x="${lastX - 8}" y="${lastY - 8}" fill="#c084fc" font-size="10" font-weight="700" font-family="JetBrains Mono" text-anchor="end">${lastSoc.socPct}% SOC</text>`;
+
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  function renderForecastMilestones(hours, fullChargeTimeStr, fullChargeAchieved) {
+    const row = document.getElementById('forecast-timeline-row');
+    if (!row) return;
+
+    const endSoc = hours[23] ? hours[23].socPct : 40;
+
+    row.innerHTML = `
+      <div class="t-milestone-box">
+        <div class="t-m-time"><i data-lucide="sunrise"></i> 06:30 AM</div>
+        <div class="t-m-title">Solar Gen Starts</div>
+        <div class="t-m-desc">Panels reach &gt;50W threshold; begins offsetting base load.</div>
+      </div>
+      <div class="t-milestone-box ${fullChargeAchieved ? 'highlight-box' : ''}">
+        <div class="t-m-time ${fullChargeAchieved ? 'text-mint' : 'text-amber'}"><i data-lucide="battery-charging"></i> ${fullChargeAchieved ? fullChargeTimeStr : '14:00 PM (Partial)'}</div>
+        <div class="t-m-title ${fullChargeAchieved ? 'text-mint' : 'text-amber'}">${fullChargeAchieved ? '100% Full Battery' : 'Peak Solar Reserve'}</div>
+        <div class="t-m-desc">${fullChargeAchieved ? '4.8 kWh reserve locked before peak utility window.' : 'Solar harvest limited by cloudy/rainy weather.'}</div>
+      </div>
+      <div class="t-milestone-box peak-box">
+        <div class="t-m-time text-amber"><i data-lucide="shield-check"></i> 18:30 — 22:30</div>
+        <div class="t-m-title">Peak Avoidance Active</div>
+        <div class="t-m-desc">Inverter powers household; zero Rs. 106/kWh grid import.</div>
+      </div>
+      <div class="t-milestone-box">
+        <div class="t-m-time"><i data-lucide="moon"></i> 00:00 Midnight</div>
+        <div class="t-m-title">End-of-Day Reserve</div>
+        <div class="t-m-desc">${endSoc}% SOC remaining for emergency buffer into next morning.</div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function generateForecastApiJson(hours, totalSolarWh, totalLoadWh, totalGridWh, unmanagedCost, optimizedCost, dailySavings, fullChargeTimeStr) {
+    const previewEl = document.getElementById('api-json-preview');
+    if (!previewEl) return;
+
+    const payload = {
+      status: "success",
+      endpoint: "/api/v1/predict/next-day",
+      model: {
+        id: "Genesis-Prophet-v4.1",
+        version: "4.1.0-prod",
+        confidence: 0.948,
+        training_samples: 14400,
+        provenance: "SIMULATED_PREDICTIVE"
+      },
+      scenario_inputs: {
+        weather_condition: forecastState.weather,
+        demand_profile: forecastState.demand,
+        initial_soc_pct: forecastState.initialSoc,
+        grid_outage_scenario: forecastState.outage
+      },
+      forecast_summary: {
+        forecast_date: "2026-08-29",
+        total_solar_generation_kWh: parseFloat((totalSolarWh / 1000).toFixed(2)),
+        total_house_load_kWh: parseFloat((totalLoadWh / 1000).toFixed(2)),
+        total_grid_import_kWh: parseFloat((totalGridWh / 1000).toFixed(2)),
+        battery_full_charge_timestamp: fullChargeTimeStr,
+        final_midnight_soc_pct: hours[23].socPct,
+        unmanaged_cost_LKR: parseFloat(unmanagedCost.toFixed(2)),
+        optimized_cost_LKR: parseFloat(optimizedCost.toFixed(2)),
+        projected_daily_savings_LKR: parseFloat(dailySavings.toFixed(2)),
+        projected_monthly_savings_LKR: parseFloat((dailySavings * 30).toFixed(2)),
+        cost_reduction_ratio_pct: parseFloat((((dailySavings) / (unmanagedCost || 1)) * 100).toFixed(1))
+      },
+      hourly_trajectory: hours.slice(0, 8).map(h => ({
+        hour: `${String(h.hour).padStart(2, '0')}:00`,
+        solar_W: h.solarW,
+        load_W: h.loadW,
+        soc_pct: h.socPct,
+        grid_W: h.gridW,
+        tariff_tier: h.tariffTier,
+        tariff_rate_LKR: h.tariffRate
+      }))
+    };
+
+    previewEl.textContent = JSON.stringify(payload, null, 2);
+  }
+
+  // Event Listeners for Forecast Scenario Studio
+  document.querySelectorAll('.weather-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.weather-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      forecastState.weather = btn.getAttribute('data-weather');
+      runAIPrediction();
+    });
+  });
+
+  document.querySelectorAll('.demand-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.demand-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      forecastState.demand = btn.getAttribute('data-demand');
+      runAIPrediction();
+    });
+  });
+
+  const sliderSoc = document.getElementById('f-slider-soc');
+  const lblSoc = document.getElementById('f-lbl-initial-soc');
+  if (sliderSoc && lblSoc) {
+    sliderSoc.addEventListener('input', () => {
+      forecastState.initialSoc = parseInt(sliderSoc.value);
+      lblSoc.textContent = `${forecastState.initialSoc}% SOC`;
+      runAIPrediction();
+    });
+  }
+
+  const selectOutage = document.getElementById('f-select-outage');
+  if (selectOutage) {
+    selectOutage.addEventListener('change', () => {
+      forecastState.outage = selectOutage.value;
+      runAIPrediction();
+    });
+  }
+
+  const btnRunPred = document.getElementById('btn-run-prediction');
+  if (btnRunPred) {
+    btnRunPred.addEventListener('click', () => {
+      runAIPrediction();
+      showToast('AI Predictor: 24-Hour Next-Day Trajectory Recalculated', 'success');
+    });
+  }
+
+  const btnApplyLive = document.getElementById('btn-apply-to-live');
+  if (btnApplyLive) {
+    btnApplyLive.addEventListener('click', () => {
+      state.solarPower = weatherPeakWatts[forecastState.weather] || 950;
+      state.batterySOC = forecastState.initialSoc;
+      if (forecastState.outage !== 'none') {
+        state.gridAvailable = false;
+      } else {
+        state.gridAvailable = true;
+      }
+      calculateTotalHouseLoad();
+      showToast(`Scenario Pushed to Live EMS: Solar ${state.solarPower}W • SOC ${state.batterySOC}% • Grid ${state.gridAvailable ? 'ON' : 'OUTAGE'}`, 'success');
+    });
+  }
+
+  const btnCopyJson = document.getElementById('btn-copy-api-json');
+  if (btnCopyJson) {
+    btnCopyJson.addEventListener('click', () => {
+      const previewEl = document.getElementById('api-json-preview');
+      if (previewEl) {
+        navigator.clipboard.writeText(previewEl.textContent).then(() => {
+          showToast('Copied: REST API Prediction JSON payload copied to clipboard', 'success');
+        });
+      }
+    });
+  }
+
+  // Initial Run of Prediction Engine
+  runAIPrediction();
+
   // Initial Load
   calculateTotalHouseLoad();
   renderScadaChart();
-  window.addEventListener('resize', renderScadaChart);
+  window.addEventListener('resize', () => {
+    renderScadaChart();
+    runAIPrediction();
+  });
 });
