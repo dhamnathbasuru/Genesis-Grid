@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.1" />
+  <link rel="stylesheet" href="styles.css?v=4.2" />
 </head>
 <body class="theme-dark">
   
@@ -59,6 +59,12 @@
             <span class="sim-dot"></span>
             <span>SIMULATED PROTOTYPE</span>
           </div>
+
+          <!-- Standalone AI Predictor App Link -->
+          <a href="predictor.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:0.74rem; font-weight:700; background:rgba(168, 85, 247, 0.15); border:1px solid rgba(168, 85, 247, 0.35); color:#c084fc; border-radius:var(--radius-full); padding:4px 12px;" title="Open Standalone AI Scenario &amp; Prediction Studio in a new tab">
+            <i data-lucide="sparkles" style="width:13px; height:13px;"></i>
+            <span>AI Predictor Studio</span>
+          </a>
 
           <!-- Demo Scenarios Dropdown Menu -->
           <div class="demo-scenarios-wrapper">
@@ -157,6 +163,7 @@
           <button class="nav-pill" data-tab="analytics">Analytics</button>
           <button class="nav-pill" data-tab="appliances">Current Load &amp; Appliances</button>
           <button class="nav-pill" data-tab="billing">Billing &amp; Savings</button>
+          <button class="nav-pill" data-tab="forecast"><i data-lucide="sparkles" class="pill-sparkle"></i> AI Scenario Forecast</button>
           <button class="nav-pill" data-tab="history">Switching History</button>
           <button class="nav-pill" data-tab="settings">Settings</button>
         </nav>
@@ -1586,6 +1593,261 @@
     </div>
 
     <!-- =========================================================
+         VIEW: AI PREDICTIVE FORECASTING & SCENARIO SIMULATOR
+         ========================================================= -->
+    <div class="app-view-container" id="view-forecast">
+      
+      <!-- Top Forecast KPI Overview Deck -->
+      <div class="forecast-kpi-grid">
+        <div class="dashboard-panel forecast-kpi-card">
+          <div class="f-kpi-header">
+            <span class="f-kpi-lbl"><i data-lucide="sun"></i> PREDICTED SOLAR HARVEST</span>
+            <span class="f-kpi-badge text-amber" id="f-badge-solar-gen">High Irradiance</span>
+          </div>
+          <div class="f-kpi-big text-amber" id="f-val-solar-kwh">6.85 <small>kWh</small></div>
+          <div class="f-kpi-sub">Peak Output: <strong id="f-val-solar-peak">950 W at 12:30 PM</strong></div>
+        </div>
+
+        <div class="dashboard-panel forecast-kpi-card">
+          <div class="f-kpi-header">
+            <span class="f-kpi-lbl"><i data-lucide="battery-charging"></i> BATTERY FULL CHARGE TIME</span>
+            <span class="f-kpi-badge text-mint" id="f-badge-charge-status">Full Before Peak</span>
+          </div>
+          <div class="f-kpi-big text-mint" id="f-val-charge-time">01:15 <small>PM</small></div>
+          <div class="f-kpi-sub">Charge Duration: <strong id="f-val-charge-hours">5.25 hrs of active solar charging</strong></div>
+        </div>
+
+        <div class="dashboard-panel forecast-kpi-card">
+          <div class="f-kpi-header">
+            <span class="f-kpi-lbl"><i data-lucide="shield-check"></i> PEAK TARIFF AVOIDANCE</span>
+            <span class="f-kpi-badge text-cyan" id="f-badge-peak-coverage">100% Inverter</span>
+          </div>
+          <div class="f-kpi-big text-cyan" id="f-val-peak-avoided">Rs. 0 <small>Grid Import</small></div>
+          <div class="f-kpi-sub">Peak Window (18:30-22:30): <strong class="text-mint">100% Powered by Battery</strong></div>
+        </div>
+
+        <div class="dashboard-panel forecast-kpi-card highlight-card">
+          <div class="f-kpi-header">
+            <span class="f-kpi-lbl"><i data-lucide="trending-up"></i> PROJECTED NET SAVINGS</span>
+            <span class="f-kpi-badge text-mint" id="f-badge-savings-pct">69.4% Saved</span>
+          </div>
+          <div class="f-kpi-big text-mint" id="f-val-daily-savings">+Rs. 742.50 <small>/ day</small></div>
+          <div class="f-kpi-sub">Projected Monthly Benefit: <strong class="text-mint" id="f-val-monthly-savings">+Rs. 22,275.00</strong></div>
+        </div>
+      </div>
+
+      <!-- Scenario Control Deck + Prediction Trajectory Chart -->
+      <div class="forecast-main-layout">
+        
+        <!-- Left: Interactive Scenario Trigger Controls -->
+        <div class="dashboard-panel scenario-controls-panel">
+          <div class="panel-header">
+            <h3 class="panel-title"><i data-lucide="sliders"></i> Scenario Simulation Studio</h3>
+            <span class="panel-subtitle">Configure next-day environmental & demand variables to simulate EMS response</span>
+          </div>
+
+          <!-- 1. Weather / Solar Irradiance Preset -->
+          <div class="scen-group">
+            <label class="scen-label"><i data-lucide="cloud-sun"></i> Next-Day Weather & Solar Irradiance:</label>
+            <div class="weather-selector-grid">
+              <button class="weather-btn active" data-weather="sunny" id="btn-w-sunny">
+                <span class="w-icon">☀️</span>
+                <span class="w-title">Bright Sun</span>
+                <span class="w-sub">100% Gen (950W)</span>
+              </button>
+              <button class="weather-btn" data-weather="cloudy" id="btn-w-cloudy">
+                <span class="w-icon">⛅</span>
+                <span class="w-title">Partly Cloudy</span>
+                <span class="w-sub">65% Gen (620W)</span>
+              </button>
+              <button class="weather-btn" data-weather="rainy" id="btn-w-rainy">
+                <span class="w-icon">🌧️</span>
+                <span class="w-title">Overcast / Rain</span>
+                <span class="w-sub">30% Gen (280W)</span>
+              </button>
+              <button class="weather-btn" data-weather="storm" id="btn-w-storm">
+                <span class="w-icon">⛈️</span>
+                <span class="w-title">Monsoon Storm</span>
+                <span class="w-sub">12% Gen (110W)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Household Demand Pattern -->
+          <div class="scen-group">
+            <label class="scen-label"><i data-lucide="home"></i> Household Consumption Profile:</label>
+            <div class="demand-selector-row">
+              <button class="demand-btn active" data-demand="eco" id="btn-d-eco">
+                <strong>Eco Workday</strong>
+                <small>8.2 kWh (250W-580W)</small>
+              </button>
+              <button class="demand-btn" data-demand="normal" id="btn-d-normal">
+                <strong>Standard Family</strong>
+                <small>12.4 kWh (400W-780W)</small>
+              </button>
+              <button class="demand-btn" data-demand="heavy" id="btn-d-heavy">
+                <strong>High AC / Cooling</strong>
+                <small>21.0 kWh (750W-1.25kW)</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Initial Midnight Battery SOC -->
+          <div class="scen-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="scen-label"><i data-lucide="battery"></i> Starting Battery SOC at 00:00 Midnight:</label>
+              <strong class="text-mint" id="f-lbl-initial-soc" style="font-family:var(--font-mono); font-size:0.85rem;">40% SOC</strong>
+            </div>
+            <input type="range" min="10" max="100" value="40" step="5" class="scen-range-slider" id="f-slider-soc" />
+            <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted); margin-top:3px;">
+              <span>10% (Depleted)</span>
+              <span>50% (Nominal)</span>
+              <span>100% (Full Bank)</span>
+            </div>
+          </div>
+
+          <!-- 4. Grid Blackout Risk -->
+          <div class="scen-group">
+            <label class="scen-label"><i data-lucide="zap-off"></i> Grid Reliability / Blackout Simulation:</label>
+            <select class="scen-select" id="f-select-outage">
+              <option value="none">Normal Utility Grid (100% Continuous Availability)</option>
+              <option value="peak_outage">2-Hour Evening Peak Blackout (19:00 — 21:00)</option>
+              <option value="afternoon_outage">4-Hour Afternoon Load Shedding (14:00 — 18:00)</option>
+              <option value="full_outage">Total Day Grid Blackout (Islanded Microgrid Mode)</option>
+            </select>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="scen-actions-row">
+            <button class="btn-primary-scen" id="btn-run-prediction">
+              <i data-lucide="sparkles"></i> Re-Calculate AI Prediction
+            </button>
+            <button class="btn-secondary-scen" id="btn-apply-to-live" title="Push these scenario variables to the live EMS controller">
+              <i data-lucide="play"></i> Apply to Live EMS
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: 24-Hour Interactive Prediction Trajectory Chart -->
+        <div class="dashboard-panel forecast-chart-panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 class="panel-title"><i data-lucide="activity"></i> 24-Hour Next-Day Power &amp; Storage Trajectory</h3>
+              <span class="panel-subtitle">Physics-modelled prediction of solar irradiance, household load, and battery SOC state</span>
+            </div>
+            <div class="chart-legend-row">
+              <span class="leg-item"><span class="leg-dot" style="background:#f59e0b;"></span> Solar PV (W)</span>
+              <span class="leg-item"><span class="leg-dot" style="background:#38bdf8;"></span> House Load (W)</span>
+              <span class="leg-item"><span class="leg-dot" style="background:#a855f7;"></span> Battery SOC (%)</span>
+              <span class="leg-item"><span class="leg-dot" style="background:rgba(239, 68, 68, 0.4);"></span> Grid Import (W)</span>
+            </div>
+          </div>
+
+          <!-- Dynamic SVG Vector Chart Container -->
+          <div class="forecast-svg-chart-wrap" id="forecast-chart-container">
+            <!-- Rendered dynamically by JavaScript -->
+          </div>
+
+          <!-- Timeline Milestone Cards -->
+          <div class="timeline-milestones-row" id="forecast-timeline-row">
+            <div class="t-milestone-box">
+              <div class="t-m-time"><i data-lucide="sunrise"></i> 06:30 AM</div>
+              <div class="t-m-title">Solar Gen Starts</div>
+              <div class="t-m-desc">Panels reach &gt;50W threshold; begins offsetting base load.</div>
+            </div>
+            <div class="t-milestone-box highlight-box">
+              <div class="t-m-time text-mint"><i data-lucide="battery-charging"></i> 01:15 PM</div>
+              <div class="t-m-title text-mint">100% Full Battery</div>
+              <div class="t-m-desc">4.8 kWh reserve fully locked before peak utility window.</div>
+            </div>
+            <div class="t-milestone-box peak-box">
+              <div class="t-m-time text-amber"><i data-lucide="shield-check"></i> 18:30 — 22:30</div>
+              <div class="t-m-title">Peak Avoidance Active</div>
+              <div class="t-m-desc">Inverter powers 100% of load; zero Rs. 106/kWh grid import.</div>
+            </div>
+            <div class="t-milestone-box">
+              <div class="t-m-time"><i data-lucide="moon"></i> 00:00 AM</div>
+              <div class="t-m-title">End-of-Day Reserve</div>
+              <div class="t-m-desc">44% SOC remaining for emergency buffer into next morning.</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Financial Savings Breakdown + Fake REST Prediction API Inspector -->
+      <div class="settings-two-col-grid" style="margin-top: 20px;">
+        
+        <!-- Financial Analysis Panel -->
+        <div class="dashboard-panel">
+          <div class="panel-header">
+            <h3 class="panel-title"><i data-lucide="dollar-sign"></i> Optimal vs. Unmanaged Cost Comparison</h3>
+          </div>
+          
+          <div class="finance-compare-bars">
+            <div class="f-bar-group">
+              <div class="f-bar-meta">
+                <span>Unmanaged Grid (100% Utility Supply):</span>
+                <strong class="text-danger" id="f-cost-unmanaged">Rs. 1,070.00 / day</strong>
+              </div>
+              <div class="f-bar-track">
+                <div class="f-bar-fill unmanaged-fill" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div class="f-bar-group" style="margin-top: 14px;">
+              <div class="f-bar-meta">
+                <span>GenesisGrid Optimized EMS Dispatch:</span>
+                <strong class="text-mint" id="f-cost-optimized">Rs. 327.50 / day</strong>
+              </div>
+              <div class="f-bar-track">
+                <div class="f-bar-fill optimized-fill" id="f-bar-opt-fill" style="width: 30.6%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="savings-breakdown-mini-list" style="margin-top: 18px;">
+            <div class="s-mini-item">
+              <span>Direct Solar Self-Consumption Savings:</span>
+              <strong class="text-mint" id="f-save-solar">+Rs. 385.20</strong>
+            </div>
+            <div class="s-mini-item">
+              <span>Peak Tariff Shift Savings (Rs. 106/kWh avoided):</span>
+              <strong class="text-mint" id="f-save-shift">+Rs. 357.30</strong>
+            </div>
+            <div class="s-mini-item">
+              <span>Off-Peak Net Energy Cost (Rs. 33/kWh):</span>
+              <strong class="text-muted" id="f-cost-offpeak">Rs. 327.50</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fake Prediction API & JSON Inspector Panel -->
+        <div class="dashboard-panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 class="panel-title"><i data-lucide="code-2"></i> Fake Prediction REST API Inspector</h3>
+              <span class="panel-subtitle">Live endpoint simulation for third-party SCADA and energy aggregators</span>
+            </div>
+            <button class="settings-save-btn" id="btn-copy-api-json" style="padding: 6px 12px; font-size: 0.75rem;">
+              <i data-lucide="copy"></i> Copy JSON Payload
+            </button>
+          </div>
+
+          <div class="api-endpoint-badge" style="font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.4); padding:6px 10px; border-radius:6px; border:1px solid var(--border-subtle); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <span><strong style="color:var(--mint-green);">POST</strong> /api/v1/predict/next-day</span>
+            <span class="text-mint"><span class="pulse-green-dot"></span> 200 OK (94.8% Confidence)</span>
+          </div>
+
+          <pre id="api-json-preview" style="background:#090d16; border:1px solid var(--border-subtle); border-radius:8px; padding:12px; font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:#38bdf8; max-height:220px; overflow-y:auto; line-height:1.4;"></pre>
+        </div>
+
+      </div>
+
+    </div> <!-- Close #view-forecast -->
+
+    <!-- =========================================================
          VIEW 6: SWITCHING HISTORY AUDIT LOG
          ========================================================= -->
     <div class="app-view-container" id="view-history">
@@ -1874,6 +2136,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=4.1"></script>
+  <script src="app.js?v=4.2"></script>
 </body>
 </html>
