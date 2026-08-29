@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=3.9" />
+  <link rel="stylesheet" href="styles.css?v=4.0" />
 </head>
 <body class="theme-dark">
   
@@ -1316,6 +1316,7 @@
           <div class="disagg-seg seg-bulb2" id="app-view-seg-bulb2" style="width: 0%" title="Kitchen: 0W (0%)"></div>
           <div class="disagg-seg seg-bulb3" id="app-view-seg-bulb3" style="width: 8.3%" title="Bedroom: 60W (8.3%)"></div>
           <div class="disagg-seg seg-socket" id="app-view-seg-socket" style="width: 78.5%" title="Heavy Socket: 565W (78.5%)"></div>
+          <div class="disagg-seg seg-unallocated" id="app-view-seg-unallocated" style="width: 6.9%; background: #64748b;" title="Unallocated Standby: 50W (6.9%)"></div>
         </div>
       </div>
 
@@ -1343,14 +1344,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+             <tr>
               <td><strong>CH 1: Bulb 1 (Living Room Lighting &amp; TV)</strong></td>
               <td>ACS712-05B (185 mV/A)</td>
               <td><code>ADC: 542</code></td>
               <td id="tbl-amp-bulb1">0.41 A</td>
               <td id="tbl-w-bulb1" class="text-mint">95 W</td>
-              <td>0.32 kWh</td>
-              <td>Rs. 8.00</td>
+              <td id="tbl-kwh-bulb1">0.32 kWh</td>
+              <td id="tbl-cost-bulb1">Rs. 8.00</td>
               <td><span class="status-pill on" id="tbl-status-bulb1">ACTIVE</span></td>
               <td><button class="table-switch-btn active" data-app="bulb1">ON</button></td>
             </tr>
@@ -1360,8 +1361,8 @@
               <td><code>ADC: 512</code></td>
               <td id="tbl-amp-bulb2">0.00 A</td>
               <td id="tbl-w-bulb2">0 W</td>
-              <td>0.00 kWh</td>
-              <td>Rs. 0.00</td>
+              <td id="tbl-kwh-bulb2">0.00 kWh</td>
+              <td id="tbl-cost-bulb2">Rs. 0.00</td>
               <td><span class="status-pill off" id="tbl-status-bulb2">OFF</span></td>
               <td><button class="table-switch-btn" data-app="bulb2">OFF</button></td>
             </tr>
@@ -1371,8 +1372,8 @@
               <td><code>ADC: 531</code></td>
               <td id="tbl-amp-bulb3">0.26 A</td>
               <td id="tbl-w-bulb3" class="text-mint">60 W</td>
-              <td>0.18 kWh</td>
-              <td>Rs. 4.50</td>
+              <td id="tbl-kwh-bulb3">0.18 kWh</td>
+              <td id="tbl-cost-bulb3">Rs. 4.50</td>
               <td><span class="status-pill on" id="tbl-status-bulb3">ACTIVE</span></td>
               <td><button class="table-switch-btn active" data-app="bulb3">ON</button></td>
             </tr>
@@ -1382,10 +1383,21 @@
               <td><code>ADC: 648</code></td>
               <td id="tbl-amp-socket">2.46 A</td>
               <td id="tbl-w-socket" class="text-amber">565 W</td>
-              <td>1.45 kWh</td>
-              <td>Rs. 36.25</td>
+              <td id="tbl-kwh-socket">1.45 kWh</td>
+              <td id="tbl-cost-socket">Rs. 36.25</td>
               <td><span class="status-pill on heavy" id="tbl-status-socket">HEAVY LOAD</span></td>
               <td><button class="table-switch-btn active" data-app="socket">ON</button></td>
+            </tr>
+            <tr class="unallocated-row" style="opacity: 0.85; border-top: 1px dashed var(--border-subtle);">
+              <td><strong>CH —: Unallocated Standby Load</strong></td>
+              <td>System Standby</td>
+              <td><code>ADC: 518</code></td>
+              <td id="tbl-amp-unallocated">0.22 A</td>
+              <td id="tbl-w-unallocated" class="text-muted">50 W</td>
+              <td id="tbl-kwh-unallocated">0.12 kWh</td>
+              <td id="tbl-cost-unallocated">Rs. 3.20</td>
+              <td><span class="status-pill off" style="background: rgba(100,116,139,0.15); color: #94a3b8; border-color: #64748b;">BACKGROUND</span></td>
+              <td><button class="table-switch-btn" disabled style="opacity: 0.5; cursor: not-allowed;">N/A</button></td>
             </tr>
           </tbody>
         </table>
@@ -1401,23 +1413,23 @@
       <div class="billing-cards-hero-row">
         
         <div class="dashboard-panel billing-hero-card">
-          <span class="b-badge">ACTUAL GRID BILL</span>
+          <span class="b-badge" id="bill-badge-title">ESTIMATED CURRENT GRID BILL</span>
           <h4 class="b-card-title">Current Month (Aug 2026)</h4>
-          <div class="b-big-currency text-mint">Rs. 3,600</div>
+          <div class="b-big-currency text-mint" id="bill-grid-total">Rs. 3,600</div>
           <div class="b-breakdown-list">
-            <div class="b-item"><span>Grid Energy (68.4 kWh):</span><strong>Rs. 3,060</strong></div>
-            <div class="b-item"><span>CEB Fixed Charge:</span><strong>Rs. 540</strong></div>
-            <div class="b-item"><span>Grid Import Status:</span><strong class="text-mint">Minimal Peak Import</strong></div>
+            <div class="b-item"><span id="bill-grid-kwh-label">Grid Energy (68.4 kWh):</span><strong id="bill-grid-energy-cost">Rs. 1,100</strong></div>
+            <div class="b-item"><span>CEB Fixed Charge:</span><strong id="bill-grid-fixed-cost">Rs. 2,500</strong></div>
+            <div class="b-item"><span>Data Quality / Coverage:</span><strong class="text-mint" id="bill-grid-status">100% Coverage (GOOD)</strong></div>
           </div>
         </div>
 
         <div class="dashboard-panel billing-hero-card">
           <span class="b-badge danger">WITHOUT SOLAR EMS</span>
           <h4 class="b-card-title">Projected Unmanaged Cost</h4>
-          <div class="b-big-currency strikethrough text-danger">Rs. 8,420</div>
+          <div class="b-big-currency strikethrough text-danger" id="bill-unmanaged-total">Rs. 8,420</div>
           <div class="b-breakdown-list">
-            <div class="b-item"><span>Unmanaged Grid kWh:</span><strong>184.2 kWh</strong></div>
-            <div class="b-item"><span>Peak Surcharge Cost:</span><strong>Rs. 4,820</strong></div>
+            <div class="b-item"><span>Unmanaged Grid kWh:</span><strong id="bill-unmanaged-kwh">184.2 kWh</strong></div>
+            <div class="b-item"><span>Peak Surcharge Cost:</span><strong id="bill-unmanaged-peak">Rs. 4,820</strong></div>
             <div class="b-item"><span>Tariff Optimization:</span><strong>None</strong></div>
           </div>
         </div>
@@ -1425,11 +1437,11 @@
         <div class="dashboard-panel billing-hero-card savings-highlight">
           <span class="b-badge success">NET SAVINGS</span>
           <h4 class="b-card-title">Total Money Saved This Month</h4>
-          <div class="b-big-currency text-mint">Rs. 4,820</div>
+          <div class="b-big-currency text-mint" id="bill-savings-total">Rs. 4,820</div>
           <div class="b-breakdown-list">
-            <div class="b-item"><span>Cost Avoidance Ratio:</span><strong class="text-mint">+57.2% Saved</strong></div>
-            <div class="b-item"><span>Avoided Peak kWh:</span><strong>89.2 kWh @ Rs. 54</strong></div>
-            <div class="b-item"><span>Est. Annual Savings:</span><strong class="text-amber">Rs. 57,840</strong></div>
+            <div class="b-item"><span>Cost Avoidance Ratio:</span><strong class="text-mint" id="bill-savings-ratio">+57.2% Saved</strong></div>
+            <div class="b-item"><span id="bill-savings-detail-lbl">Solar &amp; Shift Savings:</span><strong id="bill-savings-detail-val">Solar: Rs. 3,120 • Shift: Rs. 1,700</strong></div>
+            <div class="b-item"><span>Est. Annual Savings:</span><strong class="text-amber" id="bill-savings-annual">Rs. 57,840</strong></div>
           </div>
         </div>
 
@@ -1598,6 +1610,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=3.9"></script>
+  <script src="app.js?v=4.0"></script>
 </body>
 </html>
