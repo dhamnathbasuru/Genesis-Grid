@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GenesisGrid — AI Prediction &amp; Scenario Simulator Studio</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --bg-base: #070a12;
+      --bg-panel: rgba(15, 23, 42, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(16, 185, 129, 0.4);
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --mint-primary: #10b981;
+      --mint-bright: #34d399;
+      --amber-primary: #f59e0b;
+      --cyan-primary: #38bdf8;
+      --purple-primary: #a855f7;
+      --danger-primary: #ef4444;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      padding: 24px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.06) 0%, transparent 40%);
+    }
+
+    .container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Header Bar */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 14px 22px;
+      backdrop-filter: blur(12px);
+    }
+    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 36px; height: 36px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--mint-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--mint-primary); }
+    .brand-title { font-size: 1.15rem; font-weight: 800; }
+    .brand-badge { font-size: 0.65rem; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 8px; border-radius: 999px; margin-left: 6px; }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.2); }
+
+    /* KPI Deck */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .kpi-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      backdrop-filter: blur(12px);
+    }
+    .kpi-card.highlight { border-color: rgba(16, 185, 129, 0.35); background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.9)); }
+    .kpi-lbl { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .kpi-num { font-family: var(--font-mono); font-size: 1.65rem; font-weight: 800; line-height: 1.2; }
+    .kpi-num small { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+    /* Main 2-Col Layout */
+    .main-grid { display: grid; grid-template-columns: 360px 1fr; gap: 18px; }
+    @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
+    .panel-subtitle { font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 2px; }
+
+    /* Control Groups */
+    .ctrl-group { display: flex; flex-direction: column; gap: 6px; }
+    .ctrl-lbl { font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+
+    .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .weather-tile {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .weather-tile:hover { background: rgba(255, 255, 255, 0.05); }
+    .weather-tile.active { background: rgba(245, 158, 11, 0.15); border-color: #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.25); }
+
+    .demand-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .demand-tile {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .demand-tile:hover { background: rgba(255, 255, 255, 0.05); }
+    .demand-tile.active { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.25); }
+
+    .range-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); outline: none; }
+    .range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--mint-primary); cursor: pointer; }
+
+    .scen-select { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 8px 10px; border-radius: 8px; font-size: 0.75rem; outline: none; }
+
+    .btn-calc {
+      background: var(--mint-primary);
+      color: #042410;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-calc:hover { background: var(--mint-bright); box-shadow: 0 0 14px rgba(16, 185, 129, 0.4); }
+
+    /* SVG Chart */
+    .chart-box {
+      width: 100%;
+      height: 250px;
+      background: rgba(10, 15, 26, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Milestones */
+    .milestones-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .m-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .m-card.highlight { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); }
+    .m-time { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; gap: 4px; }
+    .m-title { font-size: 0.78rem; font-weight: 700; }
+    .m-desc { font-size: 0.68rem; color: var(--text-muted); line-height: 1.3; }
+
+    /* Bottom 2-Col */
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 900px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    .json-box {
+      background: #090d16;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #38bdf8;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--mint-primary);
+      color: var(--mint-primary);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: none;
+      animation: slideIn 0.3s forwards;
+    }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .text-mint { color: var(--mint-primary); }
+    .text-amber { color: var(--amber-primary); }
+    .text-cyan { color: var(--cyan-primary); }
+    .text-danger { color: var(--danger-primary); }
+    .text-muted { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="brand-group">
+        <div class="brand-icon"><i data-lucide="sparkles"></i></div>
+        <div>
+          <span class="brand-title">GenesisGrid AI Predictor Studio <span class="brand-badge">SIMULATOR API v4.1</span></span>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Physics-modelled next-day solar harvest, battery timeline &amp; TOU tariff savings simulator</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="nav-btn"><i data-lucide="arrow-left"></i> Return to Live EMS Dashboard</a>
+      </div>
+    </header>
+
+    <!-- Top KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-lbl"><i data-lucide="sun"></i> PREDICTED SOLAR HARVEST</div>
+        <div class="kpi-num text-amber" id="kpi-solar">6.85 <small>kWh</small></div>
+        <div class="kpi-sub" id="kpi-solar-sub">Peak: 950 W at 12:30 PM</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-lbl"><i data-lucide="battery-charging"></i> BATTERY FULL CHARGE TIME</div>
+        <div class="kpi-num text-mint" id="kpi-charge">01:15 <small>PM</small></div>
+        <div class="kpi-sub" id="kpi-charge-sub">5.25 hrs active solar charging</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-lbl"><i data-lucide="shield-check"></i> PEAK TARIFF AVOIDANCE</div>
+        <div class="kpi-num text-cyan" id="kpi-peak">Rs. 0 <small>Grid Import</small></div>
+        <div class="kpi-sub">18:30 — 22:30: 100% Battery Inverter</div>
+      </div>
+      <div class="kpi-card highlight">
+        <div class="kpi-lbl"><i data-lucide="trending-up"></i> PROJECTED NET SAVINGS</div>
+        <div class="kpi-num text-mint" id="kpi-savings">+Rs. 742.50 <small>/ day</small></div>
+        <div class="kpi-sub" id="kpi-savings-sub">Monthly Benefit: +Rs. 22,275.00</div>
+      </div>
+    </div>
+
+    <!-- Main Grid: Controls + SVG Trajectory -->
+    <div class="main-grid">
+      
+      <!-- Left: Scenario Parameters -->
+      <div class="panel">
+        <div>
+          <h3 class="panel-title"><i data-lucide="sliders"></i> Scenario Generator</h3>
+          <span class="panel-subtitle">Tweak environmental conditions to test EMS dispatch response</span>
+        </div>
+
+        <!-- Weather -->
+        <div class="ctrl-group">
+          <label class="ctrl-lbl"><i data-lucide="cloud-sun"></i> Tomorrow's Solar Irradiance:</label>
+          <div class="weather-grid">
+            <button class="weather-tile active" data-weather="sunny">
+              <span style="font-size: 1.2rem;">☀️</span>
+              <strong style="font-size: 0.74rem;">Bright Sun</strong>
+              <small style="font-size: 0.62rem; color: var(--text-muted);">100% (950W)</small>
+            </button>
+            <button class="weather-tile" data-weather="cloudy">
+              <span style="font-size: 1.2rem;">⛅</span>
+              <strong style="font-size: 0.74rem;">Partly Cloudy</strong>
+              <small style="font-size: 0.62rem; color: var(--text-muted);">65% (620W)</small>
+            </button>
+            <button class="weather-tile" data-weather="rainy">
+              <span style="font-size: 1.2rem;">🌧️</span>
+              <strong style="font-size: 0.74rem;">Overcast / Rain</strong>
+              <small style="font-size: 0.62rem; color: var(--text-muted);">30% (280W)</small>
+            </button>
+            <button class="weather-tile" data-weather="storm">
+              <span style="font-size: 1.2rem;">⛈️</span>
+              <strong style="font-size: 0.74rem;">Monsoon Storm</strong>
+              <small style="font-size: 0.62rem; color: var(--text-muted);">12% (110W)</small>
+            </button>
+          </div>
+        </div>
+
+        <!-- Household Demand -->
+        <div class="ctrl-group">
+          <label class="ctrl-lbl"><i data-lucide="home"></i> Household Demand Profile:</label>
+          <div class="demand-row">
+            <button class="demand-tile active" data-demand="eco">
+              <strong style="font-size: 0.72rem;">Eco Workday</strong>
+              <small style="font-size: 0.6rem; color: var(--text-muted);">8.2 kWh</small>
+            </button>
+            <button class="demand-tile" data-demand="normal">
+              <strong style="font-size: 0.72rem;">Standard</strong>
+              <small style="font-size: 0.6rem; color: var(--text-muted);">12.4 kWh</small>
+            </button>
+            <button class="demand-tile" data-demand="heavy">
+              <strong style="font-size: 0.72rem;">Heavy AC</strong>
+              <small style="font-size: 0.6rem; color: var(--text-muted);">21.0 kWh</small>
+            </button>
+          </div>
+        </div>
+
+        <!-- Initial SOC -->
+        <div class="ctrl-group">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label class="ctrl-lbl"><i data-lucide="battery"></i> Starting Midnight SOC:</label>
+            <strong class="text-mint" id="lbl-soc" style="font-family:var(--font-mono); font-size:0.82rem;">40% SOC</strong>
+          </div>
+          <input type="range" min="10" max="100" value="40" step="5" class="range-slider" id="slider-soc" />
+        </div>
+
+        <!-- Outage -->
+        <div class="ctrl-group">
+          <label class="ctrl-lbl"><i data-lucide="zap-off"></i> Grid Outage Risk Simulation:</label>
+          <select class="scen-select" id="select-outage">
+            <option value="none">Normal Grid (100% Continuous Availability)</option>
+            <option value="peak_outage">2-Hour Evening Peak Blackout (19:00 — 21:00)</option>
+            <option value="afternoon_outage">4-Hour Afternoon Load Shedding (14:00 — 18:00)</option>
+            <option value="full_outage">Total Day Grid Blackout (Islanded Microgrid)</option>
+          </select>
+        </div>
+
+        <button class="btn-calc" id="btn-calc-scenario"><i data-lucide="sparkles"></i> Recalculate Simulation</button>
+      </div>
+
+      <!-- Right: SVG Chart + Timeline -->
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 class="panel-title"><i data-lucide="activity"></i> 24-Hour Next-Day Power &amp; Storage Trajectory</h3>
+            <span class="panel-subtitle">Simulated solar harvest, household demand, and battery charge trajectory</span>
+          </div>
+          <div style="display:flex; gap:12px; font-size:0.68rem; color:var(--text-secondary);">
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;"></span> Solar (W)</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#38bdf8;"></span> Load (W)</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#a855f7;"></span> Battery (%)</span>
+          </div>
+        </div>
+
+        <div class="chart-box" id="chart-wrap"></div>
+
+        <div class="milestones-row" id="milestones-wrap"></div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Grid: Financials & API Inspector -->
+    <div class="bottom-grid">
+      
+      <!-- Financial Comparison -->
+      <div class="panel">
+        <h3 class="panel-title"><i data-lucide="dollar-sign"></i> Economic Savings Breakdown (CEB TOU Tariff)</h3>
+        
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:4px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
+              <span>Unmanaged Grid Supply Cost:</span>
+              <strong class="text-danger" id="cost-unmanaged">Rs. 1,070.00 / day</strong>
+            </div>
+            <div style="width:100%; height:10px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+              <div style="width:100%; height:100%; background:linear-gradient(90deg, #f87171, #ef4444);"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
+              <span>GenesisGrid Optimized Cost:</span>
+              <strong class="text-mint" id="cost-optimized">Rs. 327.50 / day</strong>
+            </div>
+            <div style="width:100%; height:10px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+              <div id="bar-opt" style="width:30.6%; height:100%; background:linear-gradient(90deg, #10b981, #38bdf8);"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px; font-size:0.75rem;">
+          <div style="display:flex; justify-content:space-between; padding:6px 10px; background:rgba(0,0,0,0.2); border-radius:6px;">
+            <span>Direct Solar Generation Savings:</span>
+            <strong class="text-mint" id="save-solar">+Rs. 385.20</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:6px 10px; background:rgba(0,0,0,0.2); border-radius:6px;">
+            <span>Peak Avoidance Savings (Rs. 106/kWh avoided):</span>
+            <strong class="text-mint" id="save-shift">+Rs. 357.30</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fake REST API Console -->
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 class="panel-title"><i data-lucide="code-2"></i> REST API Endpoint Response</h3>
+            <span class="panel-subtitle">POST /api/v1/predict/next-day</span>
+          </div>
+          <button class="nav-btn" id="btn-copy-json" style="padding:4px 10px; font-size:0.72rem;"><i data-lucide="copy"></i> Copy JSON</button>
+        </div>
+
+        <pre class="json-box" id="json-preview"></pre>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    const simState = { weather: 'sunny', demand: 'eco', initialSoc: 40, outage: 'none' };
+    const weatherWatts = { sunny: 950, cloudy: 620, rainy: 280, storm: 110 };
+    const demandWatts = {
+      eco: { base: 220, morning: 450, midday: 380, peak: 580, night: 190 },
+      normal: { base: 360, morning: 650, midday: 520, peak: 820, night: 280 },
+      heavy: { base: 650, morning: 1050, midday: 1150, peak: 1280, night: 520 }
+    };
+
+    function runSimulation() {
+      const peakSolar = weatherWatts[simState.weather] || 950;
+      const loadProfile = demandWatts[simState.demand] || demandWatts.eco;
+      const batCapacityWh = 4800;
+      let currentBatWh = (batCapacityWh * simState.initialSoc) / 100;
+      const minBatWh = batCapacityWh * 0.20;
+
+      const hours = [];
+      let totalSolarWh = 0, totalLoadWh = 0, totalGridWh = 0;
+      let unmanagedCost = 0, optimizedCost = 0, solarAvoidance = 0, peakAvoided = 0;
+      let fullChargeAchieved = false, fullChargeTime = 'Partial Charge', chargeDuration = 0;
+
+      for (let h = 0; h < 24; h++) {
+        let solarW = 0;
+        if (h >= 6 && h <= 18) {
+          const phase = (h - 6) / 12;
+          solarW = Math.max(0, Math.sin(phase * Math.PI) * peakSolar);
+          if (simState.weather === 'cloudy') solarW *= (0.85 + 0.15 * Math.sin(h * 3.2));
+          if (simState.weather === 'rainy') solarW *= (0.75 + 0.25 * Math.cos(h * 2.1));
+        }
+        solarW = Math.round(solarW);
+
+        let loadW = loadProfile.base;
+        if (h >= 7 && h <= 9) loadW = loadProfile.morning;
+        else if (h >= 12 && h <= 14) loadW = loadProfile.midday;
+        else if (h >= 18 && h <= 22) loadW = loadProfile.peak;
+        else if (h >= 23 || h <= 5) loadW = loadProfile.night;
+        loadW = Math.round(loadW);
+
+        let tariffRate = (h >= 6 && h < 18) ? 47 : ((h >= 18 && h < 23) ? 106 : 33);
+        let gridAvailable = !(simState.outage === 'peak_outage' && (h === 19 || h === 20)) && !(simState.outage === 'full_outage');
+
+        let surplus = solarW - loadW;
+        let gridW = 0, batChargeW = 0, batDischargeW = 0;
+
+        if (surplus > 0) {
+          solarAvoidance += (loadW / 1000) * tariffRate;
+          const maxChg = Math.min(surplus * 0.92, batCapacityWh - currentBatWh);
+          if (maxChg > 0) {
+            currentBatWh += maxChg;
+            batChargeW = Math.round(maxChg);
+            chargeDuration++;
+            if (currentBatWh >= batCapacityWh * 0.98 && !fullChargeAchieved) {
+              fullChargeAchieved = true;
+              const h12 = h > 12 ? h - 12 : h;
+              fullChargeTime = `${String(h12).padStart(2, '0')}:15 ${h >= 12 ? 'PM' : 'AM'}`;
+            }
+          }
+        } else {
+          const deficit = loadW - solarW;
+          solarAvoidance += (solarW / 1000) * tariffRate;
+          const usable = currentBatWh - minBatWh;
+          if ((tariffRate === 106 || !gridAvailable || (tariffRate === 47 && usable > 0)) && usable > 0) {
+            const dis = Math.min(deficit, usable);
+            currentBatWh -= dis;
+            batDischargeW = Math.round(dis);
+            if (tariffRate === 106) peakAvoided += (dis / 1000) * tariffRate;
+            if (deficit - dis > 0 && gridAvailable) gridW = Math.round(deficit - dis);
+          } else if (gridAvailable) {
+            gridW = Math.round(deficit);
+          }
+        }
+
+        const soc = Math.round((currentBatWh / batCapacityWh) * 100);
+        totalSolarWh += solarW;
+        totalLoadWh += loadW;
+        totalGridWh += gridW;
+        unmanagedCost += (loadW / 1000) * tariffRate;
+        optimizedCost += (gridW / 1000) * tariffRate;
+
+        hours.push({ hour: h, solarW, loadW, soc, gridW, tariffRate });
+      }
+
+      const dailySave = Math.max(0, unmanagedCost - optimizedCost);
+
+      // DOM Updates
+      document.getElementById('kpi-solar').innerHTML = `${(totalSolarWh / 1000).toFixed(2)} <small>kWh</small>`;
+      document.getElementById('kpi-solar-sub').textContent = `Peak: ${peakSolar} W at 12:30 PM`;
+      document.getElementById('kpi-charge').innerHTML = fullChargeAchieved ? fullChargeTime : `Partial <small>(${Math.max(...hours.map(x=>x.soc))}% Max)</small>`;
+      document.getElementById('kpi-charge-sub').textContent = fullChargeAchieved ? `${chargeDuration} hrs active solar charging` : 'Low solar irradiance';
+      document.getElementById('kpi-savings').innerHTML = `+Rs. ${dailySave.toFixed(2)} <small>/ day</small>`;
+      document.getElementById('kpi-savings-sub').textContent = `Monthly Benefit: +Rs. ${(dailySave * 30).toLocaleString(undefined, {maximumFractionDigits:0})}`;
+
+      document.getElementById('cost-unmanaged').textContent = `Rs. ${unmanagedCost.toFixed(2)} / day`;
+      document.getElementById('cost-optimized').textContent = `Rs. ${optimizedCost.toFixed(2)} / day`;
+      document.getElementById('bar-opt').style.width = `${Math.min(100, (optimizedCost / unmanagedCost) * 100).toFixed(1)}%`;
+      document.getElementById('save-solar').textContent = `+Rs. ${solarAvoidance.toFixed(2)}`;
+      document.getElementById('save-shift').textContent = `+Rs. ${peakAvoided.toFixed(2)}`;
+
+      // Render SVG Chart
+      renderSvgChart(hours);
+
+      // Render Milestones
+      renderMilestones(hours, fullChargeTime, fullChargeAchieved);
+
+      // Update JSON
+      const apiData = {
+        status: "success",
+        endpoint: "/api/v1/predict/next-day",
+        model: { id: "Genesis-Prophet-v4.1", confidence: 0.948, provenance: "SIMULATED_PREDICTIVE" },
+        scenario_inputs: simState,
+        forecast_summary: {
+          total_solar_generation_kWh: parseFloat((totalSolarWh/1000).toFixed(2)),
+          total_house_load_kWh: parseFloat((totalLoadWh/1000).toFixed(2)),
+          total_grid_import_kWh: parseFloat((totalGridWh/1000).toFixed(2)),
+          battery_full_charge_timestamp: fullChargeAchieved ? fullChargeTime : "Partial",
+          unmanaged_cost_LKR: parseFloat(unmanagedCost.toFixed(2)),
+          optimized_cost_LKR: parseFloat(optimizedCost.toFixed(2)),
+          projected_daily_savings_LKR: parseFloat(dailySave.toFixed(2)),
+          cost_reduction_ratio_pct: parseFloat(((dailySave/(unmanagedCost||1))*100).toFixed(1))
+        }
+      };
+      document.getElementById('json-preview').textContent = JSON.stringify(apiData, null, 2);
+    }
+
+    function renderSvgChart(hours) {
+      const wrap = document.getElementById('chart-wrap');
+      const w = 800, h = 250, padL = 40, padR = 20, padT = 20, padB = 30;
+      const cW = w - padL - padR, cH = h - padT - padB;
+      const maxW = 1500;
+
+      let svg = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:100%;">
+        <defs>
+          <linearGradient id="sGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.4"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></linearGradient>
+          <linearGradient id="lGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity="0.2"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient>
+        </defs>`;
+
+      // Horizontal grid lines
+      [0, 500, 1000, 1500].forEach(val => {
+        const y = padT + cH - (val / maxW) * cH;
+        svg += `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>`;
+        svg += `<text x="${padL - 6}" y="${y + 3}" fill="#64748b" font-size="9" text-anchor="end" font-family="JetBrains Mono">${val}W</text>`;
+      });
+
+      // Time ticks
+      [0, 4, 8, 12, 16, 20, 23].forEach(hr => {
+        const x = padL + (hr / 23) * cW;
+        svg += `<text x="${x}" y="${h - 10}" fill="#64748b" font-size="9" text-anchor="middle" font-family="JetBrains Mono">${hr}:00</text>`;
+      });
+
+      let sPts = [], lPts = [], socPts = [];
+      hours.forEach((pt, i) => {
+        const x = padL + (i / 23) * cW;
+        const yS = padT + cH - (pt.solarW / maxW) * cH;
+        const yL = padT + cH - (pt.loadW / maxW) * cH;
+        const ySoc = padT + cH - (pt.soc / 100) * cH;
+        sPts.push(`${x.toFixed(1)},${yS.toFixed(1)}`);
+        lPts.push(`${x.toFixed(1)},${yL.toFixed(1)}`);
+        socPts.push(`${x.toFixed(1)},${ySoc.toFixed(1)}`);
+      });
+
+      svg += `<polygon points="${padL},${padT+cH} ${sPts.join(' ')} ${w-padR},${padT+cH}" fill="url(#sGrad)"/>`;
+      svg += `<polyline points="${sPts.join(' ')}" fill="none" stroke="#f59e0b" stroke-width="2.5"/>`;
+      svg += `<polygon points="${padL},${padT+cH} ${lPts.join(' ')} ${w-padR},${padT+cH}" fill="url(#lGrad)"/>`;
+      svg += `<polyline points="${lPts.join(' ')}" fill="none" stroke="#38bdf8" stroke-width="2.5"/>`;
+      svg += `<polyline points="${socPts.join(' ')}" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="4 3"/>`;
+
+      svg += `</svg>`;
+      wrap.innerHTML = svg;
+    }
+
+    function renderMilestones(hours, fullChargeTime, fullChargeAchieved) {
+      const wrap = document.getElementById('milestones-wrap');
+      const endSoc = hours[23] ? hours[23].soc : 40;
+      wrap.innerHTML = `
+        <div class="m-card">
+          <div class="m-time"><i data-lucide="sunrise"></i> 06:30 AM</div>
+          <div class="m-title">Solar Gen Starts</div>
+          <div class="m-desc">Panels begin offsetting base load.</div>
+        </div>
+        <div class="m-card ${fullChargeAchieved ? 'highlight' : ''}">
+          <div class="m-time ${fullChargeAchieved ? 'text-mint' : 'text-amber'}"><i data-lucide="battery-charging"></i> ${fullChargeAchieved ? fullChargeTime : '14:00 PM'}</div>
+          <div class="m-title ${fullChargeAchieved ? 'text-mint' : 'text-amber'}">${fullChargeAchieved ? '100% Full Battery' : 'Peak Solar Storage'}</div>
+          <div class="m-desc">${fullChargeAchieved ? '4.8 kWh locked before peak tariff window.' : 'Solar harvest limited by clouds.'}</div>
+        </div>
+        <div class="m-card">
+          <div class="m-time text-amber"><i data-lucide="shield-check"></i> 18:30 — 22:30</div>
+          <div class="m-title">Peak Avoidance Active</div>
+          <div class="m-desc">Inverter powers home; zero Rs. 106/kWh grid import.</div>
+        </div>
+        <div class="m-card">
+          <div class="m-time"><i data-lucide="moon"></i> 00:00 Midnight</div>
+          <div class="m-title">End-of-Day Reserve</div>
+          <div class="m-desc">${endSoc}% SOC remaining for overnight buffer.</div>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // UI Listeners
+    document.querySelectorAll('.weather-tile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.weather-tile').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        simState.weather = btn.getAttribute('data-weather');
+        runSimulation();
+      });
+    });
+
+    document.querySelectorAll('.demand-tile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.demand-tile').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        simState.demand = btn.getAttribute('data-demand');
+        runSimulation();
+      });
+    });
+
+    const slider = document.getElementById('slider-soc');
+    const lbl = document.getElementById('lbl-soc');
+    slider.addEventListener('input', () => {
+      simState.initialSoc = parseInt(slider.value);
+      lbl.textContent = `${simState.initialSoc}% SOC`;
+      runSimulation();
+    });
+
+    document.getElementById('select-outage').addEventListener('change', (e) => {
+      simState.outage = e.target.value;
+      runSimulation();
+    });
+
+    document.getElementById('btn-calc-scenario').addEventListener('click', () => {
+      runSimulation();
+      showToast('AI Simulation updated for selected scenario!');
+    });
+
+    document.getElementById('btn-copy-json').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('json-preview').textContent).then(() => {
+        showToast('JSON Payload copied to clipboard!');
+      });
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    // Init
+    runSimulation();
+    if (window.lucide) window.lucide.createIcons();
+  </script>
+</body>
+</html>
