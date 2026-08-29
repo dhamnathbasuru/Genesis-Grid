@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.0" />
+  <link rel="stylesheet" href="styles.css?v=4.1" />
 </head>
 <body class="theme-dark">
   
@@ -35,14 +35,29 @@
 
         <!-- Right Nav Tools -->
         <div class="nav-actions-group">
+          <!-- Presentation Level: Homeowner vs Engineering Diagnostics -->
+          <div class="presentation-mode-capsule" title="Toggle simplified homeowner view or deep engineering telemetry">
+            <span class="capsule-label">VIEW:</span>
+            <div class="mode-buttons-group">
+              <button class="pres-mode-btn active" data-pres="home" id="btn-pres-home" title="Simplified Homeowner View"><i data-lucide="home"></i> HOME</button>
+              <button class="pres-mode-btn" data-pres="advanced" id="btn-pres-advanced" title="Deep Engineering SCADA & Diagnostics"><i data-lucide="cpu"></i> ADVANCED</button>
+            </div>
+          </div>
+
           <!-- Operating Mode Capsule Selector -->
           <div class="operating-mode-capsule">
-            <span class="capsule-label">MODE:</span>
+            <span class="capsule-label">DISPATCH:</span>
             <div class="mode-buttons-group">
               <button class="mode-btn active" data-mode="auto" title="Automatic Cost & Battery Optimization">AUTO</button>
               <button class="mode-btn" data-mode="solar" title="Force Solar / Battery Inverter">SOLAR</button>
               <button class="mode-btn" data-mode="grid" title="Force Main Grid Power">GRID</button>
             </div>
+          </div>
+
+          <!-- Simulation / Demo Mode Watermark Badge -->
+          <div class="sim-watermark-pill" title="Prototype telemetry is derived from calibrated simulated models.">
+            <span class="sim-dot"></span>
+            <span>SIMULATED PROTOTYPE</span>
           </div>
 
           <!-- Demo Scenarios Dropdown Menu -->
@@ -295,8 +310,64 @@
           </div>
         </div>
       </div>
-
     </section>
+
+    <!-- =========================================================
+         CURRENT DECISION & SOURCE DISPATCH EXPLANATION PANEL
+         ========================================================= -->
+    <div class="current-decision-panel" id="current-decision-card">
+      <div class="decision-header-row">
+        <div class="decision-title-group">
+          <div class="decision-pulse-icon" id="dec-status-icon">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <div>
+            <div class="dec-badge-row">
+              <span class="dec-pill-label">CURRENT EMS DECISION:</span>
+              <span class="dec-source-badge" id="dec-source-badge">BATTERY_SUPPLY (Inverter Active)</span>
+              <span class="provenance-tag prov-calculated" title="Calculated by deterministic safety state machine">CALCULATED</span>
+              <span class="freshness-tag freshness-live" id="dec-freshness-tag"><span class="live-dot-pulse"></span> LIVE</span>
+            </div>
+            <h4 class="dec-headline" id="dec-headline">Supplying household demand from 48V Battery storage via Inverter</h4>
+          </div>
+        </div>
+
+        <div class="decision-cost-impact">
+          <span class="dec-cost-lbl">PROJECTED SAVINGS / COST IMPACT:</span>
+          <span class="dec-cost-val text-mint" id="dec-cost-impact">+Rs. 76.32 / hr Saved</span>
+        </div>
+      </div>
+
+      <div class="decision-factors-grid">
+        <div class="dec-factor-item">
+          <span class="dec-f-lbl"><i data-lucide="clock"></i> Active Tariff Tier</span>
+          <strong class="dec-f-val text-danger" id="dec-tariff-val">PEAK (Rs. 106.00/kWh)</strong>
+        </div>
+        <div class="dec-factor-item">
+          <span class="dec-f-lbl"><i data-lucide="battery"></i> Battery Storage SOC</span>
+          <strong class="dec-f-val text-mint" id="dec-soc-val">78% (&gt;20% Cutoff)</strong>
+        </div>
+        <div class="dec-factor-item">
+          <span class="dec-f-lbl"><i data-lucide="zap"></i> Active Inverter Load</span>
+          <strong class="dec-f-val" id="dec-load-val">720 W</strong>
+        </div>
+        <div class="dec-factor-item">
+          <span class="dec-f-lbl"><i data-lucide="gauge"></i> Inverter Headroom</span>
+          <strong class="dec-f-val text-mint" id="dec-headroom-val">280 W (Capacity: 1000W)</strong>
+        </div>
+        <div class="dec-factor-item">
+          <span class="dec-f-lbl"><i data-lucide="plug"></i> Main Utility Grid</span>
+          <strong class="dec-f-val text-cyan" id="dec-grid-val">230V 50Hz • Standby Idle</strong>
+        </div>
+      </div>
+
+      <div class="decision-rationale-row">
+        <span class="rationale-tag"><i data-lucide="info"></i> WHY THIS SOURCE:</span>
+        <p class="rationale-text" id="dec-rationale-text">
+          Peak Tariff is active (Rs. 106/kWh). Battery storage is above the 20% safety cutoff and inverter load (720W) is within the continuous 1000W rating. Discharging clean battery energy completely avoids high utility peak charges.
+        </p>
+      </div>
+    </div>
 
     <!-- =========================================================
          TOP 4 METRICS ROW (Solar System Telemetry in Genesis Cards)
@@ -1447,6 +1518,71 @@
 
       </div>
 
+      <!-- Monthly Energy Report & CSV Export Action Bar -->
+      <div class="dashboard-panel" style="margin-top: 20px;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="panel-header-title">
+            <h3 class="panel-title"><i data-lucide="file-text"></i> Monthly Energy &amp; Billing Report (August 2026)</h3>
+            <span class="panel-subtitle">Comprehensive TOU interval breakdown, savings disaggregation, and verified audit metrics</span>
+          </div>
+          <div class="panel-actions" style="display: flex; gap: 10px;">
+            <button class="settings-save-btn" id="btn-export-csv" style="padding: 8px 16px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="download"></i> Export Intervals (CSV)
+            </button>
+            <button class="settings-save-btn" id="btn-print-report" style="background: rgba(255,255,255,0.08); color: var(--text-main); padding: 8px 16px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="printer"></i> Print Summary
+            </button>
+          </div>
+        </div>
+
+        <table class="ems-table" style="margin-top: 14px;">
+          <thead>
+            <tr>
+              <th>TOU Tariff Tier</th>
+              <th>Time Window</th>
+              <th>Rate (Rs/kWh)</th>
+              <th>Grid Import (kWh)</th>
+              <th>Direct Solar (kWh)</th>
+              <th>Battery Shift (kWh)</th>
+              <th>Total Cost (Rs)</th>
+              <th>Avoided Cost (Rs)</th>
+            </tr>
+          </thead>
+          <tbody id="billing-tou-table-tbody">
+            <tr>
+              <td><span class="status-pill off">OFF-PEAK</span></td>
+              <td>22:30 — 05:30</td>
+              <td>Rs. 33.00</td>
+              <td id="rep-offpeak-grid">33.3 kWh</td>
+              <td>0.0 kWh</td>
+              <td>0.0 kWh</td>
+              <td class="text-muted" id="rep-offpeak-cost">Rs. 1,100.00</td>
+              <td>Rs. 0.00</td>
+            </tr>
+            <tr>
+              <td><span class="status-pill day">DAY</span></td>
+              <td>05:30 — 18:30</td>
+              <td>Rs. 47.00</td>
+              <td id="rep-day-grid">0.0 kWh</td>
+              <td id="rep-day-solar">105.0 kWh</td>
+              <td>0.0 kWh</td>
+              <td class="text-mint" id="rep-day-cost">Rs. 0.00</td>
+              <td class="text-mint" id="rep-day-avoided">+Rs. 4,935.00</td>
+            </tr>
+            <tr>
+              <td><span class="status-pill peak">PEAK</span></td>
+              <td>18:30 — 22:30</td>
+              <td>Rs. 106.00</td>
+              <td id="rep-peak-grid">0.0 kWh</td>
+              <td>0.0 kWh</td>
+              <td id="rep-peak-bat">49.2 kWh</td>
+              <td class="text-mint" id="rep-peak-cost">Rs. 0.00</td>
+              <td class="text-mint" id="rep-peak-avoided">+Rs. 5,215.20</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
 
     <!-- =========================================================
@@ -1514,55 +1650,183 @@
     <div class="app-view-container" id="view-settings">
       
       <div class="settings-two-col-grid">
+        <!-- 1. Hardware Ratings & Safety Parameters -->
         <div class="dashboard-panel">
-          <h3 class="panel-title">Hardware Ratings & Parameters</h3>
+          <div class="panel-header">
+            <h3 class="panel-title"><i data-lucide="shield"></i> Hardware Ratings & Safety Parameters</h3>
+          </div>
           <div class="settings-form">
             <div class="form-group">
-              <label>Inverter Rated Capacity (Watts):</label>
+              <label>Inverter Rated Continuous Capacity (Watts):</label>
               <input type="number" value="1000" id="cfg-inv-cap" />
-              <span class="field-hint">Defines overload warning threshold</span>
+              <span class="field-hint">Defines overload warning threshold and headroom calculation</span>
             </div>
             <div class="form-group">
               <label>Battery Bank Nominal Capacity (kWh):</label>
               <input type="number" value="4.8" step="0.1" id="cfg-bat-cap" />
-              <span class="field-hint">48V 100Ah LiFePO4 Battery pack</span>
+              <span class="field-hint">48V 100Ah LiFePO4 Chemistry (Usable: 3.84 kWh)</span>
             </div>
             <div class="form-group">
-              <label>Minimum SOC Cutoff (%):</label>
+              <label>Minimum SOC Cutoff Protection (%):</label>
               <input type="number" value="20" id="cfg-min-soc" />
-              <span class="field-hint">System switches to grid below this level</span>
+              <span class="field-hint">Automated transfer to grid occurs below this reserve</span>
+            </div>
+            <div class="form-group">
+              <label>Recharge Return Hysteresis Reserve (%):</label>
+              <input type="number" value="25" id="cfg-return-soc" />
+              <span class="field-hint">Must charge back to this SOC before resuming battery supply</span>
+            </div>
+            <div class="form-group">
+              <label>Relay State Minimum Dwell Time (Seconds):</label>
+              <input type="number" value="5" id="cfg-dwell-time" />
+              <span class="field-hint">Prevents rapid relay cycling / oscillation</span>
             </div>
             <div class="form-group">
               <label>Overload Countdown Delay (Seconds):</label>
               <input type="number" value="30" id="cfg-countdown-delay" />
-              <span class="field-hint">Grace period before automated grid transfer</span>
+              <span class="field-hint">Grace period before automated fallback to grid</span>
             </div>
-            <button class="settings-save-btn" id="btn-save-settings">Save Hardware Settings</button>
+            <button class="settings-save-btn" id="btn-save-hardware-settings">Save Safety & Hardware Ratings</button>
           </div>
         </div>
 
+        <!-- 2. CEB TOU Tariff Structure Config -->
         <div class="dashboard-panel">
-          <h3 class="panel-title">CEB Electricity Tariff Rates (Rs/kWh)</h3>
+          <div class="panel-header">
+            <h3 class="panel-title"><i data-lucide="calendar"></i> CEB Time-Of-Use Tariff Profile (Prototype 2026)</h3>
+          </div>
           <div class="settings-form">
             <div class="form-group">
-              <label>Off-Peak Rate (22:30 — 05:30):</label>
-              <input type="number" value="13.00" step="0.5" />
+              <label>Tariff Profile Name / Category:</label>
+              <input type="text" value="CEB TOU Standard (Domestic GP)" id="cfg-tariff-name" />
+            </div>
+            <div class="form-row-two-col">
+              <div class="form-group">
+                <label>Effective From:</label>
+                <input type="text" value="2026-01-01" id="cfg-effective-from" />
+              </div>
+              <div class="form-group">
+                <label>Effective To:</label>
+                <input type="text" value="2026-12-31" id="cfg-effective-to" />
+              </div>
             </div>
             <div class="form-group">
-              <label>Day Rate (05:30 — 18:30):</label>
-              <input type="number" value="25.00" step="0.5" />
+              <label>Off-Peak Rate (22:30 — 05:30) (Rs/kWh):</label>
+              <input type="number" value="33.00" step="0.5" id="cfg-rate-offpeak" />
+              <span class="field-hint">Night cheap charging interval</span>
             </div>
             <div class="form-group">
-              <label>Peak Rate (18:30 — 22:30):</label>
-              <input type="number" value="54.00" step="0.5" />
+              <label>Day Rate (05:30 — 18:30) (Rs/kWh):</label>
+              <input type="number" value="47.00" step="0.5" id="cfg-rate-day" />
+              <span class="field-hint">Day direct solar harvest interval</span>
+            </div>
+            <div class="form-group">
+              <label>Peak Rate (18:30 — 22:30) (Rs/kWh):</label>
+              <input type="number" value="106.00" step="0.5" id="cfg-rate-peak" />
+              <span class="field-hint">Evening high tariff avoidance interval</span>
             </div>
             <div class="form-group">
               <label>Fixed Monthly Utility Charge (Rs):</label>
-              <input type="number" value="540.00" />
+              <input type="number" value="2500.00" id="cfg-fixed-charge" />
+              <span class="field-hint">Applied exactly once per 30-day billing cycle</span>
             </div>
-            <button class="settings-save-btn">Update Tariff Structure</button>
+            <button class="settings-save-btn" id="btn-save-tariff-settings">Update & Recalculate TOU Tariff</button>
           </div>
         </div>
+      </div>
+
+      <!-- Sensor Calibration & Hardware Capabilities Section -->
+      <div class="settings-two-col-grid" style="margin-top: 20px;">
+        
+        <!-- 3. ACS712 Sensor Calibration Profiles -->
+        <div class="dashboard-panel">
+          <div class="panel-header">
+            <h3 class="panel-title"><i data-lucide="sliders"></i> ACS712 Branch Calibration Profiles</h3>
+          </div>
+          <table class="ems-table" style="font-size: 0.8rem;">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Zero Offset (V)</th>
+                <th>Sensitivity (mV/A)</th>
+                <th>Noise Floor (A)</th>
+                <th>Assumed PF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Bulb 1 (Living)</strong></td>
+                <td><input type="number" step="0.001" value="2.502" class="tbl-input-sm" id="cal-zero-bulb1" /></td>
+                <td><input type="number" step="0.001" value="185" class="tbl-input-sm" id="cal-sens-bulb1" /></td>
+                <td><input type="number" step="0.01" value="0.05" class="tbl-input-sm" id="cal-noise-bulb1" /></td>
+                <td><input type="number" step="0.01" value="1.00" class="tbl-input-sm" id="cal-pf-bulb1" /></td>
+              </tr>
+              <tr>
+                <td><strong>Bulb 2 (Kitchen)</strong></td>
+                <td><input type="number" step="0.001" value="2.498" class="tbl-input-sm" id="cal-zero-bulb2" /></td>
+                <td><input type="number" step="0.001" value="185" class="tbl-input-sm" id="cal-sens-bulb2" /></td>
+                <td><input type="number" step="0.01" value="0.05" class="tbl-input-sm" id="cal-noise-bulb2" /></td>
+                <td><input type="number" step="0.01" value="1.00" class="tbl-input-sm" id="cal-pf-bulb2" /></td>
+              </tr>
+              <tr>
+                <td><strong>Bulb 3 (Bedroom)</strong></td>
+                <td><input type="number" step="0.001" value="2.505" class="tbl-input-sm" id="cal-zero-bulb3" /></td>
+                <td><input type="number" step="0.001" value="185" class="tbl-input-sm" id="cal-sens-bulb3" /></td>
+                <td><input type="number" step="0.01" value="0.05" class="tbl-input-sm" id="cal-noise-bulb3" /></td>
+                <td><input type="number" step="0.01" value="1.00" class="tbl-input-sm" id="cal-pf-bulb3" /></td>
+              </tr>
+              <tr>
+                <td><strong>Socket (Heavy)</strong></td>
+                <td><input type="number" step="0.001" value="2.510" class="tbl-input-sm" id="cal-zero-socket" /></td>
+                <td><input type="number" step="0.001" value="100" class="tbl-input-sm" id="cal-sens-socket" /></td>
+                <td><input type="number" step="0.01" value="0.12" class="tbl-input-sm" id="cal-noise-socket" /></td>
+                <td><input type="number" step="0.01" value="0.85" class="tbl-input-sm" id="cal-pf-socket" /></td>
+              </tr>
+            </tbody>
+          </table>
+          <button class="settings-save-btn" style="margin-top: 14px;" id="btn-save-calibration">Save Sensor Calibrations</button>
+        </div>
+
+        <!-- 4. Hardware Capability Flags & DOD Automated Test Suite -->
+        <div class="dashboard-panel">
+          <div class="panel-header">
+            <h3 class="panel-title"><i data-lucide="check-circle-2"></i> Hardware Capabilities &amp; Verification Suite</h3>
+          </div>
+          
+          <div class="capabilities-toggles-list" style="margin-bottom: 18px;">
+            <label class="cap-toggle-row">
+              <input type="checkbox" id="cap-measure-pf" />
+              <span>Direct Power Factor (PF) Hardware Sensing Supported</span>
+            </label>
+            <label class="cap-toggle-row">
+              <input type="checkbox" id="cap-measure-thd" />
+              <span>Synchronized Harmonic Analysis (THD &lt; 3%) Supported</span>
+            </label>
+            <label class="cap-toggle-row">
+              <input type="checkbox" id="cap-measure-reactive" />
+              <span>Real-Time Reactive Power (VAR) Hardware Metering</span>
+            </label>
+            <label class="cap-toggle-row">
+              <input type="checkbox" id="cap-measure-eff" />
+              <span>Simultaneous DC/AC Inverter Efficiency Measurement</span>
+            </label>
+          </div>
+
+          <!-- 22 DOD Automated Test Runner -->
+          <div class="dod-test-card" style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <strong>Automated System Test Runner</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Executes all 22 Definition of Done criteria (Tariff, Balance, Interlocks, TOU Billing)</div>
+              </div>
+              <button class="btn-send" style="width: auto; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem;" id="btn-run-dod-tests">Run DOD Suite</button>
+            </div>
+            <div id="dod-test-results" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--mint-green); max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px;">
+              [SYSTEM STATUS: READY] Click 'Run DOD Suite' to execute 22 automated integration checks.
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div> <!-- Close #view-settings -->
@@ -1610,6 +1874,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=4.1"></script>
 </body>
 </html>
