@@ -18,12 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
     currentSource: 'solar_bat', // 'solar_bat' | 'solar' | 'battery' | 'grid'
     gridAvailable: true,
 
+    // Home vs Advanced presentation mode
+    presentationMode: 'home', // 'home' | 'advanced'
+
     // Battery Storage (LiFePO4 48V 100Ah = 4.8 kWh)
     batterySOC: 78,
     batteryVoltage: 51.2,
     batteryCurrent: 10.15,
-    batteryPower: 520, // Watts
-    batteryState: 'discharging', // 'discharging' | 'charging' | 'idle'
+    batteryChargeW: 0,
+    batteryDischargeW: 520,
+    batteryState: 'DISCHARGING', // 'DISCHARGING' | 'CHARGING' | 'IDLE' | 'FAULT' | 'LIMITED'
     batteryCapacityKwh: 4.8,
     minSocCutoff: 20,
 
@@ -48,14 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
     gridPower: 0,
     gridEnergyToday: 1.40, // kWh
 
-    // Time-of-Use Tariff (CEB Tiers)
+    // Time-of-Use Tariff (CEB Tiers) - seed tariff config
     currentTariff: 'peak', // 'off_peak' | 'day' | 'peak'
     tariffRates: {
-      off_peak: 13.0,
-      day: 25.0,
-      peak: 54.0
+      off_peak: 33.0,
+      day: 47.0,
+      peak: 106.0
     },
-    fixedMonthlyCharge: 540.0,
+    fixedMonthlyCharge: 2500.0,
 
     // Financials & Monthly Savings
     monthlyGridEnergyKwh: 68.4,
@@ -63,12 +67,97 @@ document.addEventListener('DOMContentLoaded', () => {
     estimatedBillWithoutSolar: 8420,
     moneySaved: 4820,
 
-    // Individual ACS712 Branch Sensors
+    // Individual ACS712 Branch Sensors with Calibration Profiles
     appliances: {
-      bulb1: { name: 'Bulb 1 (Living Room)', baseWatts: 95, current: 0.41, kwh: 0.32, cost: 8.00, active: true, duration: '3h 24m', sensor: 'ACS712-05A', segId: 'seg-bulb1' },
-      bulb2: { name: 'Bulb 2 (Kitchen / Dining)', baseWatts: 110, current: 0.00, kwh: 0.00, cost: 0.00, active: false, duration: '0m', sensor: 'ACS712-05A', segId: 'seg-bulb2' },
-      bulb3: { name: 'Bulb 3 (Study / Bedroom)', baseWatts: 60, current: 0.26, kwh: 0.18, cost: 4.50, active: true, duration: '3h 05m', sensor: 'ACS712-05A', segId: 'seg-bulb3' },
-      socket: { name: 'Power Socket (TV / Fridge)', baseWatts: 565, current: 2.46, kwh: 1.45, cost: 36.25, active: true, duration: '2h 10m', sensor: 'ACS712-20A', isHeavy: true, segId: 'seg-socket' }
+      bulb1: {
+        name: 'Bulb 1 (Living Room)',
+        baseWatts: 95,
+        current: 0.41,
+        kwh: 0.32,
+        cost: 8.00,
+        active: true,
+        duration: '3h 24m',
+        sensor: 'ACS712-05A',
+        segId: 'seg-bulb1',
+        priority: 'ESSENTIAL', // 'ESSENTIAL' | 'NORMAL' | 'SHED_FIRST'
+        loadType: 'lighting',
+        calibration: {
+          zero_offset: 2.502,
+          sensitivity: 0.185,
+          noise_floor: 0.05,
+          scale_factor: 1.0,
+          assumed_pf: 1.0,
+          last_calibrated_at: '2026-08-01 10:00',
+          calibration_notes: 'Zero current offset verified in test lab.'
+        }
+      },
+      bulb2: {
+        name: 'Bulb 2 (Kitchen / Dining)',
+        baseWatts: 110,
+        current: 0.00,
+        kwh: 0.00,
+        cost: 0.00,
+        active: false,
+        duration: '0m',
+        sensor: 'ACS712-05A',
+        segId: 'seg-bulb2',
+        priority: 'NORMAL',
+        loadType: 'lighting',
+        calibration: {
+          zero_offset: 2.498,
+          sensitivity: 0.185,
+          noise_floor: 0.05,
+          scale_factor: 1.0,
+          assumed_pf: 1.0,
+          last_calibrated_at: '2026-08-01 10:15',
+          calibration_notes: 'Minor drift correction applied.'
+        }
+      },
+      bulb3: {
+        name: 'Bulb 3 (Study / Bedroom)',
+        baseWatts: 60,
+        current: 0.26,
+        kwh: 0.18,
+        cost: 4.50,
+        active: true,
+        duration: '3h 05m',
+        sensor: 'ACS712-05A',
+        segId: 'seg-bulb3',
+        priority: 'NORMAL',
+        loadType: 'lighting',
+        calibration: {
+          zero_offset: 2.505,
+          sensitivity: 0.185,
+          noise_floor: 0.05,
+          scale_factor: 1.0,
+          assumed_pf: 1.0,
+          last_calibrated_at: '2026-08-01 10:30',
+          calibration_notes: 'Compensated for ambient temp drift.'
+        }
+      },
+      socket: {
+        name: 'Power Socket (TV / Fridge)',
+        baseWatts: 565,
+        current: 2.46,
+        kwh: 1.45,
+        cost: 36.25,
+        active: true,
+        duration: '2h 10m',
+        sensor: 'ACS712-20A',
+        isHeavy: true,
+        segId: 'seg-socket',
+        priority: 'SHED_FIRST',
+        loadType: 'appliances',
+        calibration: {
+          zero_offset: 2.510,
+          sensitivity: 0.100,
+          noise_floor: 0.12,
+          scale_factor: 1.02,
+          assumed_pf: 0.85,
+          last_calibrated_at: '2026-08-01 11:00',
+          calibration_notes: 'Inductive load sensitivity calibration applied.'
+        }
+      }
     },
 
     // High Load Overload Intervention
@@ -80,8 +169,93 @@ document.addEventListener('DOMContentLoaded', () => {
     // UI View
     activeTab: 'overview',
     chartRange: 'live',
-    theme: 'dark'
+    theme: 'dark',
+
+    // Core Data Entities
+    tariffProfiles: [
+      {
+        id: 'ceb-tou-residential',
+        name: 'CEB TOU Standard (Residential)',
+        customerCategory: 'Domestic TOU-GP',
+        effectiveFrom: '2026-01-01',
+        effectiveTo: '2026-12-31',
+        offPeakStart: '22:30',
+        offPeakEnd: '05:30',
+        dayStart: '05:30',
+        dayEnd: '18:30',
+        peakStart: '18:30',
+        peakEnd: '22:30',
+        offPeakRate: 33.0,
+        dayRate: 47.0,
+        peakRate: 106.0,
+        fixedMonthlyCharge: 2500.0,
+        sourceNote: 'CEB Official structure.'
+      }
+    ],
+    activeTariffProfileId: 'ceb-tou-residential',
+
+    hardwareCapabilities: {
+      can_measure_pf: false,
+      can_measure_reactive_power: false,
+      can_measure_thd: false,
+      can_measure_inverter_efficiency: false
+    },
+
+    telemetryFreshness: {
+      solarPower: { lastSeen: Date.now(), quality: 'GOOD' },
+      batterySOC: { lastSeen: Date.now(), quality: 'GOOD' },
+      batteryPower: { lastSeen: Date.now(), quality: 'GOOD' },
+      inverterPower: { lastSeen: Date.now(), quality: 'GOOD' },
+      gridPower: { lastSeen: Date.now(), quality: 'GOOD' }
+    },
+
+    energyBalance: {
+      status: 'CONSISTENT',
+      residual: 0,
+      consecutiveViolations: 0
+    },
+
+    batteryEnergyOrigin: {
+      solarOriginWh: 2200,
+      gridOriginWh: 1540,
+      totalUsableWh: 3740
+    },
+
+    systemStateEvents: [
+      {
+        eventId: 'evt-1',
+        timestamp: '18:30:00',
+        fromState: 'SOLAR_DIRECT',
+        toState: 'BATTERY_SUPPLY',
+        decisionType: 'AUTO_OPTIMIZATION',
+        ruleId: 'R-TARIFF-CHANGE',
+        humanReason: 'Transition from Off-Peak to Day Tariff',
+        houseLoadW: 420,
+        batterySOC: 95,
+        gridAvailable: true,
+        tariffPeriod: 'day',
+        tariffRate: 47.0,
+        dataQuality: 'GOOD',
+        costImpactEstimate: 'Nominal'
+      }
+    ],
+
+    notifications: [],
+    dailyDeviceSummaries: [],
+    monthlyEnergyReports: [],
+    modelMetadata: {
+      model_version: 'v1.4.2',
+      training_window: '30 Days',
+      feature_list: ['house_load', 'solar_gen', 'battery_soc', 'tariff_period'],
+      metrics: { rmse: '0.042', mae: '0.029' },
+      status: 'ACTIVE'
+    },
+    
+    // Ingested Raw Samples Buffer (Telemetry Traceability)
+    telemetrySamples: [],
+    energyIntervals: []
   };
+
 
   // Sparkline buffer for Card 1
   const sparklineEl = document.getElementById('meter-power-load');
@@ -118,6 +292,270 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
+  // 1A. HISTORICAL INTERVAL GENERATOR & TOU BILLING ENGINE
+  // =========================================================
+  function generateSimulatedIntervals() {
+    const intervals = [];
+    const now = new Date();
+    const activeProfile = state.tariffProfiles.find(p => p.id === state.activeTariffProfileId) || state.tariffProfiles[0];
+    const startTime = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
+
+    for (let day = 0; day < 30; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        for (let half = 0; half < 2; half++) {
+          const start = new Date(startTime.getTime() + (day * 24 * 3600 + hour * 3600 + half * 1800) * 1000);
+          const end = new Date(start.getTime() + 1800 * 1000);
+          const timeStr = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+          
+          let period = 'day';
+          let rate = activeProfile.dayRate;
+          if (timeStr >= activeProfile.peakStart && timeStr < activeProfile.peakEnd) {
+            period = 'peak';
+            rate = activeProfile.peakRate;
+          } else if (timeStr >= activeProfile.offPeakStart || timeStr < activeProfile.offPeakEnd) {
+            period = 'off_peak';
+            rate = activeProfile.offPeakRate;
+          }
+
+          let baseW = 700;
+          if (period === 'off_peak') baseW = 400;
+          else if (period === 'peak') baseW = 950;
+          baseW += Math.sin(day + hour) * 30;
+          const house_load_Wh = (baseW * 0.5);
+
+          let solarW = 0;
+          if (hour >= 6 && hour < 18) {
+            const hDiff = hour - 6;
+            solarW = Math.max(0, 850 * Math.sin((hDiff + half * 0.5) / 12 * Math.PI));
+            solarW += Math.cos(day + hour) * 40;
+            solarW = Math.max(0, solarW);
+          }
+          const solar_input_Wh = (solarW * 0.5);
+
+          let battery_charge_Wh = 0;
+          let battery_discharge_Wh = 0;
+          let grid_import_Wh = 0;
+
+          if (period === 'peak') {
+            battery_discharge_Wh = house_load_Wh;
+            grid_import_Wh = 0;
+          } else if (period === 'off_peak') {
+            battery_charge_Wh = 80;
+            grid_import_Wh = house_load_Wh + battery_charge_Wh;
+          } else {
+            if (solar_input_Wh > house_load_Wh) {
+              battery_charge_Wh = solar_input_Wh - house_load_Wh;
+              grid_import_Wh = 0;
+            } else {
+              battery_discharge_Wh = house_load_Wh - solar_input_Wh;
+              grid_import_Wh = 0;
+            }
+          }
+
+          intervals.push({
+            start_time: start.toISOString(),
+            end_time: end.toISOString(),
+            house_load_Wh: parseFloat(house_load_Wh.toFixed(1)),
+            solar_input_Wh: parseFloat(solar_input_Wh.toFixed(1)),
+            battery_charge_Wh: parseFloat(battery_charge_Wh.toFixed(1)),
+            battery_discharge_Wh: parseFloat(battery_discharge_Wh.toFixed(1)),
+            grid_import_Wh: parseFloat(grid_import_Wh.toFixed(1)),
+            tariff_profile_id: activeProfile.id,
+            tariff_period: period,
+            tariff_rate: rate,
+            data_quality: 'GOOD',
+            source: 'measured'
+          });
+        }
+      }
+    }
+    state.energyIntervals = intervals;
+  }
+
+  function calculateTOUBilling() {
+    const profile = state.tariffProfiles.find(p => p.id === state.activeTariffProfileId) || state.tariffProfiles[0];
+    let totalOffPeakKwh = 0;
+    let totalDayKwh = 0;
+    let totalPeakKwh = 0;
+
+    let totalOffPeakCost = 0;
+    let totalDayCost = 0;
+    let totalPeakCost = 0;
+
+    let unmanagedOffPeakCost = 0;
+    let unmanagedDayCost = 0;
+    let unmanagedPeakCost = 0;
+
+    let totalGridKwh = 0;
+    let totalSolarGenKwh = 0;
+    let totalHouseLoadKwh = 0;
+    let totalBatteryDischargeKwh = 0;
+    let totalBatteryChargeKwh = 0;
+
+    let incompleteData = false;
+    let dataIntervalsCount = state.energyIntervals.length;
+    const expectedIntervals = 30 * 48;
+    const coveragePct = Math.min(100, Math.round((dataIntervalsCount / expectedIntervals) * 100));
+    if (coveragePct < 95) {
+      incompleteData = true;
+    }
+
+    state.energyIntervals.forEach(interval => {
+      const rate = interval.tariff_rate;
+      const gridKwh = interval.grid_import_Wh / 1000;
+      const solarKwh = interval.solar_input_Wh / 1000;
+      const houseKwh = interval.house_load_Wh / 1000;
+      const batDischargeKwh = interval.battery_discharge_Wh / 1000;
+      const batChargeKwh = interval.battery_charge_Wh / 1000;
+
+      totalGridKwh += gridKwh;
+      totalSolarGenKwh += solarKwh;
+      totalHouseLoadKwh += houseKwh;
+      totalBatteryDischargeKwh += batDischargeKwh;
+      totalBatteryChargeKwh += batChargeKwh;
+
+      if (interval.tariff_period === 'off_peak') {
+        totalOffPeakKwh += gridKwh;
+        totalOffPeakCost += gridKwh * rate;
+        unmanagedOffPeakCost += houseKwh * rate;
+      } else if (interval.tariff_period === 'day') {
+        totalDayKwh += gridKwh;
+        totalDayCost += gridKwh * rate;
+        unmanagedDayCost += houseKwh * rate;
+      } else if (interval.tariff_period === 'peak') {
+        totalPeakKwh += gridKwh;
+        totalPeakCost += gridKwh * rate;
+        unmanagedPeakCost += houseKwh * rate;
+      }
+    });
+
+    const fixedCharge = profile.fixedMonthlyCharge;
+    const totalVariableCost = totalOffPeakCost + totalDayCost + totalPeakCost;
+    const estimatedTotalBill = totalVariableCost + fixedCharge;
+
+    const totalUnmanagedBill = unmanagedOffPeakCost + unmanagedDayCost + unmanagedPeakCost + fixedCharge;
+    const totalSavings = Math.max(0, totalUnmanagedBill - estimatedTotalBill);
+
+    let solarBatteryRatio = 0.6;
+    let directSolarKwh = Math.max(0, totalSolarGenKwh - totalBatteryChargeKwh);
+    
+    let directSolarSavings = directSolarKwh * profile.dayRate;
+    let solarBatterySavings = (totalBatteryDischargeKwh * solarBatteryRatio) * profile.peakRate; 
+    let tariffShiftSavings = (totalBatteryDischargeKwh * (1 - solarBatteryRatio)) * (profile.peakRate - profile.offPeakRate);
+
+    const totalCalculatedSavings = directSolarSavings + solarBatterySavings + tariffShiftSavings;
+    if (totalCalculatedSavings > 0) {
+      const scale = totalSavings / totalCalculatedSavings;
+      directSolarSavings *= scale;
+      solarBatterySavings *= scale;
+      tariffShiftSavings *= scale;
+    }
+
+    state.monthlyGridEnergyKwh = parseFloat(totalGridKwh.toFixed(1));
+    state.monthlyBill = Math.round(estimatedTotalBill);
+    state.estimatedBillWithoutSolar = Math.round(totalUnmanagedBill);
+    state.moneySaved = Math.round(totalSavings);
+
+    return {
+      totalGridKwh,
+      totalOffPeakKwh,
+      totalDayKwh,
+      totalPeakKwh,
+      totalOffPeakCost,
+      totalDayCost,
+      totalPeakCost,
+      fixedCharge,
+      variableCharge: totalVariableCost,
+      estimatedTotalBill,
+      coveragePct,
+      incompleteData,
+      directSolarSavings,
+      solarBatterySavings,
+      tariffShiftSavings,
+      totalSavings,
+      totalHouseLoadKwh,
+      totalSolarGenKwh
+    };
+  }
+
+  // Populate simulated data immediately
+  generateSimulatedIntervals();
+  // =========================================================
+  // 1B. PROVENANCE, BATTERY, AND ENERGY BALANCE HELPERS
+  // =========================================================
+  function getMetricValue(val, unit, provenance, source, quality = 'GOOD', formulaId = '') {
+    return {
+      value: val,
+      unit: unit,
+      provenance: provenance, // 'MEASURED' | 'CALCULATED' | 'ESTIMATED' | 'SIMULATED'
+      source: source,
+      timestamp: Date.now(),
+      quality: quality, // 'GOOD' | 'STALE' | 'INCONSISTENT' | 'UNAVAILABLE'
+      formulaId: formulaId
+    };
+  }
+
+  function setBatteryFlow(stateName, watts) {
+    state.batteryState = stateName.toUpperCase();
+    state.batteryPower = watts; // backward compatibility
+    
+    if (state.batteryState === 'CHARGING') {
+      state.batteryChargeW = watts;
+      state.batteryDischargeW = 0;
+    } else if (state.batteryState === 'DISCHARGING') {
+      state.batteryDischargeW = watts;
+      state.batteryChargeW = 0;
+    } else {
+      state.batteryChargeW = 0;
+      state.batteryDischargeW = 0;
+    }
+    
+    state.telemetryFreshness.batteryPower.lastSeen = Date.now();
+    state.telemetryFreshness.batteryPower.quality = 'GOOD';
+  }
+
+  function checkFreshness(key) {
+    const fresh = state.telemetryFreshness[key];
+    if (!fresh) return 'UNAVAILABLE';
+    const age = Date.now() - fresh.lastSeen;
+    if (age < 5000) {
+      fresh.quality = 'GOOD';
+      return 'LIVE';
+    } else if (age < 30000) {
+      fresh.quality = 'STALE';
+      return 'STALE';
+    } else {
+      fresh.quality = 'UNAVAILABLE';
+      return 'OFFLINE';
+    }
+  }
+
+  function reconcilePowerFlows() {
+    const solar = state.solarPower;
+    const grid = state.gridPower;
+    const house = state.inverterPower;
+    const batDischarge = state.batteryDischargeW;
+    const batCharge = state.batteryChargeW;
+    
+    // Calculate residual = solar + grid + discharge - house - charge - known_losses
+    // Pure Sine Wave inverter conversion loss at 720W output is about 5%
+    const losses = batDischarge > 0 ? Math.round(batDischarge * 0.05) : 0;
+    const residual = (solar + grid + batDischarge) - (house + batCharge + losses);
+    state.energyBalance.residual = residual;
+
+    const tolerance = Math.max(50, house * 0.05);
+    if (Math.abs(residual) > tolerance) {
+      state.energyBalance.consecutiveViolations++;
+      if (state.energyBalance.consecutiveViolations >= 3) {
+        state.energyBalance.status = 'INCONSISTENT';
+      }
+    } else {
+      state.energyBalance.consecutiveViolations = 0;
+      state.energyBalance.status = 'CONSISTENT';
+    }
+  }
+
+  // =========================================================
   // 2. LIVE CLOCK & HEADER SYNCHRONIZATION
   // =========================================================
   function updateLiveClock() {
@@ -136,22 +574,32 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. APPLIANCE RECALCULATION & OVERLOAD SUPERVISOR
   // =========================================================
   function calculateTotalHouseLoad() {
-    let totalWatts = 0;
+    let branchTotal = 0;
     let activeCount = 0;
 
     Object.keys(state.appliances).forEach(key => {
       const app = state.appliances[key];
       if (app.active) {
-        totalWatts += app.baseWatts;
-        app.current = parseFloat((app.baseWatts / 230.0).toFixed(2));
+        branchTotal += app.baseWatts;
+        app.current = parseFloat((app.baseWatts / (230.0 * (app.calibration.assumed_pf || 1.0))).toFixed(2));
         activeCount++;
       } else {
         app.current = 0.0;
       }
     });
 
-    state.inverterPower = totalWatts;
-    state.inverterCurrent = parseFloat((totalWatts / state.inverterVoltage).toFixed(2));
+    const standbyLoad = 50; // unallocated background load (standby, router, etc.)
+    state.inverterPower = branchTotal + standbyLoad;
+    state.inverterCurrent = parseFloat((state.inverterPower / state.inverterVoltage).toFixed(2));
+
+    // Update freshness timestamps
+    state.telemetryFreshness.solarPower.lastSeen = Date.now();
+    state.telemetryFreshness.batterySOC.lastSeen = Date.now();
+    state.telemetryFreshness.inverterPower.lastSeen = Date.now();
+    state.telemetryFreshness.gridPower.lastSeen = Date.now();
+
+    // Reconcile Energy balance
+    reconcilePowerFlows();
 
     evaluateSystemSource();
     updateUI(activeCount);
@@ -163,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     liveBuffer.push({
       time: timeStr,
       solar: state.solarPower,
-      battery: state.currentSource === 'grid' ? 0 : (state.batteryState === 'charging' ? state.batteryPower : -state.batteryPower),
+      battery: state.currentSource === 'grid' ? 0 : (state.batteryState === 'CHARGING' ? state.batteryChargeW : -state.batteryDischargeW),
       grid: state.gridPower,
       load: state.inverterPower
     });
@@ -171,50 +619,184 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.activeTab === 'analytics' && typeof renderScadaChart === 'function') {
       renderScadaChart();
     }
+  }  // Initialize state machine properties
+  if (!state.systemState) {
+    state.systemState = 'BATTERY_SUPPLY';
+    state.lastStateTransitionTime = Date.now();
+  }
+
+  function checkRelayInterlocks(requestedState) {
+    // True interlock block: mutually exclusive grid and inverter connections
+    const isGridSupplyActive = (requestedState === 'GRID_SUPPLY' || requestedState === 'TRANSFER_TO_GRID');
+    const isInverterSupplyActive = (requestedState === 'SOLAR_DIRECT' || requestedState === 'BATTERY_SUPPLY' || requestedState === 'GRID_FAILURE_BACKUP' || requestedState === 'BATTERY_CHARGING');
+    
+    if (isGridSupplyActive && isInverterSupplyActive) {
+      console.error("SAFETY VIOLATION: Mutually exclusive relay paths requested simultaneously!");
+      return false; // Interlock block
+    }
+    return true;
+  }
+
+  function transitionToState(nextState, reason) {
+    if (state.systemState === nextState) return;
+
+    const now = Date.now();
+    const age = now - state.lastStateTransitionTime;
+    const isSafetyEmergency = (nextState === 'FAULT' || nextState === 'GRID_FAILURE_BACKUP' || nextState === 'OVERLOAD_WARNING');
+    
+    // Enforce 5s minimum dwell time unless emergency
+    if (age < 5000 && !isSafetyEmergency) {
+      console.log(`Dwell time constraint active. Deflection: ${state.systemState} -> ${nextState}`);
+      return;
+    }
+
+    if (!checkRelayInterlocks(nextState)) {
+      showToast("CRITICAL SAFETY BLOCK: Mutual interlock violation prevented transition!", "danger");
+      nextState = 'FAULT';
+      reason = "Safety Interlock Violation Deflected Transition";
+    }
+
+    const prevState = state.systemState;
+    state.systemState = nextState;
+    state.lastStateTransitionTime = now;
+
+    // Log Immutable Event
+    const event = {
+      eventId: 'evt-' + now,
+      timestamp: new Date().toLocaleTimeString(),
+      fromState: prevState,
+      toState: nextState,
+      decisionType: nextState === 'FAULT' ? 'SAFETY' : (nextState === 'OVERLOAD_WARNING' || prevState === 'OVERLOAD_WARNING' ? 'PROTECTION' : 'AUTO_OPTIMIZATION'),
+      ruleId: reason.includes('Overload') ? 'R-OVERLOAD' : (reason.includes('SOC') ? 'R-LOW-SOC' : 'R-OPTIMIZE'),
+      humanReason: reason,
+      houseLoadW: state.inverterPower,
+      batterySOC: Math.round(state.batterySOC),
+      gridAvailable: state.gridAvailable,
+      tariffPeriod: state.currentTariff,
+      tariffRate: state.tariffRates[state.currentTariff],
+      dataQuality: state.energyBalance.status === 'CONSISTENT' ? 'GOOD' : 'INCONSISTENT',
+      costImpactEstimate: nextState === 'GRID_SUPPLY' ? 'Grid Import' : '+Rs. ' + ((state.inverterPower / 1000) * state.tariffRates[state.currentTariff]).toFixed(2) + '/hr saved'
+    };
+
+    state.systemStateEvents.unshift(event);
+    if (state.systemStateEvents.length > 50) state.systemStateEvents.pop();
+
+    renderEventHistoryUI();
+    showToast(`System State: ${prevState} → ${nextState}`, nextState === 'FAULT' ? 'danger' : 'info');
+  }
+
+  function renderEventHistoryUI() {
+    const tbody = document.getElementById('history-events-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    state.systemStateEvents.forEach(evt => {
+      const tr = document.createElement('tr');
+      tr.style.cursor = 'pointer';
+      tr.title = 'Click to view event details';
+      tr.addEventListener('click', () => {
+        showToast(`Rule: ${evt.ruleId} | Reason: ${evt.humanReason}`, 'info');
+      });
+
+      const transitionText = `${evt.fromState} → ${evt.toState}`;
+      const isToGrid = (evt.toState === 'GRID_SUPPLY' || evt.toState === 'TRANSFER_TO_GRID');
+      const pillClass = isToGrid ? 'bat-grid' : 'grid-bat';
+
+      tr.innerHTML = `
+        <td><strong>${evt.timestamp}</strong></td>
+        <td><span class="transition-pill ${pillClass}">${transitionText}</span></td>
+        <td>${evt.humanReason}</td>
+        <td>${evt.houseLoadW} W</td>
+        <td>${evt.batterySOC}%</td>
+        <td><span class="status-pill ${evt.tariffPeriod}">${evt.tariffPeriod.toUpperCase()} Rs. ${evt.tariffRate}</span></td>
+        <td><strong class="${isToGrid ? 'text-muted' : 'text-mint'}">${evt.costImpactEstimate}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
   function evaluateSystemSource() {
     const load = state.inverterPower;
-    const isOverloaded = load > state.inverterCapacity;
-
-    if (state.operatingMode === 'grid') {
-      state.currentSource = 'grid';
-      state.gridPower = load;
-      state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
-      dismissHighLoadWarning(false);
-      return;
-    }
-
+    const capacity = state.inverterCapacity;
+    const isOverloaded = load > capacity;
+    
+    // Safety check 1: Grid blackout emergency backup
     if (!state.gridAvailable) {
+      if (state.batterySOC < 10) {
+        transitionToState('FAULT', 'Total Grid Blackout + Critical Low SOC (<10%) - Safe Shutdown');
+      } else {
+        transitionToState('GRID_FAILURE_BACKUP', 'Main utility blackout detected — Inverter ride-through');
+      }
+      
       state.currentSource = 'solar_bat';
       state.gridPower = 0;
       state.gridCurrent = 0;
-      if (isOverloaded) triggerHighLoadWarning(load);
-      else dismissHighLoadWarning(true);
+      
+      if (state.solarPower > load) {
+        setBatteryFlow('CHARGING', state.solarPower - load);
+      } else {
+        setBatteryFlow('DISCHARGING', load - state.solarPower);
+      }
       return;
     }
 
-    // Auto Mode Logic
-    if (state.operatingMode === 'auto' || state.operatingMode === 'solar') {
-      if (isOverloaded) {
-        triggerHighLoadWarning(load);
-      } else {
-        dismissHighLoadWarning(true);
+    // Safety check 2: Battery protection threshold cutoff
+    if (state.batterySOC <= state.minSocCutoff) {
+      transitionToState('GRID_SUPPLY', `Battery protection cutoff (SOC: ${Math.round(state.batterySOC)}% <= ${state.minSocCutoff}%)`);
+      state.currentSource = 'grid';
+      state.gridPower = load;
+      state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
+      setBatteryFlow('CHARGING', state.solarPower > 0 ? state.solarPower : 150);
+      return;
+    } else if (state.systemState === 'GRID_SUPPLY' && state.batterySOC < (state.minSocCutoff + 5)) {
+      // Hysteresis keep charging until 25% SOC
+      state.currentSource = 'grid';
+      state.gridPower = load;
+      state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
+      setBatteryFlow('CHARGING', state.solarPower > 0 ? state.solarPower : 150);
+      return;
+    }
 
-        if (state.batterySOC <= state.minSocCutoff) {
-          state.currentSource = 'grid';
-          state.gridPower = load;
-          state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
-        } else {
-          state.currentSource = 'solar_bat';
-          state.gridPower = 0;
-          state.gridCurrent = 0;
-        }
+    // Protection check 3: Inverter overload warning
+    if (isOverloaded) {
+      if (state.systemState !== 'OVERLOAD_WARNING' && state.systemState !== 'TRANSFER_TO_GRID') {
+        transitionToState('OVERLOAD_WARNING', `Inverter capacity limit exceeded (${load}W > ${capacity}W)`);
+        triggerHighLoadWarning(load);
+      }
+      return;
+    } else {
+      if (state.systemState === 'OVERLOAD_WARNING') {
+        dismissHighLoadWarning(true);
+      }
+    }
+
+    // Normal Optimization based on Operating Mode
+    if (state.operatingMode === 'grid') {
+      transitionToState('GRID_SUPPLY', 'User forced GRID operating mode');
+      state.currentSource = 'grid';
+      state.gridPower = load;
+      state.gridCurrent = parseFloat((load / state.gridVoltage).toFixed(2));
+      setBatteryFlow('IDLE', 0);
+      return;
+    }
+
+    if (state.operatingMode === 'auto' || state.operatingMode === 'solar') {
+      if (state.solarPower > load) {
+        transitionToState('SOLAR_DIRECT', `Solar generation surplus (${state.solarPower}W > ${load}W)`);
+        state.currentSource = 'solar';
+        state.gridPower = 0;
+        state.gridCurrent = 0;
+        setBatteryFlow('CHARGING', state.solarPower - load);
+      } else {
+        transitionToState('BATTERY_SUPPLY', `Solar + Battery inverting to supply load`);
+        state.currentSource = 'solar_bat';
+        state.gridPower = 0;
+        state.gridCurrent = 0;
+        setBatteryFlow('DISCHARGING', load - state.solarPower);
       }
     }
   }
 
-  // Trigger High Load Warning & Countdown
   function triggerHighLoadWarning(currentLoad) {
     if (state.currentSource === 'grid') return;
 
@@ -247,7 +829,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (state.countdownSeconds <= 0) {
           clearInterval(state.countdownTimer);
-          transferToGrid('Automatic Grid Fallback (30s Overload Countdown Expired)');
+          transitionToState('TRANSFER_TO_GRID', 'Automatic Grid Fallback (30s Overload Countdown Expired)');
+          transferToGrid();
         }
       }, 1000);
     }
@@ -265,45 +848,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.highLoadWarning && showNormalizedToast) {
       state.highLoadWarning = false;
       showToast('LOAD NORMALIZED — Continuing on Solar/Battery', 'success');
-      logSwitchEvent('Inverter Active', 'Load Normalized below 1000W Inverter Capacity', '+Rs. 38.88/hr saved');
+      transitionToState('BATTERY_SUPPLY', 'Load Normalized below 1000W Inverter Capacity');
     } else {
       state.highLoadWarning = false;
     }
   }
 
-  function transferToGrid(reason) {
+  function transferToGrid() {
     state.currentSource = 'grid';
     state.gridPower = state.inverterPower;
     state.gridCurrent = parseFloat((state.inverterPower / state.gridVoltage).toFixed(2));
+    setBatteryFlow('IDLE', 0);
     dismissHighLoadWarning(false);
-    logSwitchEvent('Inverter → Grid', reason, 'Grid Import Active');
-    showToast(`Transferred to Main Grid: ${reason}`, 'warning');
+    showToast(`Transferred to Main Grid: Inverter Overloaded`, 'warning');
+    
+    setTimeout(() => {
+      transitionToState('GRID_SUPPLY', 'Load shifted to grid post-overload fallback');
+    }, 100);
     updateUI();
   }
 
   function logSwitchEvent(transition, reason, costImpact) {
-    const tbody = document.getElementById('history-events-tbody');
-    if (!tbody) return;
-
-    const d = new Date();
-    const timeStr = d.toTimeString().split(' ')[0];
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${timeStr}</strong></td>
-      <td><span class="transition-pill ${transition.includes('Grid') ? 'bat-grid' : 'grid-bat'}">${transition}</span></td>
-      <td>${reason}</td>
-      <td>${state.inverterPower} W</td>
-      <td>${Math.round(state.batterySOC)}%</td>
-      <td><span class="status-pill ${state.currentTariff}">${state.currentTariff.toUpperCase()} Rs. ${state.tariffRates[state.currentTariff]}</span></td>
-      <td><strong class="${costImpact.includes('+') ? 'text-mint' : 'text-muted'}">${costImpact}</strong></td>
-    `;
-    tbody.insertBefore(tr, tbody.firstChild);
+    // Kept for backward compatibility but routes to transitionToState
+    transitionToState(transition.includes('Grid') ? 'GRID_SUPPLY' : 'BATTERY_SUPPLY', reason);
   }
 
   // =========================================================
   // 4. UI SYNCHRONIZATION & TELEMETRY RENDERER
   // =========================================================
   function updateUI(activeCount = 3) {
+    const billing = calculateTOUBilling();
     const load = state.inverterPower;
     const invCap = state.inverterCapacity;
     const invPct = Math.round((load / invCap) * 100);
@@ -334,7 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Live CEB Tariff in Overview
     if (heroTariffTier && heroTariffRate) {
       const tierName = state.currentTariff ? state.currentTariff.toUpperCase() : 'PEAK';
-      const rateVal = state.tariffRates[state.currentTariff] || 54.00;
+      const rateVal = state.tariffRates[state.currentTariff] || 106.00;
       heroTariffTier.textContent = `${tierName} TARIFF:`;
       heroTariffRate.textContent = `Rs. ${rateVal.toFixed(2)}/kWh`;
     }
@@ -349,8 +923,49 @@ document.addEventListener('DOMContentLoaded', () => {
     if (valPower) valPower.textContent = load;
     if (valBatSoc) valBatSoc.textContent = `${Math.round(state.batterySOC)}%`;
     if (valBatEnergy) valBatEnergy.textContent = `${((state.batteryCapacityKwh * state.batterySOC) / 100).toFixed(2)} kWh`;
-    if (valBatDesc) valBatDesc.textContent = `${state.batteryVoltage.toFixed(1)}V • ${state.batteryState === 'charging' ? 'Charging' : 'Discharging'}`;
-    if (valMoney) valMoney.textContent = state.moneySaved.toLocaleString();
+    
+    const batStateText = state.batteryState === 'CHARGING' ? 'Charging' : (state.batteryState === 'DISCHARGING' ? 'Discharging' : 'Idle');
+    if (valBatDesc) valBatDesc.textContent = `${state.batteryVoltage.toFixed(1)}V • ${batStateText}`;
+    if (valMoney) valMoney.textContent = billing.totalSavings.toLocaleString();
+
+    // Sync Billing Card UI elements
+    const billGridTotal = document.getElementById('bill-grid-total');
+    const billGridKwhLabel = document.getElementById('bill-grid-kwh-label');
+    const billGridEnergyCost = document.getElementById('bill-grid-energy-cost');
+    const billGridFixedCost = document.getElementById('bill-grid-fixed-cost');
+    const billGridStatus = document.getElementById('bill-grid-status');
+
+    if (billGridTotal) billGridTotal.textContent = 'Rs. ' + billing.estimatedTotalBill.toLocaleString();
+    if (billGridKwhLabel) billGridKwhLabel.textContent = 'Grid Energy (' + billing.totalGridKwh.toFixed(1) + ' kWh):';
+    if (billGridEnergyCost) billGridEnergyCost.textContent = 'Rs. ' + Math.round(billing.totalOffPeakCost + billing.totalDayCost + billing.totalPeakCost).toLocaleString();
+    if (billGridFixedCost) billGridFixedCost.textContent = 'Rs. ' + billing.fixedCharge.toLocaleString();
+    if (billGridStatus) {
+      billGridStatus.textContent = billing.incompleteData ? `Incomplete (${billing.coveragePct}% Coverage)` : '100% Coverage (GOOD)';
+      billGridStatus.className = billing.incompleteData ? 'text-danger' : 'text-mint';
+    }
+
+    const billUnmanagedTotal = document.getElementById('bill-unmanaged-total');
+    const billUnmanagedKwh = document.getElementById('bill-unmanaged-kwh');
+    const billUnmanagedPeak = document.getElementById('bill-unmanaged-peak');
+
+    if (billUnmanagedTotal) billUnmanagedTotal.textContent = 'Rs. ' + billing.estimatedBillWithoutSolar.toLocaleString();
+    if (billUnmanagedKwh) billUnmanagedKwh.textContent = billing.totalHouseLoadKwh.toFixed(1) + ' kWh';
+    if (billUnmanagedPeak) billUnmanagedPeak.textContent = 'Rs. ' + Math.round(billing.estimatedBillWithoutSolar - billing.fixedCharge).toLocaleString();
+
+    const billSavingsTotal = document.getElementById('bill-savings-total');
+    const billSavingsRatio = document.getElementById('bill-savings-ratio');
+    const billSavingsDetailVal = document.getElementById('bill-savings-detail-val');
+    const billSavingsAnnual = document.getElementById('bill-savings-annual');
+
+    if (billSavingsTotal) billSavingsTotal.textContent = 'Rs. ' + billing.totalSavings.toLocaleString();
+    if (billSavingsRatio) {
+      const ratio = billing.estimatedBillWithoutSolar > 0 ? ((billing.totalSavings / billing.estimatedBillWithoutSolar) * 100).toFixed(1) : '0';
+      billSavingsRatio.textContent = '+' + ratio + '% Saved';
+    }
+    if (billSavingsDetailVal) {
+      billSavingsDetailVal.textContent = 'Solar: Rs. ' + Math.round(billing.directSolarSavings + billing.solarBatterySavings).toLocaleString() + ' • Shift: Rs. ' + Math.round(billing.tariffShiftSavings).toLocaleString();
+    }
+    if (billSavingsAnnual) billSavingsAnnual.textContent = 'Rs. ' + Math.round(billing.totalSavings * 12).toLocaleString();
 
     // Capacity Load Gauge Animation & Real-Time Sync (1:1 with Reference Design)
     const gaugePctEl = document.getElementById('val-gauge-pct');
@@ -419,23 +1034,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const valBatCurr = document.getElementById('val-bat-current');
 
     const batSoc = state.batterySOC;
-    const isCharging = state.batteryState === 'charging';
-    const isDischarging = state.batteryState === 'discharging';
+    const isCharging = state.batteryState === 'CHARGING';
+    const isDischarging = state.batteryState === 'DISCHARGING';
 
     if (valBatVolt) valBatVolt.innerHTML = `${state.batteryVoltage.toFixed(1)} <small>V</small>`;
-    if (valBatCurr) valBatCurr.innerHTML = `${(load / state.batteryVoltage).toFixed(2)} <small>A</small>`;
+    if (valBatCurr) valBatCurr.innerHTML = `${((isDischarging ? state.batteryDischargeW : state.batteryChargeW) / state.batteryVoltage).toFixed(2)} <small>A</small>`;
 
     if (bmsFlowBadge && bmsFlowText && bmsFlowIcon) {
       if (isCharging) {
         bmsFlowBadge.className = 'bms-flow-indicator charging';
         bmsFlowIcon.innerHTML = '<i data-lucide="arrow-up-right"></i>';
-        bmsFlowText.textContent = `+${state.solarPower}W Charging`;
+        bmsFlowText.textContent = `+${state.batteryChargeW}W Charging`;
         if (bmsTimeEst) bmsTimeEst.textContent = 'Est. Full in: ~1h 35m (Solar PV Run)';
       } else if (isDischarging) {
         bmsFlowBadge.className = 'bms-flow-indicator discharging';
         bmsFlowIcon.innerHTML = '<i data-lucide="arrow-down-right"></i>';
-        bmsFlowText.textContent = `${load}W Discharging`;
-        const hoursRemaining = load > 0 ? ((state.batteryCapacityKwh * (batSoc / 100) * 1000) / load).toFixed(1) : '24';
+        bmsFlowText.textContent = `${state.batteryDischargeW}W Discharging`;
+        const hoursRemaining = state.batteryDischargeW > 0 ? ((state.batteryCapacityKwh * (batSoc / 100) * 1000) / state.batteryDischargeW).toFixed(1) : '24';
         if (bmsTimeEst) bmsTimeEst.textContent = `Est. Runtime: ~${hoursRemaining}h at current load`;
       } else {
         bmsFlowBadge.className = 'bms-flow-indicator idle';
@@ -550,7 +1165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const flowLoad = document.getElementById('flow-head-load');
 
     if (flowSolar) flowSolar.textContent = `${state.solarPower}W`;
-    if (flowBat) flowBat.textContent = `${state.batteryState === 'charging' ? '+' : '-'}${state.batteryPower}W`;
+    if (flowBat) flowBat.textContent = state.batteryState === 'CHARGING' ? `+${state.batteryChargeW}W` : (state.batteryState === 'DISCHARGING' ? `-${state.batteryDischargeW}W` : '0W');
     if (flowGrid) flowGrid.textContent = `${state.gridPower}W`;
     if (flowLoad) flowLoad.textContent = `${state.inverterPower}W`;
 
@@ -574,14 +1189,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (svgGridWatts) svgGridWatts.textContent = state.currentSource === 'grid' ? `${state.gridPower} W Active` : '0 W (Standby)';
     if (svgGridBadge) svgGridBadge.textContent = state.gridAvailable ? (state.currentSource === 'grid' ? 'Supplying Load' : '230V • Standby') : 'Grid Outage / Offline';
 
-    if (svgSmpWatts) svgSmpWatts.textContent = state.batteryState === 'charging' && state.solarPower > 0 ? `${state.batteryPower} W Regulated` : '48V DC Bus';
-    if (svgSmpBadge) svgSmpBadge.textContent = state.batteryState === 'charging' ? 'MPPT Charging Active' : 'Bus Synchronized';
+    if (svgSmpWatts) svgSmpWatts.textContent = state.batteryState === 'CHARGING' && state.solarPower > 0 ? `${state.batteryChargeW} W Regulated` : '48V DC Bus';
+    if (svgSmpBadge) svgSmpBadge.textContent = state.batteryState === 'CHARGING' ? 'MPPT Charging Active' : 'Bus Synchronized';
 
     if (svgInvWatts) svgInvWatts.textContent = `${state.inverterPower} W (${Math.round((state.inverterPower / state.inverterCapacity) * 100)}%)`;
     if (svgInvBadge) svgInvBadge.textContent = state.currentSource === 'grid' ? 'Bypassed to Grid' : 'DC → 230V AC Active';
 
     if (svgBatSoc) svgBatSoc.textContent = `${Math.round(state.batterySOC)}% SOC`;
-    if (svgBatBadge) svgBatBadge.textContent = state.batteryState === 'charging' ? `Charging ${state.batteryPower}W` : `Discharging ${state.batteryPower}W`;
+    if (svgBatBadge) svgBatBadge.textContent = state.batteryState === 'CHARGING' ? `Charging ${state.batteryChargeW}W` : (state.batteryState === 'DISCHARGING' ? `Discharging ${state.batteryDischargeW}W` : 'Standby Idle');
 
     if (svgSolarWatts) svgSolarWatts.textContent = `${state.solarPower} W`;
     if (svgSolarBadge) svgSolarBadge.textContent = state.solarPower > 50 ? 'Generating Peak' : 'Night / Standby';
@@ -610,13 +1225,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pathSolarInv) pathSolarInv.classList.remove('active-flow');
       }
 
-      if (state.batteryState === 'discharging') {
+      if (state.batteryState === 'DISCHARGING') {
         if (pathBatInv) pathBatInv.classList.add('active-flow');
       } else {
         if (pathBatInv) pathBatInv.classList.remove('active-flow');
       }
 
-      if (state.batteryState === 'charging') {
+      if (state.batteryState === 'CHARGING') {
         if (pathSmpInv) pathSmpInv.classList.add('active-flow');
       } else {
         if (pathSmpInv) pathSmpInv.classList.remove('active-flow');
@@ -628,12 +1243,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.svg-node-group').forEach(group => {
     group.addEventListener('click', () => {
       const id = group.id;
-      if (id.includes('appliances')) showToast('Home Appliances Load: 720 W across 4 monitored branches.');
-      else if (id.includes('ceb')) showToast('CEB Main Utility Grid: 230V 50Hz • Peak Tariff Rs. 54/kWh.');
+      if (id.includes('appliances')) showToast(`Home Appliances Load: ${state.inverterPower} W across 4 monitored branches + unallocated background.`);
+      else if (id.includes('ceb')) showToast(`CEB Main Utility Grid: 230V 50Hz • Peak Tariff Rs. ${state.tariffRates.peak}/kWh.`);
       else if (id.includes('smp')) showToast('SMP Charge Controller: MPPT 48V DC bus synchronized.');
-      else if (id.includes('inverter')) showToast('Pure Sine Wave Inverter: 1000W Capacity (72% current load).');
-      else if (id.includes('battery')) showToast('Battery Storage BMS: 78% SOC • 51.2V • 3.74 kWh remaining.');
-      else if (id.includes('solar')) showToast('Solar PV Generation: 850W active generation.');
+      else if (id.includes('inverter')) showToast(`Pure Sine Wave Inverter: 1000W Capacity (${Math.round((state.inverterPower/state.inverterCapacity)*100)}% current load).`);
+      else if (id.includes('battery')) showToast(`Battery Storage BMS: ${Math.round(state.batterySOC)}% SOC • 51.2V • ${((state.batteryCapacityKwh * state.batterySOC)/100).toFixed(2)} kWh remaining.`);
+      else if (id.includes('solar')) showToast(`Solar PV Generation: ${state.solarPower}W active generation.`);
     });
   });
 
@@ -1423,27 +2038,27 @@ document.addEventListener('DOMContentLoaded', () => {
             <tbody>
               <tr>
                 <td><strong>Bulb 1 (Living Room Lighting &amp; TV)</strong></td>
-                <td style="text-align: center;">${state.appliances.living.active ? '0.41 A' : '0.00 A'}</td>
-                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.living.active ? 'tag-running' : 'tag-off'}">${state.appliances.living.active ? 'ON' : 'OFF'}</span></td>
-                <td style="text-align: right;" class="text-mint">${state.appliances.living.active ? state.appliances.living.watts + ' W' : '0 W'}</td>
+                <td style="text-align: center;">${state.appliances.bulb1.current.toFixed(2)} A</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.bulb1.active ? 'tag-running' : 'tag-off'}">${state.appliances.bulb1.active ? 'ON' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="text-mint">${state.appliances.bulb1.active ? state.appliances.bulb1.baseWatts + ' W' : '0 W'}</td>
               </tr>
               <tr>
                 <td><strong>Bulb 2 (Kitchen &amp; Dining Refrigerator)</strong></td>
-                <td style="text-align: center;">${state.appliances.kitchen.active ? '0.00 A' : '0.00 A'}</td>
-                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.kitchen.active ? 'tag-running' : 'tag-off'}">${state.appliances.kitchen.active ? 'ON' : 'OFF'}</span></td>
-                <td style="text-align: right;" class="${state.appliances.kitchen.active ? 'text-mint' : 'text-muted'}">${state.appliances.kitchen.active ? state.appliances.kitchen.watts + ' W' : '0 W'}</td>
+                <td style="text-align: center;">${state.appliances.bulb2.current.toFixed(2)} A</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.bulb2.active ? 'tag-running' : 'tag-off'}">${state.appliances.bulb2.active ? 'ON' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="${state.appliances.bulb2.active ? 'text-mint' : 'text-muted'}">${state.appliances.bulb2.active ? state.appliances.bulb2.baseWatts + ' W' : '0 W'}</td>
               </tr>
               <tr>
                 <td><strong>Bulb 3 (Study &amp; Master Bedroom AC)</strong></td>
-                <td style="text-align: center;">${state.appliances.bedroom.active ? '0.26 A' : '0.00 A'}</td>
-                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.bedroom.active ? 'tag-running' : 'tag-off'}">${state.appliances.bedroom.active ? 'ON' : 'OFF'}</span></td>
-                <td style="text-align: right;" class="text-mint">${state.appliances.bedroom.active ? state.appliances.bedroom.watts + ' W' : '0 W'}</td>
+                <td style="text-align: center;">${state.appliances.bulb3.current.toFixed(2)} A</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.bulb3.active ? 'tag-running' : 'tag-off'}">${state.appliances.bulb3.active ? 'ON' : 'OFF'}</span></td>
+                <td style="text-align: right;" class="text-mint">${state.appliances.bulb3.active ? state.appliances.bulb3.baseWatts + ' W' : '0 W'}</td>
               </tr>
               <tr>
                 <td><strong>Power Socket (Heater / High-Load Cooker)</strong></td>
-                <td style="text-align: center;">${state.appliances.socket.active ? '2.46 A' : '0.00 A'}</td>
-                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.socket.active ? 'tag-heavy' : 'tag-off'}">${state.appliances.socket.active ? 'HEAVY' : 'OFF'}</span></td>
-                <td style="text-align: right;" class="${state.appliances.socket.active ? 'text-amber' : 'text-muted'}">${state.appliances.socket.active ? state.appliances.socket.watts + ' W' : '0 W'}</td>
+                <td style="text-align: center;">${state.appliances.socket.current.toFixed(2)} A</td>
+                <td style="text-align: center;"><span class="dev-status-tag ${state.appliances.socket.active ? (state.appliances.socket.isHeavy ? 'tag-heavy' : 'tag-running') : 'tag-off'}">${state.appliances.socket.active ? (state.appliances.socket.isHeavy ? 'HEAVY' : 'ON') : 'OFF'}</span></td>
+                <td style="text-align: right;" class="${state.appliances.socket.active ? 'text-amber' : 'text-muted'}">${state.appliances.socket.active ? state.appliances.socket.baseWatts + ' W' : '0 W'}</td>
               </tr>
             </tbody>
           </table>
