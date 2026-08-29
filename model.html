@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GenesisGrid — Autonomous Agent &amp; SCADA Decision Engine Inspector</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --bg-base: #060911;
+      --bg-panel: rgba(15, 23, 42, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(16, 185, 129, 0.4);
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --mint-primary: #10b981;
+      --mint-bright: #34d399;
+      --amber-primary: #f59e0b;
+      --cyan-primary: #38bdf8;
+      --purple-primary: #a855f7;
+      --danger-primary: #ef4444;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      padding: 24px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.07) 0%, transparent 40%);
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Top Bar */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 14px 22px;
+      backdrop-filter: blur(12px);
+    }
+    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 38px; height: 38px; background: rgba(168, 85, 247, 0.15); border: 1px solid var(--purple-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #c084fc; }
+    .brand-title { font-size: 1.2rem; font-weight: 800; }
+    .brand-badge { font-size: 0.65rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 999px; margin-left: 6px; }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.2); }
+
+    /* Top Stage Pipeline Bar */
+    .pipeline-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 1024px) { .pipeline-bar { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .pipeline-bar { grid-template-columns: 1fr; } }
+
+    .stage-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+    .stage-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .stage-card.stage-sense::before { background: #38bdf8; }
+    .stage-card.stage-think::before { background: #a855f7; }
+    .stage-card.stage-fsm::before { background: #10b981; }
+    .stage-card.stage-advise::before { background: #f59e0b; }
+
+    .stage-lbl { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; }
+    .stage-title { font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .stage-sub { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.3; }
+
+    /* 3-Column Work Bench */
+    .workbench-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr 380px;
+      gap: 18px;
+    }
+    @media (max-width: 1200px) { .workbench-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 800px) { .workbench-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(12px);
+    }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; }
+    .panel-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
+    .panel-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+    /* Telemetry Live Feed Box */
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      font-size: 0.76rem;
+    }
+    .tag-live { font-size: 0.62rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .tag-stale { font-size: 0.62rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .tag-prov { font-size: 0.6rem; color: var(--text-muted); font-family: var(--font-mono); }
+
+    /* Rules Reasoning Cards */
+    .rule-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-left: 4px solid #64748b;
+    }
+    .rule-card.active { border-left-color: var(--mint-primary); background: rgba(16, 185, 129, 0.06); }
+    .rule-card.warning { border-left-color: var(--amber-primary); background: rgba(245, 158, 11, 0.06); }
+    .rule-card.critical { border-left-color: var(--danger-primary); background: rgba(239, 68, 68, 0.08); }
+
+    .rule-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; }
+    .rule-id { font-family: var(--font-mono); font-weight: 800; color: #c084fc; }
+    .rule-conf { font-size: 0.65rem; background: rgba(255, 255, 255, 0.08); padding: 1px 6px; border-radius: 4px; }
+    .rule-name { font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
+    .rule-reason { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.35; }
+    .rule-action { font-size: 0.72rem; color: var(--mint-bright); font-weight: 600; margin-top: 2px; }
+
+    /* Priority Hierarchy Tree */
+    .priority-list { display: flex; flex-direction: column; gap: 8px; }
+    .p-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      font-size: 0.76rem;
+    }
+    .p-item.current { border-color: var(--mint-primary); background: rgba(16, 185, 129, 0.1); }
+    .p-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; }
+    .p-badge.p1 { background: #ef4444; color: #fff; }
+    .p-badge.p2 { background: #f59e0b; color: #000; }
+    .p-badge.p3 { background: #eab308; color: #000; }
+    .p-badge.p4 { background: #38bdf8; color: #000; }
+    .p-badge.p5 { background: #a855f7; color: #fff; }
+    .p-badge.p6 { background: #10b981; color: #000; }
+    .p-badge.p7 { background: #64748b; color: #fff; }
+
+    /* Interactive Simulator Controls */
+    .ctrl-slider-group { display: flex; flex-direction: column; gap: 4px; }
+    .ctrl-slider-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: flex; justify-content: space-between; }
+    .slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); outline: none; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #c084fc; cursor: pointer; }
+
+    /* JSON & Log Boxes */
+    .json-box {
+      background: #060911;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #38bdf8;
+      max-height: 240px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    .btn-action {
+      background: var(--purple-primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-action:hover { background: #9333ea; box-shadow: 0 0 14px rgba(168, 85, 247, 0.4); }
+
+    .text-mint { color: var(--mint-primary); }
+    .text-amber { color: var(--amber-primary); }
+    .text-cyan { color: var(--cyan-primary); }
+    .text-purple { color: #c084fc; }
+    .text-danger { color: var(--danger-primary); }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="brand-group">
+        <div class="brand-icon"><i data-lucide="brain-circuit"></i></div>
+        <div>
+          <span class="brand-title">GenesisGrid Agent &amp; Model Observability Inspector <span class="brand-badge">LIVE SCADA RUNTIME</span></span>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Real-time inspection of perception (Sense), reasoning (Think), state arbitration (FSM), and advisory dispatch (Advise)</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="nav-btn"><i data-lucide="arrow-left"></i> Return to EMS Dashboard</a>
+        <a href="predictor.html" class="nav-btn"><i data-lucide="sparkles"></i> Open Scenario Predictor</a>
+      </div>
+    </header>
+
+    <!-- 4-Stage Architecture Pipeline Bar -->
+    <div class="pipeline-bar">
+      
+      <div class="stage-card stage-sense">
+        <div class="stage-lbl"><span>STAGE 1</span> <span class="tag-live">1000 ms</span></div>
+        <div class="stage-title text-cyan"><i data-lucide="eye"></i> 1. Perception (Sense)</div>
+        <div class="stage-sub">Ingests calibrated ACS712 currents, ZMPT101B grid voltage, LiFePO4 SOC, and freshness timestamps.</div>
+      </div>
+
+      <div class="stage-card stage-think">
+        <div class="stage-lbl"><span>STAGE 2</span> <span class="tag-live">MULTI-CRITERIA</span></div>
+        <div class="stage-title text-purple"><i data-lucide="cpu"></i> 2. Reasoning (Think)</div>
+        <div class="stage-sub">Evaluates inverter thermal headroom, TOU tariff rates (Rs. 106 Peak), and calculates hourly ROI.</div>
+      </div>
+
+      <div class="stage-card stage-fsm">
+        <div class="stage-lbl"><span>STAGE 3</span> <span class="tag-live">DETERMINISTIC FSM</span></div>
+        <div class="stage-title text-mint"><i data-lucide="shield-check"></i> 3. Decision Engine (FSM)</div>
+        <div class="stage-sub">Executes 7-level priority hierarchy with strict hardware interlocks and 5s dwell anti-oscillation.</div>
+      </div>
+
+      <div class="stage-card stage-advise">
+        <div class="stage-lbl"><span>STAGE 4</span> <span class="tag-live">ADVISORY-ONLY</span></div>
+        <div class="stage-title text-amber"><i data-lucide="message-square"></i> 4. Advisory (Advise)</div>
+        <div class="stage-sub">Presents actionable insights to homeowner while maintaining hard electrical safety isolation.</div>
+      </div>
+
+    </div>
+
+    <!-- Main 3-Column Inspection Workbench -->
+    <div class="workbench-grid">
+      
+      <!-- Col 1: Ingested State & Live Simulator Knobs -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title"><i data-lucide="sliders"></i> Telemetry &amp; Injection</h3>
+          <span class="panel-sub">Simulate live conditions</span>
+        </div>
+
+        <div class="ctrl-slider-group">
+          <div class="ctrl-slider-lbl"><span>Household Load:</span> <strong class="text-cyan" id="sim-load-val">720 W</strong></div>
+          <input type="range" min="100" max="1400" value="720" step="20" class="slider" id="sim-load-slider" />
+        </div>
+
+        <div class="ctrl-slider-group">
+          <div class="ctrl-slider-lbl"><span>Solar Generation:</span> <strong class="text-amber" id="sim-solar-val">850 W</strong></div>
+          <input type="range" min="0" max="1200" value="850" step="25" class="slider" id="sim-solar-slider" />
+        </div>
+
+        <div class="ctrl-slider-group">
+          <div class="ctrl-slider-lbl"><span>Battery SOC:</span> <strong class="text-mint" id="sim-soc-val">78%</strong></div>
+          <input type="range" min="5" max="100" value="78" step="1" class="slider" id="sim-soc-slider" />
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+          <label style="font-size:0.72rem; font-weight:700; color:var(--text-secondary);">Grid Availability &amp; Tariff:</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <button class="nav-btn active" id="btn-toggle-grid" style="justify-content:center;">Grid: ONLINE</button>
+            <select id="sim-tariff-select" style="background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border-subtle); border-radius:6px; padding:6px; font-size:0.72rem;">
+              <option value="peak">PEAK (Rs. 106)</option>
+              <option value="day">DAY (Rs. 47)</option>
+              <option value="offpeak">OFF-PEAK (Rs. 33)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
+          <span style="font-size:0.7rem; font-weight:800; color:var(--text-muted);">LIVE SENSOR INGESTION STREAM</span>
+          
+          <div class="telemetry-row">
+            <span>Living Current (ACS712)</span>
+            <strong id="tel-current">3.13 A</strong>
+            <span class="tag-live">MEASURED</span>
+          </div>
+
+          <div class="telemetry-row">
+            <span>Grid Voltage (ZMPT101B)</span>
+            <strong id="tel-grid-v">230.1 V</strong>
+            <span class="tag-live">MEASURED</span>
+          </div>
+
+          <div class="telemetry-row">
+            <span>Battery Flow Direction</span>
+            <strong class="text-mint" id="tel-bat-flow">DISCHARGING 720W</strong>
+            <span class="tag-live">MEASURED</span>
+          </div>
+
+          <div class="telemetry-row">
+            <span>Power Balance Residual</span>
+            <strong class="text-mint" id="tel-residual">0 W (CONSISTENT)</strong>
+            <span class="tag-live">&le; 50W</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Col 2: Autonomous Agent Reasoning Chain (Think Stage) -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title"><i data-lucide="cpu"></i> Agent Multi-Rule Reasoning Engine</h3>
+          <span class="panel-sub" id="agent-active-rules-count">4 Active Rules Evaluated</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;" id="agent-rules-container">
+          <!-- Dynamic Rule Cards Injected Here -->
+        </div>
+
+        <div style="margin-top:10px;">
+          <h4 style="font-size:0.76rem; font-weight:800; color:var(--text-secondary); margin-bottom:6px;">LIVE AGENT ADVISORY OUTPUT:</h4>
+          <div class="rule-card active" id="agent-advisory-box">
+            <div class="rule-top">
+              <span class="rule-id">AGENT-COPILOT-SYNTHESIS</span>
+              <span class="rule-conf">Confidence: 99.2%</span>
+            </div>
+            <div class="rule-name" id="agent-headline">Peak Tariff Avoidance Active (Rs. 106/kWh)</div>
+            <div class="rule-reason" id="agent-rationale">Active demand (720W) is 100% supplied from LiFePO4 battery storage, locking in maximum monthly savings.</div>
+            <div class="rule-action" id="agent-actionable">Impact: Saving Rs. 76.32 / hour compared to utility grid import.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Col 3: Deterministic Decision Engine FSM & Priority Tree -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title"><i data-lucide="git-branch"></i> Decision Engine (FSM)</h3>
+          <span class="panel-sub">Strict 7-Level Priority Evaluator</span>
+        </div>
+
+        <div style="background:rgba(16,185,129,0.1); border:1px solid var(--mint-primary); border-radius:10px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:800;">ACTIVE ARBITRATED STATE</span>
+            <div style="font-size:1.15rem; font-weight:800; font-family:var(--font-mono);" class="text-mint" id="fsm-active-state">BATTERY_SUPPLY</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:800;">RELAY INTERLOCK</span>
+            <div style="font-size:0.75rem; font-weight:800; color:#34d399;">MUTUAL EXCLUSIVE ✔</div>
+          </div>
+        </div>
+
+        <div class="priority-list">
+          <div class="p-item" id="p-item-1">
+            <span class="p-badge p1">1</span>
+            <div><strong>Priority 1: Safety Interlocks</strong><br><small style="color:var(--text-muted);">Grid &amp; Inverter mutual exclusivity check</small></div>
+          </div>
+
+          <div class="p-item" id="p-item-2">
+            <span class="p-badge p2">2</span>
+            <div><strong>Priority 2: BMS &amp; Battery Protection</strong><br><small style="color:var(--text-muted);">&le;20% Low-SOC Cutoff / 25% Return Hysteresis</small></div>
+          </div>
+
+          <div class="p-item" id="p-item-3">
+            <span class="p-badge p3">3</span>
+            <div><strong>Priority 3: Inverter Thermal Overload</strong><br><small style="color:var(--text-muted);">&gt;1000W continuous rating &bull; 30s grace timer</small></div>
+          </div>
+
+          <div class="p-item" id="p-item-4">
+            <span class="p-badge p4">4</span>
+            <div><strong>Priority 4: Grid Blackout Ride-Through</strong><br><small style="color:var(--text-muted);">Automated uninterruptible backup on outage</small></div>
+          </div>
+
+          <div class="p-item" id="p-item-5">
+            <span class="p-badge p5">5</span>
+            <div><strong>Priority 5: User Manual Override</strong><br><small style="color:var(--text-muted);">Sanitized AUTO / SOLAR / GRID mode command</small></div>
+          </div>
+
+          <div class="p-item current" id="p-item-6">
+            <span class="p-badge p6">6</span>
+            <div><strong>Priority 6: TOU Tariff Arbitrage</strong><br><small style="color:var(--text-muted);">Discharge battery during Peak (Rs. 106/kWh)</small></div>
+          </div>
+
+          <div class="p-item" id="p-item-7">
+            <span class="p-badge p7">7</span>
+            <div><strong>Priority 7: Advisory Agent Suggestions</strong><br><small style="color:var(--text-muted);">Purely advisory; cannot command relays</small></div>
+          </div>
+        </div>
+
+        <div style="margin-top:auto;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-size:0.7rem; font-weight:800; color:var(--text-secondary);">RAW DECISION &amp; AGENT JSON</span>
+            <button class="nav-btn" id="btn-copy-json" style="padding:2px 8px; font-size:0.68rem;"><i data-lucide="copy"></i> Copy</button>
+          </div>
+          <pre class="json-box" id="model-json-view"></pre>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const simState = {
+      load: 720,
+      solar: 850,
+      soc: 78,
+      gridAvailable: true,
+      tariff: 'peak',
+      rate: 106,
+      operatingMode: 'auto',
+      inverterCapacity: 1000
+    };
+
+    const tariffRates = { peak: 106, day: 47, offpeak: 33 };
+
+    function runModelCycle() {
+      // 1. SENSE STAGE
+      const load = simState.load;
+      const solar = simState.solar;
+      const soc = simState.soc;
+      const gridAvail = simState.gridAvailable;
+      const tariff = simState.tariff;
+      const rate = tariffRates[tariff] || 106;
+      const headroom = Math.max(0, simState.inverterCapacity - load);
+
+      const current = (load / 230.1).toFixed(2);
+      document.getElementById('tel-current').textContent = `${current} A`;
+      document.getElementById('tel-grid-v').textContent = gridAvail ? '230.1 V' : '0.0 V (OUTAGE)';
+
+      // 2. DECISION ENGINE (FSM) EVALUATION
+      let activeState = 'BATTERY_SUPPLY';
+      let activePriority = 6;
+      let fsmReason = 'Discharging battery during Peak Tariff (Rs. 106/kWh)';
+      let batFlowText = `DISCHARGING ${Math.max(0, load - solar)}W`;
+
+      if (!gridAvail) {
+        if (soc < 10) {
+          activeState = 'FAULT';
+          activePriority = 1;
+          fsmReason = 'Grid Blackout + Critical Low SOC (<10%) - Safe Emergency Shutdown';
+          batFlowText = 'IDLE 0W';
+        } else {
+          activeState = 'GRID_FAILURE_BACKUP';
+          activePriority = 4;
+          fsmReason = 'Grid Outage Detected — Islanded Microgrid Active';
+          batFlowText = solar > load ? `CHARGING ${solar - load}W` : `DISCHARGING ${load - solar}W`;
+        }
+      } else if (soc <= 20) {
+        activeState = 'GRID_SUPPLY';
+        activePriority = 2;
+        fsmReason = `Battery Low-SOC Cutoff (SOC: ${soc}% <= 20%) — Safe Grid Fallback`;
+        batFlowText = 'CHARGING 150W';
+      } else if (load > simState.inverterCapacity) {
+        activeState = 'OVERLOAD_WARNING';
+        activePriority = 3;
+        fsmReason = `Inverter overload (${load}W > 1000W) — 30s Countdown to Grid Transfer Active`;
+        batFlowText = `DISCHARGING ${load}W (OVERLOAD)`;
+      } else if (solar > load) {
+        activeState = 'SOLAR_DIRECT';
+        activePriority = 6;
+        fsmReason = `Solar Generation Surplus (${solar}W > ${load}W) — Surplus to Battery`;
+        batFlowText = `CHARGING ${solar - load}W`;
+      } else {
+        activeState = 'BATTERY_SUPPLY';
+        activePriority = 6;
+        fsmReason = `Battery Inverter supplying ${load}W demand (Avoiding Rs. ${rate}/kWh Tariff)`;
+        batFlowText = `DISCHARGING ${load - solar}W`;
+      }
+
+      document.getElementById('fsm-active-state').textContent = activeState;
+      document.getElementById('tel-bat-flow').textContent = batFlowText;
+
+      // Update Priority Highlight
+      for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById(`p-item-${i}`);
+        if (el) el.classList.toggle('current', i === activePriority);
+      }
+
+      // 3. AGENT REASONING CHAIN (THINK STAGE)
+      const rules = [];
+
+      // Rule R-OVERLOAD
+      if (load > 1000) {
+        rules.push({
+          id: 'R-INVERTER-OVERLOAD',
+          name: 'Inverter Capacity Limit Exceeded',
+          urgency: 'critical',
+          confidence: '100%',
+          reason: `Active demand (${load}W) exceeds rated continuous limit (1000W) by ${load - 1000}W.`,
+          action: 'Recommendation: Shed Power Socket (565W) before 30s grace expires to maintain clean battery supply.'
+        });
+      } else if (headroom < 180) {
+        rules.push({
+          id: 'R-HEADROOM-WARNING',
+          name: 'Tight Inverter Load Headroom',
+          urgency: 'warning',
+          confidence: '95.4%',
+          reason: `Available headroom is only ${headroom}W. Starting inductive appliances may trigger an overload alert.`,
+          action: 'Recommendation: Defer high-draw laundry or water heating.'
+        });
+      }
+
+      // Rule R-TOU-PEAK
+      if (tariff === 'peak') {
+        const hrSave = ((load / 1000) * rate).toFixed(2);
+        rules.push({
+          id: 'R-PEAK-ARBITRAGE',
+          name: 'Peak Tariff Avoidance Active (Rs. 106/kWh)',
+          urgency: 'active',
+          confidence: '99.8%',
+          reason: `CEB Peak Tariff is active from 18:30 to 22:30. Battery is supplying 100% of household load.`,
+          action: `Financial Yield: Saving Rs. ${hrSave} / hr in avoided grid utility import.`
+        });
+      }
+
+      // Rule R-BATTERY-HEALTH
+      rules.push({
+        id: 'R-BMS-HEALTH-GUARD',
+        name: 'LiFePO4 Degradation & Reserve Monitor',
+        urgency: soc <= 25 ? 'warning' : 'active',
+        confidence: '98.5%',
+        reason: `Pack SOC is ${soc}% (${((soc*4.8)/100).toFixed(2)} kWh). Usable margin above 20% cutoff is ${Math.max(0, soc - 20)}%.`,
+        action: soc <= 25 ? 'Low reserve: approaching automated 20% safety transfer.' : 'Nominal: Pack health SOH is 98.5% with balanced cells.'
+      });
+
+      // Render Rules
+      const rulesContainer = document.getElementById('agent-rules-container');
+      rulesContainer.innerHTML = '';
+      rules.forEach(r => {
+        const rDiv = document.createElement('div');
+        rDiv.className = `rule-card ${r.urgency}`;
+        rDiv.innerHTML = `
+          <div class="rule-top">
+            <span class="rule-id">${r.id}</span>
+            <span class="rule-conf">Confidence: ${r.confidence}</span>
+          </div>
+          <div class="rule-name">${r.name}</div>
+          <div class="rule-reason">${r.reason}</div>
+          <div class="rule-action">${r.action}</div>
+        `;
+        rulesContainer.appendChild(rDiv);
+      });
+
+      // 4. ADVISE SYNTHESIS
+      const hrSavings = ((load / 1000) * rate).toFixed(2);
+      document.getElementById('agent-headline').textContent = activeState === 'OVERLOAD_WARNING' ? 'Overload Mitigation Protocol Active' : (activeState === 'GRID_FAILURE_BACKUP' ? 'Grid Blackout Inverter Backup Active' : `TOU Tariff Optimization (${tariff.toUpperCase()} Rs. ${rate}/kWh)`);
+      document.getElementById('agent-rationale').textContent = fsmReason;
+      document.getElementById('agent-actionable').textContent = `Cost Impact: Saving Rs. ${hrSavings} / hr • Relay Safety Interlock: Deterministically Enforced.`;
+
+      // 5. JSON EXPORT
+      const modelAudit = {
+        timestamp: new Date().toISOString(),
+        agent_system: {
+          perception: { load_W: load, solar_W: solar, battery_SOC: soc, grid_available: gridAvail, tariff_rate_LKR: rate },
+          reasoning_rules_evaluated: rules.length,
+          advisory_headline: document.getElementById('agent-headline').textContent,
+          safety_guardrail: "ADVISORY_ONLY_NO_DIRECT_RELAY_COMMAND"
+        },
+        decision_engine: {
+          arbitrated_fsm_state: activeState,
+          triggered_priority_level: activePriority,
+          relay_mutual_exclusivity_interlock: true,
+          rationale: fsmReason
+        }
+      };
+      document.getElementById('model-json-view').textContent = JSON.stringify(modelAudit, null, 2);
+    }
+
+    // UI Listeners
+    const loadSlider = document.getElementById('sim-load-slider');
+    const solarSlider = document.getElementById('sim-solar-slider');
+    const socSlider = document.getElementById('sim-soc-slider');
+
+    loadSlider.addEventListener('input', () => {
+      simState.load = parseInt(loadSlider.value);
+      document.getElementById('sim-load-val').textContent = `${simState.load} W`;
+      runModelCycle();
+    });
+
+    solarSlider.addEventListener('input', () => {
+      simState.solar = parseInt(solarSlider.value);
+      document.getElementById('sim-solar-val').textContent = `${simState.solar} W`;
+      runModelCycle();
+    });
+
+    socSlider.addEventListener('input', () => {
+      simState.soc = parseInt(socSlider.value);
+      document.getElementById('sim-soc-val').textContent = `${simState.soc}%`;
+      runModelCycle();
+    });
+
+    const gridBtn = document.getElementById('btn-toggle-grid');
+    gridBtn.addEventListener('click', () => {
+      simState.gridAvailable = !simState.gridAvailable;
+      gridBtn.textContent = simState.gridAvailable ? 'Grid: ONLINE' : 'Grid: BLACKOUT';
+      gridBtn.style.color = simState.gridAvailable ? '#34d399' : '#ef4444';
+      gridBtn.style.borderColor = simState.gridAvailable ? 'var(--border-subtle)' : '#ef4444';
+      runModelCycle();
+    });
+
+    document.getElementById('sim-tariff-select').addEventListener('change', (e) => {
+      simState.tariff = e.target.value;
+      runModelCycle();
+    });
+
+    document.getElementById('btn-copy-json').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('model-json-view').textContent);
+      alert('Model JSON copied to clipboard!');
+    });
+
+    // Init
+    runModelCycle();
+    if (window.lucide) window.lucide.createIcons();
+  </script>
+</body>
+</html>
