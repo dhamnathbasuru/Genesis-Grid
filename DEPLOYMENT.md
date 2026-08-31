@@ -4,48 +4,19 @@ Genesis Grid is built as a zero-dependency, high-performance web application tha
 
 ---
 
-## 🟢 1. Live Endpoints (Active)
+## 🟢 1. Live Permanent Endpoints (GitHub Pages CDN)
 
-- **Local SCADA Web Application**: [`http://localhost:3000/`](http://localhost:3000/)
-- **Model & Agent Observability Inspector**: [`http://localhost:3000/model.html`](http://localhost:3000/model.html)
-- **Scenario Predictor & REST API Studio**: [`http://localhost:3000/predictor.html`](http://localhost:3000/predictor.html)
-- **Public Cloudflare Live Tunnel**: [`https://recognized-enhancements-collaborative-pete.trycloudflare.com`](https://recognized-enhancements-collaborative-pete.trycloudflare.com)
+- 💻 **Main EMS Web Application**: [`https://dhamnathbasuru.github.io/Genesis-Grid/`](https://dhamnathbasuru.github.io/Genesis-Grid/)
+- 🧠 **Model & Agent Observability Inspector**: [`https://dhamnathbasuru.github.io/Genesis-Grid/model.html`](https://dhamnathbasuru.github.io/Genesis-Grid/model.html)
+- 🔮 **Scenario Predictor & REST API Studio**: [`https://dhamnathbasuru.github.io/Genesis-Grid/predictor.html`](https://dhamnathbasuru.github.io/Genesis-Grid/predictor.html)
+
+---
+
+## ☁️ 2. Edge Proxy & Local Endpoints
+
+- **Cloudflare Tunnel**: [`https://recognized-enhancements-collaborative-pete.trycloudflare.com`](https://recognized-enhancements-collaborative-pete.trycloudflare.com)
+- **Local SCADA Web Server**: [`http://localhost:3000/`](http://localhost:3000/)
 - **GitHub Repository**: [`https://github.com/dhamnathbasuru/Genesis-Grid`](https://github.com/dhamnathbasuru/Genesis-Grid)
-
----
-
-## 💻 2. Local Server Control
-
-To start or restart the local web server daemon:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\serve.ps1 -Port 3000
-```
-
-To create a live public tunnel:
-```powershell
-.\cloudflared.exe tunnel --url http://127.0.0.1:3000
-```
-
----
-
-## 🌐 3. Cloud Deployment Options
-
-### A. Vercel
-```bash
-npx vercel deploy --prod
-```
-
-### B. Netlify
-```bash
-npx netlify deploy --prod --dir=.
-```
-
-### C. GitHub Pages
-1. Push to `main` branch:
-   ```bash
-   git push -u origin main
-   ```
-2. In GitHub repository **Settings** → **Pages** → Source: `Deploy from a branch` (`main` / `/root`).
 
 ---
 
