@@ -3,10 +3,31 @@
  * Central Telemetry Controller, Pixel-Perfect Vector SVG Diagram & Scenario Supervisor
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+// Immediate Global Fallback for Tab Switching
+window.switchTab = window.switchTab || function(tabKey) {
+  if (!tabKey) return;
+  const actualTab = tabKey === 'flow' ? 'overview' : tabKey;
+  document.querySelectorAll('.nav-pill').forEach(p => {
+    const pillTab = p.getAttribute('data-tab');
+    if (pillTab === tabKey || (tabKey === 'overview' && pillTab === 'flow')) {
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
+  document.querySelectorAll('.app-view-container').forEach(el => {
+    el.classList.remove('active');
+  });
+  const targetEl = document.getElementById(`view-${actualTab}`);
+  if (targetEl) targetEl.classList.add('active');
+  if (typeof window.renderScadaChart === 'function' && actualTab === 'analytics') setTimeout(window.renderScadaChart, 50);
+  if (typeof window.runAIPrediction === 'function' && actualTab === 'forecast') setTimeout(window.runAIPrediction, 50);
+};
+
+function initGenesisGridApp() {
   // Initialize Lucide Icons
   if (window.lucide) {
-    window.lucide.createIcons();
+    try { window.lucide.createIcons(); } catch (e) {}
   }
 
   // =========================================================
@@ -3204,4 +3225,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScadaChart();
     runAIPrediction();
   });
-});
+}
+
+// Ensure execution whether loaded synchronously or after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGenesisGridApp);
+} else {
+  initGenesisGridApp();
+}
