@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.8" />
+  <link rel="stylesheet" href="styles.css?v=4.9" />
   <!-- Inline Tab Switcher Fallback -->
   <script>
     function switchTab(tabKey) {
@@ -684,114 +684,92 @@
                  ========================================================= -->
 
             <!-- 1. CEB (Grid) -> Home Appliances (AC Supply Grid Bypass) -->
-            <!-- From CEB Left (900, 110) straight to Home Appliances Right (310, 110) -->
             <path id="path-grid-appliances" class="svg-wire-path wire-grid" d="M 900 110 L 310 110" marker-end="url(#arr-blue)"></path>
             <text x="605" y="96" class="svg-wire-label label-cyan" text-anchor="middle">AC Supply (Grid)</text>
 
             <!-- 2. CEB (Grid) -> SMP (AC Supply Grid) -->
-            <!-- From CEB Bottom (1020, 160) straight to SMP Top (1020, 230) -->
-            <path id="path-grid-smp" class="svg-wire-path wire-grid" d="M 1020 160 L 1020 230" marker-end="url(#arr-blue)"></path>
-            <text x="1035" y="198" class="svg-wire-label label-cyan" text-anchor="start">AC Supply (Grid)</text>
+            <path id="path-grid-smp" class="svg-wire-path wire-grid" d="M 1025 160 L 1025 230" marker-end="url(#arr-blue)"></path>
+            <text x="1040" y="198" class="svg-wire-label label-cyan" text-anchor="start">AC Supply (Grid)</text>
 
             <!-- 3. SMP -> Inverter (DC from SMP / DC Bus) -->
-            <!-- From SMP Left (900, 280) straight to Inverter Right (730, 280) -->
             <path id="path-smp-inverter" class="svg-wire-path wire-smp" d="M 900 280 L 730 280" marker-end="url(#arr-green)"></path>
             <text x="815" y="266" class="svg-wire-label label-green" text-anchor="middle">DC from SMP (DC Bus)</text>
 
             <!-- 4. Solar (PV Panels) -> Inverter (Solar DC Bus) -->
-            <!-- From Solar Top (865, 450) up to Y=385, left to X=660, up to Inverter Bottom (660, 340) -->
             <path id="path-solar-inverter" class="svg-wire-path wire-solar active-flow" d="M 865 450 L 865 385 L 660 385 L 660 340" marker-end="url(#arr-amber)"></path>
             <text x="762" y="405" class="svg-wire-label label-amber" text-anchor="middle">Solar DC Bus</text>
 
             <!-- 5. Battery / BMS -> Inverter (Battery 48V DC) -->
-            <!-- From Battery Top (335, 450) up to Y=385, right to X=540, up to Inverter Bottom (540, 340) -->
             <path id="path-battery-inverter" class="svg-wire-path wire-battery active-flow" d="M 335 450 L 335 385 L 540 385 L 540 340" marker-end="url(#arr-purple)"></path>
             <text x="437" y="405" class="svg-wire-label label-purple" text-anchor="middle">Battery 48V DC</text>
 
             <!-- 6. Inverter (DC to AC) -> Home Appliances (Inverter AC Output) -->
-            <!-- From Inverter Left (470, 280) left to X=185, up to Home Appliances Bottom (185, 160) -->
             <path id="path-inverter-appliances" class="svg-wire-path wire-inverter active-flow" d="M 470 280 L 185 280 L 185 160" marker-end="url(#arr-mint)"></path>
             <text x="327" y="266" class="svg-wire-label label-mint" text-anchor="middle">Inverter 230V AC</text>
 
 
             <!-- =========================================================
-                 6 DIAGRAM NODES (Vector Cards matching user image)
+                 6 DIAGRAM NODES (Vector Cards with Zero Overlap)
                  ========================================================= -->
 
             <!-- 1. TOP-LEFT: Home Appliances (Yellow Box) -->
             <g class="svg-node-group" id="svg-node-appliances" transform="translate(60, 60)">
-              <!-- Card Background Rect -->
               <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-yellow" filter="url(#glow-yellow)"/>
-              <!-- Icon Circle -->
               <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(234, 179, 8, 0.25)"/>
               <path d="M 23 37 L 33 25 L 43 37 M 27 37 L 27 45 L 39 45 L 39 37" stroke="#facc15" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- Title Text -->
               <text x="62" y="32" class="svg-node-title">Home Appliances</text>
               <text x="62" y="46" class="svg-node-sub">Load (Appliances)</text>
-              <!-- Live Metrics -->
-              <text x="14" y="82" class="svg-metric-num" id="svg-house-watts">720 W</text>
+              <text x="16" y="82" class="svg-metric-num" id="svg-house-watts">720 W</text>
               <rect x="105" y="65" width="130" height="24" rx="12" fill="rgba(234, 179, 8, 0.2)" stroke="#eab308" stroke-width="1"/>
               <text x="170" y="81" class="svg-badge-text text-yellow" text-anchor="middle" id="svg-house-badge">Powered by Inverter</text>
             </g>
 
             <!-- 2. TOP-RIGHT: CEB (Grid) (Sky Blue Box) -->
             <g class="svg-node-group" id="svg-node-ceb" transform="translate(900, 60)">
-              <rect x="0" y="0" width="240" height="100" rx="18" class="svg-card-bg bg-blue" filter="url(#glow-blue)"/>
-              <!-- Icon Circle -->
+              <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-blue" filter="url(#glow-blue)"/>
               <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(2, 132, 199, 0.25)"/>
               <path d="M 23 26 L 43 26 M 33 26 L 33 46 M 27 33 L 39 33 M 29 40 L 37 40" stroke="#38bdf8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <!-- Title Text -->
               <text x="62" y="30" class="svg-node-title">CEB (Grid)</text>
               <text x="62" y="46" class="svg-node-sub">Grid / Utility</text>
-              <!-- Live Metrics -->
-              <text x="14" y="82" class="svg-metric-num" id="svg-grid-watts">0 W (Standby)</text>
-              <rect x="135" y="65" width="90" height="24" rx="12" fill="rgba(2, 132, 199, 0.2)" stroke="#38bdf8" stroke-width="1"/>
-              <text x="180" y="81" class="svg-badge-text text-blue" text-anchor="middle" id="svg-grid-badge">230V • Standby</text>
+              <text x="16" y="82" class="svg-metric-num" id="svg-grid-watts">0 W</text>
+              <rect x="115" y="65" width="120" height="24" rx="12" fill="rgba(2, 132, 199, 0.2)" stroke="#38bdf8" stroke-width="1"/>
+              <text x="175" y="81" class="svg-badge-text text-blue" text-anchor="middle" id="svg-grid-badge">230V • Standby</text>
             </g>
 
             <!-- 3. MIDDLE-RIGHT: SMP (Charge Controller) (Green Box) -->
             <g class="svg-node-group" id="svg-node-smp" transform="translate(900, 230)">
-              <rect x="0" y="0" width="240" height="100" rx="18" class="svg-card-bg bg-green" filter="url(#glow-green)"/>
-              <!-- Icon Circle -->
+              <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-green" filter="url(#glow-green)"/>
               <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(16, 185, 129, 0.25)"/>
               <rect x="25" y="25" width="16" height="16" rx="3" stroke="#34d399" stroke-width="2" fill="none"/>
               <circle cx="33" cy="33" r="3" fill="#34d399"/>
-              <!-- Title Text -->
               <text x="62" y="30" class="svg-node-title">SMP (Charge Controller)</text>
               <text x="62" y="46" class="svg-node-sub">Charge Controller</text>
-              <!-- Live Metrics -->
-              <text x="14" y="82" class="svg-metric-num" id="svg-smp-watts">48V DC Bus</text>
-              <rect x="120" y="65" width="105" height="24" rx="12" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
-              <text x="172" y="81" class="svg-badge-text text-green" text-anchor="middle" id="svg-smp-badge">Bus Synchronized</text>
+              <text x="16" y="82" class="svg-metric-num" id="svg-smp-watts">48V DC Bus</text>
+              <rect x="115" y="65" width="120" height="24" rx="12" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
+              <text x="175" y="81" class="svg-badge-text text-green" text-anchor="middle" id="svg-smp-badge">Bus Synced</text>
             </g>
 
             <!-- 4. CENTER: Inverter (DC to AC) (Purple Box) -->
             <g class="svg-node-group" id="svg-node-inverter" transform="translate(470, 230)">
               <rect x="0" y="0" width="260" height="110" rx="18" class="svg-card-bg bg-purple active-inv-card" filter="url(#glow-purple)"/>
-              <!-- Icon Circle -->
               <rect x="16" y="16" width="42" height="42" rx="12" fill="rgba(139, 92, 246, 0.3)"/>
               <path d="M 40 24 L 30 38 L 38 38 L 34 50 L 46 36 L 38 36 Z" fill="#c084fc"/>
-              <!-- Title Text -->
               <text x="70" y="34" class="svg-node-title title-inv">Inverter (DC to AC)</text>
               <text x="70" y="50" class="svg-node-sub">Pure Sine Wave 1000W</text>
-              <!-- Live Metrics -->
               <text x="16" y="90" class="svg-metric-num text-purple-glow" id="svg-inv-watts">720 W (72%)</text>
-              <rect x="130" y="73" width="116" height="24" rx="12" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" stroke-width="1"/>
-              <text x="188" y="89" class="svg-badge-text text-purple" text-anchor="middle" id="svg-inv-badge">DC → 230V AC Active</text>
+              <rect x="135" y="73" width="112" height="24" rx="12" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" stroke-width="1"/>
+              <text x="191" y="89" class="svg-badge-text text-purple" text-anchor="middle" id="svg-inv-badge">230V AC Active</text>
             </g>
 
             <!-- 5. BOTTOM-LEFT: Battery / BMS (Royal Blue Box) -->
             <g class="svg-node-group" id="svg-node-battery" transform="translate(210, 450)">
               <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-darkblue" filter="url(#glow-blue)"/>
-              <!-- Icon Circle -->
               <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(59, 130, 246, 0.25)"/>
               <rect x="23" y="27" width="18" height="12" rx="2" stroke="#60a5fa" stroke-width="2" fill="none"/>
               <line x1="43" y1="30" x2="43" y2="36" stroke="#60a5fa" stroke-width="2"/>
-              <!-- Title Text -->
               <text x="62" y="30" class="svg-node-title">Battery / BMS</text>
               <text x="62" y="46" class="svg-node-sub">(Battery Management System)</text>
-              <!-- Live Metrics -->
-              <text x="14" y="82" class="svg-metric-num text-mint" id="svg-bat-soc">78% SOC</text>
+              <text x="16" y="82" class="svg-metric-num text-mint" id="svg-bat-soc">78% SOC</text>
               <rect x="115" y="65" width="120" height="24" rx="12" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" stroke-width="1"/>
               <text x="175" y="81" class="svg-badge-text text-blue" text-anchor="middle" id="svg-bat-badge">Discharging 520W</text>
             </g>
@@ -799,20 +777,17 @@
             <!-- 6. BOTTOM-RIGHT: Solar (PV Panels) (Amber Box) -->
             <g class="svg-node-group" id="svg-node-solar" transform="translate(740, 450)">
               <rect x="0" y="0" width="250" height="100" rx="18" class="svg-card-bg bg-amber" filter="url(#glow-amber)"/>
-              <!-- Icon Circle -->
               <rect x="14" y="14" width="38" height="38" rx="10" fill="rgba(245, 158, 11, 0.25)"/>
               <circle cx="33" cy="33" r="6" stroke="#fbbf24" stroke-width="2" fill="none"/>
               <line x1="33" y1="21" x2="33" y2="24" stroke="#fbbf24" stroke-width="2"/>
               <line x1="33" y1="42" x2="33" y2="45" stroke="#fbbf24" stroke-width="2"/>
               <line x1="21" y1="33" x2="24" y2="33" stroke="#fbbf24" stroke-width="2"/>
               <line x1="42" y1="33" x2="45" y2="33" stroke="#fbbf24" stroke-width="2"/>
-              <!-- Title Text -->
               <text x="62" y="30" class="svg-node-title">Solar (PV Panels)</text>
               <text x="62" y="46" class="svg-node-sub">Solar Source</text>
-              <!-- Live Metrics -->
-              <text x="14" y="82" class="svg-metric-num text-amber" id="svg-solar-watts">850 W</text>
-              <rect x="120" y="65" width="115" height="24" rx="12" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1"/>
-              <text x="177" y="81" class="svg-badge-text text-amber" text-anchor="middle" id="svg-solar-badge">Generating Peak</text>
+              <text x="16" y="82" class="svg-metric-num text-amber" id="svg-solar-watts">850 W</text>
+              <rect x="115" y="65" width="120" height="24" rx="12" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1"/>
+              <text x="175" y="81" class="svg-badge-text text-amber" text-anchor="middle" id="svg-solar-badge">Generating Peak</text>
             </g>
 
           </svg>
@@ -2159,6 +2134,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=4.8"></script>
+  <script src="app.js?v=4.9"></script>
 </body>
 </html>
