@@ -140,11 +140,11 @@ body {
 
 /* View Page Switching Container */
 .app-view-container {
-  display: none;
+  display: none !important;
 }
 
 .app-view-container.active {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 20px;
   animation: view-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
