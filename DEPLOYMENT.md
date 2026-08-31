@@ -1,81 +1,63 @@
-# 🚀 Genesis Grid — Deployment Guide
+# 🚀 Genesis Grid EMS — Production Deployment Guide
 
-Genesis Grid is built as a zero-dependency, high-performance static web application that can be deployed instantly to any cloud platform, CDN, or local server.
+Genesis Grid is built as a zero-dependency, high-performance web application that can be deployed instantly to any cloud platform, CDN, or local server.
 
 ---
 
-## 🟢 1. Live Local Deployment (Active)
+## 🟢 1. Live Endpoints (Active)
 
-The built-in HTTP server daemon is currently running on:
-👉 **`http://localhost:3000/`**
+- **Local SCADA Web Application**: [`http://localhost:3000/`](http://localhost:3000/)
+- **Model & Agent Observability Inspector**: [`http://localhost:3000/model.html`](http://localhost:3000/model.html)
+- **Scenario Predictor & REST API Studio**: [`http://localhost:3000/predictor.html`](http://localhost:3000/predictor.html)
+- **Public Cloudflare Live Tunnel**: [`https://recognized-enhancements-collaborative-pete.trycloudflare.com`](https://recognized-enhancements-collaborative-pete.trycloudflare.com)
+- **GitHub Repository**: [`https://github.com/dhamnathbasuru/Genesis-Grid`](https://github.com/dhamnathbasuru/Genesis-Grid)
 
-To manually start or restart the server on any port:
+---
+
+## 💻 2. Local Server Control
+
+To start or restart the local web server daemon:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\serve.ps1 -Port 3000
 ```
 
+To create a live public tunnel:
+```powershell
+.\cloudflared.exe tunnel --url http://127.0.0.1:3000
+```
+
 ---
 
-## 🌐 2. 1-Click Free Cloud Deployments
+## 🌐 3. Cloud Deployment Options
 
 ### A. Vercel
-1. Install Vercel CLI (or connect your GitHub repo on [vercel.com](https://vercel.com)):
-   ```bash
-   npx vercel deploy --prod
-   ```
-2. Set root directory to `.` (Current folder).
-
----
+```bash
+npx vercel deploy --prod
+```
 
 ### B. Netlify
-1. Drag and drop the `genesis-grid-webui` folder into [app.netlify.com/drop](https://app.netlify.com/drop).
-2. Or use the Netlify CLI:
-   ```bash
-   npx netlify deploy --prod --dir=.
-   ```
-
----
+```bash
+npx netlify deploy --prod --dir=.
+```
 
 ### C. GitHub Pages
-1. Initialize a git repository and commit files:
+1. Push to `main` branch:
    ```bash
-   git init
-   git add .
-   git commit -m "Deploy Genesis Grid WebUI"
-   git branch -M main
-   git remote add origin https://github.com/<your-user>/<repo-name>.git
    git push -u origin main
    ```
 2. In GitHub repository **Settings** → **Pages** → Source: `Deploy from a branch` (`main` / `/root`).
 
 ---
 
-### D. Firebase Hosting
-1. Initialize Firebase:
-   ```bash
-   npx -y firebase-tools@latest init hosting
-   ```
-   - Public directory: `.`
-   - Single-page app: `Yes`
-2. Deploy to CDN:
-   ```bash
-   npx -y firebase-tools@latest deploy --only hosting
-   ```
-
----
-
-### E. Cloudflare Pages
-1. Log in to [dash.cloudflare.com](https://dash.cloudflare.com/) → **Workers & Pages** → **Create application** → **Pages**.
-2. Connect your Git repository or upload the folder directly.
-
----
-
 ## 📦 Production Bundle Structure
 ```
 genesis-grid-webui/
-├── index.html       # Clean Semantic UI, Overview & Analytics Multi-View
-├── styles.css       # Neo-Glassmorphic CSS with Light/Dark Themes
-├── app.js           # Real-Time Telemetry Engine, NILM & SCADA Chart
-├── serve.ps1        # PowerShell High-Performance Local Server
-└── DEPLOYMENT.md    # Deployment & Hosting Guide
+├── index.html       # Main GenesisGrid EMS Application
+├── model.html       # Model & Agent System Observability Dashboard
+├── predictor.html   # Standalone AI Scenario Predictor Studio
+├── styles.css       # Glassmorphic Dark/Light SCADA Stylesheet
+├── app.js           # Decision Engine FSM & Autonomous Advisor Agent Core
+├── serve.ps1        # High-Performance Local HTTP Server
+├── README.md        # Architecture & Engineering Specifications
+└── DEPLOYMENT.md    # Production Deployment Guide
 ```
