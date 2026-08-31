@@ -488,6 +488,7 @@ function initGenesisGridApp() {
       fixedCharge,
       variableCharge: totalVariableCost,
       estimatedTotalBill,
+      estimatedBillWithoutSolar: Math.round(totalUnmanagedBill),
       coveragePct,
       incompleteData,
       directSolarSavings,
@@ -646,6 +647,10 @@ function initGenesisGridApp() {
     });
 
     if (state.activeTab === 'analytics' && typeof renderScadaChart === 'function') {
+      renderScadaChart();
+    }
+  }
+
   // =========================================================
   // 4. DETERMINISTIC SCADA DECISION ENGINE & STATE MACHINE
   // =========================================================
@@ -985,7 +990,7 @@ function initGenesisGridApp() {
     
     const batStateText = state.batteryState === 'CHARGING' ? 'Charging' : (state.batteryState === 'DISCHARGING' ? 'Discharging' : 'Idle');
     if (valBatDesc) valBatDesc.textContent = `${state.batteryVoltage.toFixed(1)}V • ${batStateText}`;
-    if (valMoney) valMoney.textContent = billing.totalSavings.toLocaleString();
+    if (valMoney) valMoney.textContent = (billing.totalSavings || 0).toLocaleString();
 
     // Sync Billing Card UI elements
     const billGridTotal = document.getElementById('bill-grid-total');
@@ -994,12 +999,13 @@ function initGenesisGridApp() {
     const billGridFixedCost = document.getElementById('bill-grid-fixed-cost');
     const billGridStatus = document.getElementById('bill-grid-status');
 
-    if (billGridTotal) billGridTotal.textContent = 'Rs. ' + billing.estimatedTotalBill.toLocaleString();
-    if (billGridKwhLabel) billGridKwhLabel.textContent = 'Grid Energy (' + billing.totalGridKwh.toFixed(1) + ' kWh):';
-    if (billGridEnergyCost) billGridEnergyCost.textContent = 'Rs. ' + Math.round(billing.totalOffPeakCost + billing.totalDayCost + billing.totalPeakCost).toLocaleString();
-    if (billGridFixedCost) billGridFixedCost.textContent = 'Rs. ' + billing.fixedCharge.toLocaleString();
+    if (billGridTotal) billGridTotal.textContent = 'Rs. ' + (billing.estimatedTotalBill || 0).toLocaleString();
+    if (billGridKwhLabel) billGridKwhLabel.textContent = 'Grid Energy (' + (billing.totalGridKwh || 0).toFixed(1) + ' kWh):';
+    const energyCostVal = Math.round((billing.totalOffPeakCost || 0) + (billing.totalDayCost || 0) + (billing.totalPeakCost || 0));
+    if (billGridEnergyCost) billGridEnergyCost.textContent = 'Rs. ' + energyCostVal.toLocaleString();
+    if (billGridFixedCost) billGridFixedCost.textContent = 'Rs. ' + (billing.fixedCharge || 0).toLocaleString();
     if (billGridStatus) {
-      billGridStatus.textContent = billing.incompleteData ? `Incomplete (${billing.coveragePct}% Coverage)` : '100% Coverage (GOOD)';
+      billGridStatus.textContent = billing.incompleteData ? `Incomplete (${billing.coveragePct || 0}% Coverage)` : '100% Coverage (GOOD)';
       billGridStatus.className = billing.incompleteData ? 'text-danger' : 'text-mint';
     }
 
@@ -1007,24 +1013,27 @@ function initGenesisGridApp() {
     const billUnmanagedKwh = document.getElementById('bill-unmanaged-kwh');
     const billUnmanagedPeak = document.getElementById('bill-unmanaged-peak');
 
-    if (billUnmanagedTotal) billUnmanagedTotal.textContent = 'Rs. ' + billing.estimatedBillWithoutSolar.toLocaleString();
-    if (billUnmanagedKwh) billUnmanagedKwh.textContent = billing.totalHouseLoadKwh.toFixed(1) + ' kWh';
-    if (billUnmanagedPeak) billUnmanagedPeak.textContent = 'Rs. ' + Math.round(billing.estimatedBillWithoutSolar - billing.fixedCharge).toLocaleString();
+    const unmanagedVal = billing.estimatedBillWithoutSolar || 0;
+    if (billUnmanagedTotal) billUnmanagedTotal.textContent = 'Rs. ' + unmanagedVal.toLocaleString();
+    if (billUnmanagedKwh) billUnmanagedKwh.textContent = (billing.totalHouseLoadKwh || 0).toFixed(1) + ' kWh';
+    if (billUnmanagedPeak) billUnmanagedPeak.textContent = 'Rs. ' + Math.max(0, Math.round(unmanagedVal - (billing.fixedCharge || 0))).toLocaleString();
 
     const billSavingsTotal = document.getElementById('bill-savings-total');
     const billSavingsRatio = document.getElementById('bill-savings-ratio');
     const billSavingsDetailVal = document.getElementById('bill-savings-detail-val');
     const billSavingsAnnual = document.getElementById('bill-savings-annual');
 
-    if (billSavingsTotal) billSavingsTotal.textContent = 'Rs. ' + billing.totalSavings.toLocaleString();
+    if (billSavingsTotal) billSavingsTotal.textContent = 'Rs. ' + (billing.totalSavings || 0).toLocaleString();
     if (billSavingsRatio) {
-      const ratio = billing.estimatedBillWithoutSolar > 0 ? ((billing.totalSavings / billing.estimatedBillWithoutSolar) * 100).toFixed(1) : '0';
+      const ratio = unmanagedVal > 0 ? (((billing.totalSavings || 0) / unmanagedVal) * 100).toFixed(1) : '0';
       billSavingsRatio.textContent = '+' + ratio + '% Saved';
     }
     if (billSavingsDetailVal) {
-      billSavingsDetailVal.textContent = 'Solar: Rs. ' + Math.round(billing.directSolarSavings + billing.solarBatterySavings).toLocaleString() + ' • Shift: Rs. ' + Math.round(billing.tariffShiftSavings).toLocaleString();
+      const solarSav = Math.round((billing.directSolarSavings || 0) + (billing.solarBatterySavings || 0));
+      const shiftSav = Math.round(billing.tariffShiftSavings || 0);
+      billSavingsDetailVal.textContent = 'Solar: Rs. ' + solarSav.toLocaleString() + ' • Shift: Rs. ' + shiftSav.toLocaleString();
     }
-    if (billSavingsAnnual) billSavingsAnnual.textContent = 'Rs. ' + Math.round(billing.totalSavings * 12).toLocaleString();
+    if (billSavingsAnnual) billSavingsAnnual.textContent = 'Rs. ' + Math.round((billing.totalSavings || 0) * 12).toLocaleString();
 
     // Sync Current Decision / Why this source? Panel
     const decSourceBadge = document.getElementById('dec-source-badge');
