@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.5" />
+  <link rel="stylesheet" href="styles.css?v=4.6" />
 </head>
 <body class="theme-dark">
   
@@ -147,13 +147,13 @@
       <!-- Bottom Tier: Segmented Navigation Bar -->
       <div class="nav-bottom-tier">
         <nav class="nav-pills-bar">
-          <button class="nav-pill active" data-tab="overview">Overview</button>
-          <button class="nav-pill" data-tab="analytics">Analytics</button>
-          <button class="nav-pill" data-tab="appliances">Current Load &amp; Appliances</button>
-          <button class="nav-pill" data-tab="billing">Billing &amp; Savings</button>
-          <button class="nav-pill" data-tab="forecast"><i data-lucide="sparkles" class="pill-sparkle"></i> AI Scenario Forecast</button>
-          <button class="nav-pill" data-tab="history">Switching History</button>
-          <button class="nav-pill" data-tab="settings">Settings</button>
+          <button class="nav-pill active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+          <button class="nav-pill" data-tab="analytics" onclick="switchTab('analytics')">Analytics</button>
+          <button class="nav-pill" data-tab="appliances" onclick="switchTab('appliances')">Current Load &amp; Appliances</button>
+          <button class="nav-pill" data-tab="billing" onclick="switchTab('billing')">Billing &amp; Savings</button>
+          <button class="nav-pill" data-tab="forecast" onclick="switchTab('forecast')"><i data-lucide="sparkles" class="pill-sparkle"></i> AI Scenario Forecast</button>
+          <button class="nav-pill" data-tab="history" onclick="switchTab('history')">Switching History</button>
+          <button class="nav-pill" data-tab="settings" onclick="switchTab('settings')">Settings</button>
         </nav>
       </div>
     </header>
@@ -2124,6 +2124,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=4.5"></script>
+  <script src="app.js?v=4.6"></script>
 </body>
 </html>
