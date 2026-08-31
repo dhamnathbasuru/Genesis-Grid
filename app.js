@@ -2067,37 +2067,67 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
   // 10. NAVIGATION & TAB SWITCHING
   // =========================================================
-  const navPills = document.querySelectorAll('.nav-pill');
-  const viewContainers = {
-    overview: document.getElementById('view-overview'),
-    flow: document.getElementById('view-overview'),
-    analytics: document.getElementById('view-analytics'),
-    appliances: document.getElementById('view-appliances'),
-    billing: document.getElementById('view-billing'),
-    history: document.getElementById('view-history'),
-    settings: document.getElementById('view-settings')
-  };
-
   function switchTab(tabKey) {
-    navPills.forEach(p => p.classList.toggle('active', p.getAttribute('data-tab') === tabKey));
-    Object.keys(viewContainers).forEach(k => {
-      if (viewContainers[k]) viewContainers[k].classList.remove('active');
+    if (!tabKey) return;
+    state.activeTab = tabKey;
+    const actualTab = tabKey === 'flow' ? 'overview' : tabKey;
+
+    // Update active class on all nav pills
+    document.querySelectorAll('.nav-pill').forEach(p => {
+      const pillTab = p.getAttribute('data-tab');
+      if (pillTab === tabKey || (tabKey === 'overview' && pillTab === 'flow')) {
+        p.classList.add('active');
+      } else {
+        p.classList.remove('active');
+      }
     });
 
-    if (viewContainers[tabKey]) {
-      viewContainers[tabKey].classList.add('active');
-    }
-    state.activeTab = tabKey;
+    // Hide all view containers
+    document.querySelectorAll('.app-view-container').forEach(el => {
+      el.classList.remove('active');
+    });
 
-    if (tabKey === 'analytics') {
-      setTimeout(renderScadaChart, 60);
+    // Activate the targeted container
+    const targetEl = document.getElementById(`view-${actualTab}`);
+    if (targetEl) {
+      targetEl.classList.add('active');
+    } else {
+      console.warn(`Tab target #view-${actualTab} not found in DOM.`);
+    }
+
+    // Trigger tab-specific repaints
+    if (actualTab === 'analytics' && typeof renderScadaChart === 'function') {
+      setTimeout(renderScadaChart, 50);
+    }
+    if (actualTab === 'forecast' && typeof runAIPrediction === 'function') {
+      setTimeout(runAIPrediction, 50);
+    }
+    if (window.lucide) {
+      try { window.lucide.createIcons(); } catch(e) {}
     }
   }
 
   window.switchTab = switchTab;
 
-  navPills.forEach(pill => {
-    pill.addEventListener('click', () => switchTab(pill.getAttribute('data-tab')));
+  // Direct pill listeners
+  document.querySelectorAll('.nav-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tab = pill.getAttribute('data-tab');
+      if (tab) switchTab(tab);
+    });
+  });
+
+  // Global delegated click listener for tabs (handles inner SVG/icon clicks)
+  document.addEventListener('click', (e) => {
+    const pill = e.target.closest('.nav-pill');
+    if (pill) {
+      const tab = pill.getAttribute('data-tab');
+      if (tab) {
+        e.preventDefault();
+        switchTab(tab);
+      }
+    }
   });
 
   const btnQuickBilling = document.getElementById('btn-quick-billing');
