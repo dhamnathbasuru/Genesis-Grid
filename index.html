@@ -11,7 +11,42 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.7" />
+  <link rel="stylesheet" href="styles.css?v=4.8" />
+  <!-- Inline Tab Switcher Fallback -->
+  <script>
+    function switchTab(tabKey) {
+      if (!tabKey) return;
+      var actualTab = tabKey === 'flow' ? 'overview' : tabKey;
+      var pills = document.querySelectorAll('.nav-pill');
+      for (var i = 0; i < pills.length; i++) {
+        var p = pills[i];
+        var pTab = p.getAttribute('data-tab');
+        if (pTab === tabKey || (tabKey === 'overview' && pTab === 'flow')) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      }
+      var views = document.querySelectorAll('.app-view-container');
+      for (var j = 0; j < views.length; j++) {
+        views[j].classList.remove('active');
+      }
+      var target = document.getElementById('view-' + actualTab);
+      if (target) {
+        target.classList.add('active');
+      }
+      if (window.renderScadaChart && actualTab === 'analytics') {
+        try { window.renderScadaChart(); } catch(e) {}
+      }
+      if (window.runAIPrediction && actualTab === 'forecast') {
+        try { window.runAIPrediction(); } catch(e) {}
+      }
+      if (window.lucide && window.lucide.createIcons) {
+        try { window.lucide.createIcons(); } catch(e) {}
+      }
+    }
+    window.switchTab = switchTab;
+  </script>
 </head>
 <body class="theme-dark">
   
@@ -2124,6 +2159,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=4.7"></script>
+  <script src="app.js?v=4.8"></script>
 </body>
 </html>
