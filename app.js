@@ -1327,16 +1327,16 @@ function initGenesisGridApp() {
     const svgSolarBadge = document.getElementById('svg-solar-badge');
 
     if (svgHouseWatts) svgHouseWatts.textContent = `${state.inverterPower} W`;
-    if (svgHouseBadge) svgHouseBadge.textContent = state.currentSource === 'grid' ? 'Powered by CEB Grid' : 'Powered by Inverter';
+    if (svgHouseBadge) svgHouseBadge.textContent = state.currentSource === 'grid' ? 'Powered by Grid' : 'Powered by Inverter';
 
-    if (svgGridWatts) svgGridWatts.textContent = state.currentSource === 'grid' ? `${state.gridPower} W Active` : '0 W (Standby)';
-    if (svgGridBadge) svgGridBadge.textContent = state.gridAvailable ? (state.currentSource === 'grid' ? 'Supplying Load' : '230V • Standby') : 'Grid Outage / Offline';
+    if (svgGridWatts) svgGridWatts.textContent = state.currentSource === 'grid' ? `${state.gridPower} W` : '0 W';
+    if (svgGridBadge) svgGridBadge.textContent = state.gridAvailable ? (state.currentSource === 'grid' ? 'Supplying Load' : '230V • Standby') : 'Grid Outage';
 
-    if (svgSmpWatts) svgSmpWatts.textContent = state.batteryState === 'CHARGING' && state.solarPower > 0 ? `${state.batteryChargeW} W Regulated` : '48V DC Bus';
-    if (svgSmpBadge) svgSmpBadge.textContent = state.batteryState === 'CHARGING' ? 'MPPT Charging Active' : 'Bus Synchronized';
+    if (svgSmpWatts) svgSmpWatts.textContent = state.batteryState === 'CHARGING' && state.solarPower > 0 ? `${state.batteryChargeW} W` : '48V DC Bus';
+    if (svgSmpBadge) svgSmpBadge.textContent = state.batteryState === 'CHARGING' ? 'MPPT Charging' : 'Bus Synced';
 
     if (svgInvWatts) svgInvWatts.textContent = `${state.inverterPower} W (${Math.round((state.inverterPower / state.inverterCapacity) * 100)}%)`;
-    if (svgInvBadge) svgInvBadge.textContent = state.currentSource === 'grid' ? 'Bypassed to Grid' : 'DC → 230V AC Active';
+    if (svgInvBadge) svgInvBadge.textContent = state.currentSource === 'grid' ? 'Grid Bypass' : '230V AC Active';
 
     if (svgBatSoc) svgBatSoc.textContent = `${Math.round(state.batterySOC)}% SOC`;
     if (svgBatBadge) svgBatBadge.textContent = state.batteryState === 'CHARGING' ? `Charging ${state.batteryChargeW}W` : (state.batteryState === 'DISCHARGING' ? `Discharging ${state.batteryDischargeW}W` : 'Standby Idle');
