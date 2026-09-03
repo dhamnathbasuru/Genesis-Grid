@@ -2432,12 +2432,86 @@ body {
   }
 }
 
-@media (max-width: 768px) {
-  .metrics-grid { grid-template-columns: 1fr; }
-  .hero-main-title { font-size: 2.2rem; }
-  .operating-mode-capsule { order: 1; }
-  .demo-scenarios-wrapper { order: 2; }
-  .user-profile-capsule { order: 3; }
+/* =========================================================
+   PZEM HARDWARE DIRECT TELEMETRY STATION
+   ========================================================= */
+.pzem-grid-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 18px 22px;
+}
+
+.pzem-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .pzem-metrics-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .pzem-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.pzem-metric-box {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.pzem-metric-box:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.pzem-metric-lbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.pzem-metric-val {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.pzem-metric-val small {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.pzem-metric-sub {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+body.theme-light .pzem-metric-box {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+body.theme-light .pzem-metric-val {
+  color: #0f172a;
+}
+body.theme-light .pzem-ingest-inspector {
+  background: #f1f5f9 !important;
+}
+body.theme-light #pzem-raw-payload-preview {
+  background: #ffffff !important;
+  color: #0369a1 !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* =========================================================
