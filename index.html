@@ -11,7 +11,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.9" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
   <!-- Inline Tab Switcher Fallback -->
   <script>
     function switchTab(tabKey) {
@@ -1232,13 +1232,90 @@
               <canvas id="gridTrendChart"></canvas>
             </div>
             <div class="scada-card-footer">
-              <div>Active Rate: <span id="grid-tariff-val">Rs. 54.00/kWh</span></div>
-              <div>Avoided Peak: <span id="grid-avoided-val">4.20 kWh</span></div>
-              <div>Saved: <span id="grid-saved-val">Rs. 248.50</span></div>
+              <div>PZEM Voltage: <span id="grid-card-foot-voltage">230.2 V</span></div>
+              <div>PZEM Freq: <span id="grid-card-foot-freq">50.0 Hz</span></div>
+              <div>PZEM PF: <span id="grid-card-foot-pf">0.92</span></div>
             </div>
           </div>
 
         </div>
+
+        <!-- Dedicated CEB Main Grid Hardware Station (PZEM-004T Direct Sensor Feed) -->
+        <div class="dashboard-panel pzem-grid-panel" style="margin-top: 20px;">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div class="panel-header-title">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="modal-icon-badge" style="width:34px; height:34px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                  <i data-lucide="plug" style="width:18px; height:18px; color:#38bdf8;"></i>
+                </div>
+                <div>
+                  <h3 class="panel-title">CEB / Main Grid Data (PZEM-004T Direct Hardware Sensor)</h3>
+                  <span class="panel-subtitle">Received directly from PZEM hardware sensor — Raw &amp; Unmodified (No frontend calculations or derivations)</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="pulse-green-dot"></span>
+              <span class="badge-tag" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); font-size:0.72rem; padding:4px 12px; border-radius:999px; font-weight:700;">
+                PZEM-004T HARDWARE DIRECT
+              </span>
+            </div>
+          </div>
+
+          <!-- 6 Direct PZEM Sensor Metric Boxes -->
+          <div class="pzem-metrics-grid" style="display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; margin-top:14px;">
+            <!-- 1. Voltage -->
+            <div class="pzem-metric-box">
+              <span class="pzem-metric-lbl">VOLTAGE</span>
+              <div class="pzem-metric-val"><span id="pzem-val-voltage">230.2</span> <small>V</small></div>
+              <span class="pzem-metric-sub">mainVoltage (PZEM)</span>
+            </div>
+            <!-- 2. Current -->
+            <div class="pzem-metric-box">
+              <span class="pzem-metric-lbl">CURRENT</span>
+              <div class="pzem-metric-val"><span id="pzem-val-current">2.4</span> <small>A</small></div>
+              <span class="pzem-metric-sub">mainCurrent (PZEM)</span>
+            </div>
+            <!-- 3. Power -->
+            <div class="pzem-metric-box">
+              <span class="pzem-metric-lbl">ACTIVE POWER</span>
+              <div class="pzem-metric-val text-cyan"><span id="pzem-val-power">480.5</span> <small>W</small></div>
+              <span class="pzem-metric-sub">mainPower (PZEM)</span>
+            </div>
+            <!-- 4. Energy -->
+            <div class="pzem-metric-box">
+              <span class="pzem-metric-lbl">ENERGY</span>
+              <div class="pzem-metric-val text-mint"><span id="pzem-val-energy">12.45</span> <small>kWh</small></div>
+              <span class="pzem-metric-sub">mainEnergy (PZEM)</span>
+            </div>
+            <!-- 5. Frequency -->
+            <div class="pzem-metric-box">
+              <span class="pzem-metric-lbl">FREQUENCY</span>
+              <div class="pzem-metric-val"><span id="pzem-val-frequency">50.0</span> <small>Hz</small></div>
+              <span class="pzem-metric-sub">mainFrequency (PZEM)</span>
+            </div>
+            <!-- 6. Power Factor -->
+            <div class="pzem-metric-box">
+              <span class="pzem-metric-lbl">POWER FACTOR</span>
+              <div class="pzem-metric-val text-mint"><span id="pzem-val-pf">0.92</span></div>
+              <span class="pzem-metric-sub">mainPF (PZEM)</span>
+            </div>
+          </div>
+
+          <!-- Hardware Telemetry Ingestion Simulator / Live Feed Inspector -->
+          <div class="pzem-ingest-inspector" style="margin-top:16px; background:rgba(0,0,0,0.35); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
+                <i data-lucide="terminal" style="width:14px; height:14px; color:#38bdf8;"></i> Live PZEM Sensor Payload Stream (Direct Ingestion)
+              </span>
+              <button class="settings-save-btn" id="btn-inject-pzem-sample" style="padding:4px 12px; font-size:0.72rem; margin:0;" title="Test sending sample PZEM hardware payload">
+                <i data-lucide="refresh-cw"></i> Inject PZEM Sample
+              </button>
+            </div>
+            <pre id="pzem-raw-payload-preview" style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#38bdf8; background:#070b12; padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); overflow-x:auto;">{ "mainVoltage": 230.2, "mainCurrent": 2.4, "mainPower": 480.5, "mainEnergy": 12.45, "mainFrequency": 50.0, "mainPF": 0.92 }</pre>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -2134,6 +2211,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- App Script -->
-  <script src="app.js?v=4.9"></script>
+  <script src="app.js?v=5.0"></script>
 </body>
 </html>
