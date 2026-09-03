@@ -67,11 +67,29 @@ function initGenesisGridApp() {
     inverterVoltage: 230.1,
     inverterCurrent: 3.13,
 
-    // Main Grid (CEB 230V 50Hz)
-    gridVoltage: 231.4,
-    gridCurrent: 0.0,
-    gridPower: 0,
-    gridEnergyToday: 1.40, // kWh
+    // Main Grid Data (Direct from Hardware PZEM-004T Sensor — No frontend calculations, estimations or derivations)
+    gridPzem: {
+      mainVoltage: 230.2,   // V
+      mainCurrent: 2.4,     // A
+      mainPower: 480.5,     // W
+      mainEnergy: 12.45,    // kWh
+      mainFrequency: 50.0,  // Hz
+      mainPF: 0.92          // Power Factor
+    },
+
+    // Compatibility getters & setters mapped directly to PZEM hardware values
+    get gridVoltage() { return this.gridPzem.mainVoltage; },
+    set gridVoltage(v) { this.gridPzem.mainVoltage = v; },
+    get gridCurrent() { return this.gridPzem.mainCurrent; },
+    set gridCurrent(v) { this.gridPzem.mainCurrent = v; },
+    get gridPower() { return this.gridPzem.mainPower; },
+    set gridPower(v) { this.gridPzem.mainPower = v; },
+    get gridEnergyToday() { return this.gridPzem.mainEnergy; },
+    set gridEnergyToday(v) { this.gridPzem.mainEnergy = v; },
+    get gridFrequency() { return this.gridPzem.mainFrequency; },
+    set gridFrequency(v) { this.gridPzem.mainFrequency = v; },
+    get gridPF() { return this.gridPzem.mainPF; },
+    set gridPF(v) { this.gridPzem.mainPF = v; },
 
     // Time-of-Use Tariff (CEB Tiers) - seed tariff config
     currentTariff: 'peak', // 'off_peak' | 'day' | 'peak'
@@ -920,8 +938,7 @@ function initGenesisGridApp() {
 
   function transferToGrid() {
     state.currentSource = 'grid';
-    state.gridPower = state.inverterPower;
-    state.gridCurrent = parseFloat((state.inverterPower / state.gridVoltage).toFixed(2));
+    // The hardware PZEM measures active load values directly (no UI calculation/derivation)
     setBatteryFlow('IDLE', 0);
     dismissHighLoadWarning(false);
     showToast(`Transferred to Main Grid: Inverter Overloaded`, 'warning');
@@ -1293,9 +1310,73 @@ function initGenesisGridApp() {
       }
     });
 
+    // Direct PZEM Hardware Telemetry DOM Sync (Raw & Unmodified)
+    const pzemV = document.getElementById('pzem-val-voltage');
+    const pzemI = document.getElementById('pzem-val-current');
+    const pzemP = document.getElementById('pzem-val-power');
+    const pzemE = document.getElementById('pzem-val-energy');
+    const pzemF = document.getElementById('pzem-val-frequency');
+    const pzemPf = document.getElementById('pzem-val-pf');
+    const pzemPreview = document.getElementById('pzem-raw-payload-preview');
+    const gridCardFootV = document.getElementById('grid-card-foot-voltage');
+    const gridCardFootF = document.getElementById('grid-card-foot-freq');
+    const gridCardFootPf = document.getElementById('grid-card-foot-pf');
+    const gridLiveBadge = document.getElementById('grid-live-badge');
+
+    if (pzemV) pzemV.textContent = (state.gridPzem.mainVoltage || 0).toFixed(1);
+    if (pzemI) pzemI.textContent = (state.gridPzem.mainCurrent || 0).toFixed(1);
+    if (pzemP) pzemP.textContent = (state.gridPzem.mainPower || 0).toFixed(1);
+    if (pzemE) pzemE.textContent = (state.gridPzem.mainEnergy || 0).toFixed(2);
+    if (pzemF) pzemF.textContent = (state.gridPzem.mainFrequency || 0).toFixed(1);
+    if (pzemPf) pzemPf.textContent = (state.gridPzem.mainPF || 0).toFixed(2);
+
+    if (gridCardFootV) gridCardFootV.textContent = `${(state.gridPzem.mainVoltage || 0).toFixed(1)} V`;
+    if (gridCardFootF) gridCardFootF.textContent = `${(state.gridPzem.mainFrequency || 0).toFixed(1)} Hz`;
+    if (gridCardFootPf) gridCardFootPf.textContent = `${(state.gridPzem.mainPF || 0).toFixed(2)}`;
+    if (gridLiveBadge) gridLiveBadge.textContent = `${(state.gridPzem.mainPower || 0).toFixed(1)} W`;
+
+    if (pzemPreview) {
+      pzemPreview.textContent = JSON.stringify({
+        mainVoltage: Number((state.gridPzem.mainVoltage || 0).toFixed(1)),
+        mainCurrent: Number((state.gridPzem.mainCurrent || 0).toFixed(1)),
+        mainPower: Number((state.gridPzem.mainPower || 0).toFixed(1)),
+        mainEnergy: Number((state.gridPzem.mainEnergy || 0).toFixed(2)),
+        mainFrequency: Number((state.gridPzem.mainFrequency || 0).toFixed(1)),
+        mainPF: Number((state.gridPzem.mainPF || 0).toFixed(2))
+      }, null, 2);
+    }
+
     // Update Pixel-Perfect Vector SVG Diagram
     updateVectorSvgDiagram();
   }
+
+  // =========================================================
+  // 4B. PZEM-004T HARDWARE DIRECT TELEMETRY INGESTION ENGINE
+  // =========================================================
+  function receiveGridPzemData(payload) {
+    if (!payload) return;
+    let data = payload;
+    if (typeof payload === 'string') {
+      try { data = JSON.parse(payload); } catch (e) { console.error("PZEM Parse Error:", e); return; }
+    }
+    
+    // Receive and display directly — Zero frontend calculation, estimation or derivation
+    if (data.mainVoltage !== undefined) state.gridPzem.mainVoltage = Number(data.mainVoltage);
+    if (data.mainCurrent !== undefined) state.gridPzem.mainCurrent = Number(data.mainCurrent);
+    if (data.mainPower !== undefined) state.gridPzem.mainPower = Number(data.mainPower);
+    if (data.mainEnergy !== undefined) state.gridPzem.mainEnergy = Number(data.mainEnergy);
+    if (data.mainFrequency !== undefined) state.gridPzem.mainFrequency = Number(data.mainFrequency);
+    if (data.mainPF !== undefined) state.gridPzem.mainPF = Number(data.mainPF);
+
+    state.telemetryFreshness.gridPower.lastSeen = Date.now();
+    state.telemetryFreshness.gridPower.quality = 'GOOD';
+
+    // Synchronize UI immediately with raw hardware values
+    updateUI();
+  }
+
+  window.receiveGridPzemData = receiveGridPzemData;
+  window.receiveHardwareTelemetry = receiveGridPzemData;
 
   // =========================================================
   // 5. VECTOR SVG DISTRIBUTION DIAGRAM CONTROLLER
@@ -2398,45 +2479,55 @@ function initGenesisGridApp() {
       `
     },
     grid: {
-      title: "CEB Utility Grid & Tariff Deep-Dive",
-      subtitle: "Time-of-Use (TOU) Smart Tariff Mapping & Grid Avoidance SCADA",
+      title: "CEB Utility Grid (PZEM-004T Direct Hardware Sensor)",
+      subtitle: "Raw Telemetry Measured Directly by PZEM Sensor — No Frontend Calculation",
       icon: "plug",
       iconColor: "#38bdf8",
       badgeColor: "#38bdf8",
-      status: "TOU Peak Optimization",
-      navTab: "billing",
-      navLabel: "View Billing Breakdown",
+      status: "PZEM Hardware Direct",
+      navTab: "analytics",
+      navLabel: "View SCADA Analytics",
       render: () => `
-        <div class="modal-grid-stats">
+        <div class="modal-grid-stats" style="grid-template-columns: repeat(3, 1fr);">
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">ACTIVE CEB TARIFF RATE</span>
-            <span class="modal-stat-val text-danger">Rs. 106.00 / kWh</span>
-            <span class="modal-stat-sub">PEAK TARIFF (18:30 — 22:30 SLST)</span>
+            <span class="modal-stat-lbl">GRID VOLTAGE (PZEM)</span>
+            <span class="modal-stat-val text-cyan">${(state.gridPzem.mainVoltage || 0).toFixed(1)} V</span>
+            <span class="modal-stat-sub">Direct Hardware AC RMS Voltage</span>
           </div>
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">AVOIDED PEAK GRID IMPORT</span>
-            <span class="modal-stat-val text-mint">4.20 kWh</span>
-            <span class="modal-stat-sub">100% Shifted to Solar + Battery</span>
+            <span class="modal-stat-lbl">GRID CURRENT (PZEM)</span>
+            <span class="modal-stat-val text-cyan">${(state.gridPzem.mainCurrent || 0).toFixed(1)} A</span>
+            <span class="modal-stat-sub">Direct Hardware AC RMS Current</span>
           </div>
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">PEAK HOURS MONEY SAVED</span>
-            <span class="modal-stat-val text-amber">Rs. 445.20</span>
-            <span class="modal-stat-sub">Direct Peak Tariff Cost Avoidance</span>
+            <span class="modal-stat-lbl">ACTIVE POWER (PZEM)</span>
+            <span class="modal-stat-val text-cyan">${(state.gridPzem.mainPower || 0).toFixed(1)} W</span>
+            <span class="modal-stat-sub">Direct Hardware Active Power</span>
           </div>
           <div class="modal-stat-box">
-            <span class="modal-stat-lbl">CEB GRID IMPORT STATUS</span>
-            <span class="modal-stat-val text-cyan">0 W (Idle)</span>
-            <span class="modal-stat-sub">Zero Peak Grid Import</span>
+            <span class="modal-stat-lbl">TOTAL ENERGY (PZEM)</span>
+            <span class="modal-stat-val text-mint">${(state.gridPzem.mainEnergy || 0).toFixed(2)} kWh</span>
+            <span class="modal-stat-sub">Direct Hardware Energy Accumulator</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">LINE FREQUENCY (PZEM)</span>
+            <span class="modal-stat-val">${(state.gridPzem.mainFrequency || 0).toFixed(1)} Hz</span>
+            <span class="modal-stat-sub">Direct Hardware Frequency</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">POWER FACTOR (PZEM)</span>
+            <span class="modal-stat-val text-mint">${(state.gridPzem.mainPF || 0).toFixed(2)}</span>
+            <span class="modal-stat-sub">Direct Hardware Measured PF</span>
           </div>
         </div>
 
         <div class="modal-section-box">
-          <span class="modal-section-title"><i data-lucide="dollar-sign"></i> CEB Time-of-Use Schedule</span>
+          <span class="modal-section-title"><i data-lucide="shield-check"></i> PZEM-004T Direct Data Ingestion Protocol</span>
           <table class="modal-table-simple">
-            <tr><td>Off-Peak Interval (22:30 — 05:30)</td><td>Rs. 33.00 / kWh</td></tr>
-            <tr><td>Day Interval (05:30 — 18:30)</td><td>Rs. 47.00 / kWh</td></tr>
-            <tr><td>Peak Interval (18:30 — 22:30)</td><td>Rs. 106.00 / kWh</td></tr>
-            <tr><td>Estimated Monthly CEB Savings</td><td>Rs. 12,450.00</td></tr>
+            <tr><td>Sensor Interface &amp; Hardware</td><td>PZEM-004T v3.0 Multi-Function AC Sensor</td></tr>
+            <tr><td>Calculation Policy</td><td>100% Hardware Measurement (Zero UI derivations/estimations)</td></tr>
+            <tr><td>Active Tariff Profile</td><td>${state.currentTariff.toUpperCase()} (Rs. ${(state.tariffRates[state.currentTariff] || 106).toFixed(2)} / kWh)</td></tr>
+            <tr><td>Grid Status</td><td>${state.gridAvailable ? '230V 50Hz Synchronized • Normal' : 'Utility Blackout / Offline'}</td></tr>
           </table>
         </div>
       `
@@ -2677,6 +2768,23 @@ function initGenesisGridApp() {
   if (btnSaveCal) {
     btnSaveCal.addEventListener('click', () => {
       showToast('ACS712 Sensor Calibration Profiles Updated & Stored', 'success');
+    });
+  }
+
+  // PZEM Hardware Test Ingestion Trigger
+  const btnInjectPzem = document.getElementById('btn-inject-pzem-sample');
+  if (btnInjectPzem) {
+    btnInjectPzem.addEventListener('click', () => {
+      const samplePzemPayload = {
+        mainVoltage: 230.2,
+        mainCurrent: 2.4,
+        mainPower: 480.5,
+        mainEnergy: 12.45,
+        mainFrequency: 50.0,
+        mainPF: 0.92
+      };
+      receiveGridPzemData(samplePzemPayload);
+      showToast('PZEM Hardware Telemetry Ingested: 230.2V, 2.4A, 480.5W, 12.45kWh, 50.0Hz, 0.92PF', 'success');
     });
   }
 
